@@ -25,3 +25,7 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/admin', fn () => inertia('Admin/Dashboard'))->name('admin.dashboard');
+});

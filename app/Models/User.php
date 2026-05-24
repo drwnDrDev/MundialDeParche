@@ -3,9 +3,6 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use App\Models\Prediction;
-use App\Models\PredictionSubmission;
-use App\Models\SpecialPrediction;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -81,9 +78,9 @@ class User extends Authenticatable
 
         $classifierPts = PredictionSubmission::where('user_id', $userId)->sum('pts_classifier');
 
-        $specialPts = SpecialPrediction::where('user_id', $userId)
+        $specialPts = (int) (SpecialPrediction::where('user_id', $userId)
             ->selectRaw('COALESCE(pts_champion,0) + COALESCE(pts_runner_up,0) + COALESCE(pts_top_scorer,0) AS t')
-            ->value('t') ?? 0;
+            ->value('t') ?? 0);
 
         static::where('id', $userId)->update([
             'total_points' => $matchPts + $classifierPts + $specialPts,

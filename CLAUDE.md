@@ -211,11 +211,18 @@ Incluye: 6 controladores admin (Dashboard, Round, Team, Fixture, Player, User), 
 
 Tests: 94 pasando.
 
+### Plan 3: Predictions Engine — COMPLETADO ✓
+
+Commit final: `fd69d78`
+
+Incluye: PredictionController (index/show/save/submit), SpecialPredictionController (show/save), páginas React Predictions/Index + Round + Special, rutas bajo `/predictions`, 18 feature tests.
+
+Tests: 112 pasando.
+
 ### Planes pendientes
 
 | Plan | Alcance | Estado |
 |---|---|---|
-| Plan 3 | Predictions Engine (draft/submit/lock flow) | Pendiente |
 | Plan 4 | Points Engine (eventos, cálculo, live scoring) | Pendiente |
 | Plan 5 | Real-time & Chat (Reverb, canales, chat grupal) | Pendiente |
 | Plan 6 | Admin Panel UI (React frontend admin) | Pendiente |
@@ -228,3 +235,4 @@ Tests: 94 pasando.
 - Diseño del sistema: `docs/superpowers/specs/2026-05-23-pollamundial-design.md`
 - Plan 1: `docs/superpowers/plans/2026-05-23-plan-1-foundation.md`
 - Plan 2: `docs/superpowers/plans/2026-05-24-plan-2-tournament-admin.md`
+- Plan 3: `docs/superpowers/plans/2026-05-24-plan-3-predictions-engine.md`

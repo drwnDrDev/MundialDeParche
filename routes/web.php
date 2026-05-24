@@ -6,7 +6,9 @@ use App\Http\Controllers\Admin\PlayerController;
 use App\Http\Controllers\Admin\RoundController;
 use App\Http\Controllers\Admin\TeamController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\PredictionController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SpecialPredictionController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -28,6 +30,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+Route::middleware(['auth'])->prefix('predictions')->name('predictions.')->group(function () {
+    Route::get('/', [PredictionController::class, 'index'])->name('index');
+    Route::get('/special', [SpecialPredictionController::class, 'show'])->name('special');
+    Route::post('/special', [SpecialPredictionController::class, 'save'])->name('special.save');
+    Route::get('/{round}', [PredictionController::class, 'show'])->name('show');
+    Route::post('/{round}/save', [PredictionController::class, 'save'])->name('save');
+    Route::post('/{round}/submit', [PredictionController::class, 'submit'])->name('submit');
 });
 
 require __DIR__.'/auth.php';

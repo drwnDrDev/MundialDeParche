@@ -8,6 +8,7 @@ use App\Models\Round;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -144,22 +145,24 @@ class PredictionController extends Controller
             }
         }
 
-        foreach ($data['predictions'] as $matchId => $scores) {
-            if (! $fixtureIds->contains((int) $matchId)) {
-                continue;
+        return DB::transaction(function () use ($data, $fixtureIds, $round) {
+            foreach ($data['predictions'] as $matchId => $scores) {
+                if (! $fixtureIds->contains((int) $matchId)) {
+                    continue;
+                }
+                Prediction::updateOrCreate(
+                    ['user_id' => Auth::id(), 'match_id' => (int) $matchId],
+                    ['predicted_home' => $scores['predicted_home'], 'predicted_away' => $scores['predicted_away']]
+                );
             }
-            Prediction::updateOrCreate(
-                ['user_id' => Auth::id(), 'match_id' => (int) $matchId],
-                ['predicted_home' => $scores['predicted_home'], 'predicted_away' => $scores['predicted_away']]
+
+            PredictionSubmission::updateOrCreate(
+                ['user_id' => Auth::id(), 'round_id' => $round->id],
+                ['status' => 'submitted', 'submitted_at' => now()]
             );
-        }
 
-        PredictionSubmission::updateOrCreate(
-            ['user_id' => Auth::id(), 'round_id' => $round->id],
-            ['status' => 'submitted', 'submitted_at' => now()]
-        );
-
-        return redirect()->route('predictions.index')
-            ->with('status', "¡Predicciones de {$round->name} confirmadas!");
+            return redirect()->route('predictions.index')
+                ->with('status', "¡Predicciones de {$round->name} confirmadas!");
+        });
     }
 }

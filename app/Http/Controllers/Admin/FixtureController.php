@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Events\MatchScoreUpdated;
 use App\Http\Controllers\Controller;
 use App\Models\Fixture;
 use App\Models\Group;
@@ -87,6 +88,10 @@ class FixtureController extends Controller
         ]);
 
         $fixture->update($data);
+
+        if ($fixture->home_score !== null && $fixture->away_score !== null) {
+            MatchScoreUpdated::dispatch($fixture->fresh());
+        }
 
         return redirect()->route('admin.fixtures.index', ['round_id' => $data['round_id']])
             ->with('status', "Partido #{$fixture->match_number} actualizado.");

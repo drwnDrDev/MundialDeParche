@@ -12,6 +12,8 @@ use Inertia\Response;
 
 class DashboardController extends Controller
 {
+    private const COINS_PER_ACTIVATION = 50;
+
     public function index(): Response
     {
         return Inertia::render('Admin/Dashboard', [
@@ -20,7 +22,7 @@ class DashboardController extends Controller
                 'fixtures' => Fixture::count(),
                 'rounds'   => Round::count(),
                 'users'    => User::where('role', 'user')->count(),
-                'pot'      => User::where('is_activated', true)->count() * 50,
+                'pot'      => User::where('is_activated', true)->count() * self::COINS_PER_ACTIVATION,
             ],
         ]);
     }

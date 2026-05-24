@@ -13,7 +13,9 @@ it('shows admin dashboard with stats', function () {
     $response->assertStatus(200);
     $response->assertInertia(fn ($page) => $page
         ->component('Admin/Dashboard')
-        ->has('stats')
+        ->has('stats', fn ($s) => $s
+            ->has('teams')->has('fixtures')->has('rounds')->has('users')->has('pot')
+        )
     );
 });
 

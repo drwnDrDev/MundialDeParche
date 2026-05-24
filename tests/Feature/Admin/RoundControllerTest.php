@@ -6,15 +6,14 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-function adminUser(): User
-{
-    return User::factory()->create(['role' => 'admin']);
-}
+beforeEach(function () {
+    $this->admin = User::factory()->create(['role' => 'admin']);
+});
 
 it('lists rounds', function () {
     Round::factory()->r1()->create();
 
-    $response = $this->withoutVite()->actingAs(adminUser())->get('/admin/rounds');
+    $response = $this->withoutVite()->actingAs($this->admin)->get('/admin/rounds');
 
     $response->assertStatus(200);
     $response->assertInertia(fn ($page) => $page
@@ -26,7 +25,7 @@ it('lists rounds', function () {
 it('opens a round', function () {
     $round = Round::factory()->r1()->create(['is_open' => false]);
 
-    $this->actingAs(adminUser())->post("/admin/rounds/{$round->id}/open");
+    $this->actingAs($this->admin)->post("/admin/rounds/{$round->id}/open");
 
     expect($round->fresh()->is_open)->toBeTrue();
 });
@@ -34,7 +33,7 @@ it('opens a round', function () {
 it('locks a round', function () {
     $round = Round::factory()->r1()->create(['is_open' => true, 'is_locked' => false]);
 
-    $this->actingAs(adminUser())->post("/admin/rounds/{$round->id}/lock");
+    $this->actingAs($this->admin)->post("/admin/rounds/{$round->id}/lock");
 
     expect($round->fresh()->is_locked)->toBeTrue();
     expect($round->fresh()->is_open)->toBeFalse();
@@ -43,7 +42,7 @@ it('locks a round', function () {
 it('finalizes a round', function () {
     $round = Round::factory()->r1()->create(['is_locked' => false]);
 
-    $this->actingAs(adminUser())->post("/admin/rounds/{$round->id}/finalize");
+    $this->actingAs($this->admin)->post("/admin/rounds/{$round->id}/finalize");
 
     expect($round->fresh()->is_locked)->toBeTrue();
 });

@@ -40,9 +40,18 @@ it('locks a round', function () {
 });
 
 it('finalizes a round', function () {
-    $round = Round::factory()->r1()->create(['is_locked' => false]);
+    $round = Round::factory()->r1()->create(['is_open' => true, 'is_locked' => false]);
 
     $this->actingAs($this->admin)->post("/admin/rounds/{$round->id}/finalize");
 
     expect($round->fresh()->is_locked)->toBeTrue();
+    expect($round->fresh()->is_open)->toBeFalse();
+});
+
+it('does not reopen a locked round', function () {
+    $round = Round::factory()->r1()->create(['is_open' => false, 'is_locked' => true]);
+
+    $this->actingAs($this->admin)->post("/admin/rounds/{$round->id}/open")->assertRedirect();
+
+    expect($round->fresh()->is_open)->toBeFalse();
 });

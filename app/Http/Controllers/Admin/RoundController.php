@@ -19,6 +19,10 @@ class RoundController extends Controller
 
     public function open(Round $round): RedirectResponse
     {
+        if ($round->is_locked) {
+            return back()->with('status', 'No se puede abrir una ronda bloqueada.');
+        }
+
         $round->update(['is_open' => true]);
 
         return back()->with('status', "Ronda '{$round->name}' abierta.");
@@ -33,7 +37,7 @@ class RoundController extends Controller
 
     public function finalize(Round $round): RedirectResponse
     {
-        $round->update(['is_locked' => true]);
+        $round->update(['is_open' => false, 'is_locked' => true]);
         // Plan 4 will add: RoundFinalized::dispatch($round)
 
         return back()->with('status', "Ronda '{$round->name}' finalizada.");

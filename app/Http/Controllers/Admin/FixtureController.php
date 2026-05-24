@@ -9,6 +9,7 @@ use App\Models\Round;
 use App\Models\Team;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -80,7 +81,7 @@ class FixtureController extends Controller
             'away_placeholder'   => ['nullable', 'string', 'max:100'],
             'home_score'         => ['nullable', 'integer', 'min:0'],
             'away_score'         => ['nullable', 'integer', 'min:0'],
-            'winner_team_id'     => ['nullable', 'exists:teams,id'],
+            'winner_team_id'     => ['nullable', Rule::in(array_filter([$request->home_team_id, $request->away_team_id]))],
             'went_to_extra_time' => ['boolean'],
             'status'             => ['required', 'in:scheduled,in_progress,finished'],
         ]);

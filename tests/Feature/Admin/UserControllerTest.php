@@ -123,3 +123,11 @@ it('requires round_id to reopen predictions', function () {
         ->post("/admin/users/{$user->id}/reopen-predictions", [])
         ->assertSessionHasErrors(['round_id']);
 });
+
+it('blocks unauthenticated access to admin user routes', function () {
+    $user = User::factory()->create(['role' => 'user']);
+
+    $this->post('/admin/users')->assertRedirect('/login');
+    $this->post("/admin/users/{$user->id}/toggle-active")->assertRedirect('/login');
+    $this->post("/admin/users/{$user->id}/activate-pot")->assertRedirect('/login');
+});

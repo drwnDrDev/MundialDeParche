@@ -3,9 +3,9 @@ import { Head, useForm } from '@inertiajs/react';
 
 export default function Special({ special, teams, players }) {
     const { data, setData, post, processing, errors } = useForm({
-        champion_team_id:     special?.champion_team_id    ?? '',
-        runner_up_team_id:    special?.runner_up_team_id   ?? '',
-        top_scorer_player_id: special?.top_scorer_player_id ?? '',
+        champion_team_id:     special?.champion_team_id?.toString()     ?? '',
+        runner_up_team_id:    special?.runner_up_team_id?.toString()    ?? '',
+        top_scorer_player_id: special?.top_scorer_player_id?.toString() ?? '',
     });
 
     const isLocked = special?.is_locked ?? false;

@@ -43,11 +43,11 @@ it('updates a team', function () {
     $team  = Team::factory()->create(['group_id' => $group->id, 'name' => 'Old Name']);
 
     $this->actingAs($this->admin)->patch("/admin/teams/{$team->id}", [
-        'name'     => 'Argentina',
+        'name'      => 'Argentina',
         'fifa_code' => 'ARG',
-        'flag_url' => 'https://example.com/arg.svg',
-        'group_id' => $group->id,
-    ]);
+        'flag_url'  => 'https://example.com/arg.svg',
+        'group_id'  => $group->id,
+    ])->assertRedirect(route('admin.teams.index'));
 
     expect($team->fresh()->name)->toBe('Argentina');
 });
@@ -58,5 +58,5 @@ it('requires name and fifa_code to update a team', function () {
 
     $this->actingAs($this->admin)
         ->patch("/admin/teams/{$team->id}", ['name' => '', 'fifa_code' => ''])
-        ->assertSessionHasErrors(['name', 'fifa_code']);
+        ->assertSessionHasErrors(['name', 'fifa_code', 'group_id']);
 });

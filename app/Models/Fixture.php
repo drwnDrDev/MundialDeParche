@@ -34,6 +34,11 @@ class Fixture extends Model
         return [
             'match_date' => 'datetime',
             'went_to_extra_time' => 'boolean',
+            'home_score' => 'integer',
+            'away_score' => 'integer',
+            'winner_team_id' => 'integer',
+            'home_team_id' => 'integer',
+            'away_team_id' => 'integer',
         ];
     }
 

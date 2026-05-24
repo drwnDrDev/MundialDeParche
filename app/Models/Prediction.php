@@ -26,6 +26,11 @@ class Prediction extends Model
     {
         return [
             'calculated_at' => 'datetime',
+            'predicted_home' => 'integer',
+            'predicted_away' => 'integer',
+            'pts_exact' => 'integer',
+            'pts_result' => 'integer',
+            'total_points' => 'integer',
         ];
     }
 

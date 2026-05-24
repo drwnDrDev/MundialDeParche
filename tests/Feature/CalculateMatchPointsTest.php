@@ -227,3 +227,34 @@ it('updates user total_points after match calculation', function () {
 
     expect($user->fresh()->total_points)->toBe(4); // 3 exact + 1 result
 });
+
+it('awards zero pts_result for predicted draw in knockout even if away team wins', function () {
+    $round = Round::factory()->r2()->create();
+    $group = Group::factory()->create();
+    $home  = Team::factory()->create(['group_id' => $group->id]);
+    $away  = Team::factory()->create(['group_id' => $group->id]);
+    $fixture = Fixture::factory()->create([
+        'round_id'       => $round->id,
+        'group_id'       => null,
+        'home_team_id'   => $home->id,
+        'away_team_id'   => $away->id,
+        'home_score'     => 1,
+        'away_score'     => 1,
+        'winner_team_id' => $away->id, // away wins via penalties
+        'status'         => 'finished',
+        'match_number'   => rand(100, 60000),
+    ]);
+    $user = User::factory()->create();
+    PredictionSubmission::factory()->submitted()->create(['user_id' => $user->id, 'round_id' => $round->id]);
+    $prediction = Prediction::factory()->create([
+        'user_id'        => $user->id,
+        'match_id'       => $fixture->id,
+        'predicted_home' => 1,
+        'predicted_away' => 1, // user predicted draw → no pts_result in knockout
+    ]);
+
+    (new CalculateMatchPoints)->handle(new MatchScoreUpdated($fixture));
+
+    $prediction->refresh();
+    expect($prediction->pts_result)->toBe(0);
+});

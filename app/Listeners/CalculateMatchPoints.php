@@ -48,7 +48,7 @@ class CalculateMatchPoints
                 }
             } else {
                 // Knockout: result = acertar el ganador real (winner_team_id)
-                if ($fixture->winner_team_id !== null) {
+                if ($fixture->winner_team_id !== null && $prediction->predicted_home !== $prediction->predicted_away) {
                     $predictedWinnerId = $prediction->predicted_home > $prediction->predicted_away
                         ? $fixture->home_team_id
                         : $fixture->away_team_id;

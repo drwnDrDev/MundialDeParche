@@ -203,11 +203,18 @@ Incluye: scaffold Laravel, entorno Sail, todos los modelos y migraciones, factor
 
 Tests: 59 pasando.
 
+### Plan 2: Tournament Admin — COMPLETADO ✓
+
+Commit final: `891cc8f`
+
+Incluye: 6 controladores admin (Dashboard, Round, Team, Fixture, Player, User), AdminLayout + páginas React para todas las secciones, CRUD completo de rondas/equipos/partidos/jugadores/usuarios, 35 feature tests.
+
+Tests: 94 pasando.
+
 ### Planes pendientes
 
 | Plan | Alcance | Estado |
 |---|---|---|
-| Plan 2 | Tournament Admin (CRUD equipos, grupos, partidos, rondas) | Pendiente |
 | Plan 3 | Predictions Engine (draft/submit/lock flow) | Pendiente |
 | Plan 4 | Points Engine (eventos, cálculo, live scoring) | Pendiente |
 | Plan 5 | Real-time & Chat (Reverb, canales, chat grupal) | Pendiente |
@@ -220,3 +227,4 @@ Tests: 59 pasando.
 
 - Diseño del sistema: `docs/superpowers/specs/2026-05-23-pollamundial-design.md`
 - Plan 1: `docs/superpowers/plans/2026-05-23-plan-1-foundation.md`
+- Plan 2: `docs/superpowers/plans/2026-05-24-plan-2-tournament-admin.md`

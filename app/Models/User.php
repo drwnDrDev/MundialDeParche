@@ -37,6 +37,8 @@ class User extends Authenticatable
             'password' => 'hashed',
             'is_active' => 'boolean',
             'is_activated' => 'boolean',
+            'coins_balance' => 'integer',
+            'total_points' => 'integer',
         ];
     }
 

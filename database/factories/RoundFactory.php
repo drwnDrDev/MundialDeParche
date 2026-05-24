@@ -14,9 +14,9 @@ class RoundFactory extends Factory
             'order' => fake()->numberBetween(1, 4),
             'is_open' => false,
             'is_locked' => false,
-            'points_exact' => 3,
-            'points_result' => 1,
-            'points_classifier' => 2,
+            'points_exact' => 0,
+            'points_result' => 0,
+            'points_classifier' => 0,
         ];
     }
 

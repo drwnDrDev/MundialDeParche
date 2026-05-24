@@ -16,4 +16,9 @@ class Group extends Model
     {
         return $this->hasMany(Team::class);
     }
+
+    public function fixtures(): HasMany
+    {
+        return $this->hasMany(Fixture::class);
+    }
 }

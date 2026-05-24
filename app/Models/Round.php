@@ -33,4 +33,9 @@ class Round extends Model
     {
         return $this->hasMany(Fixture::class);
     }
+
+    public function predictionSubmissions(): HasMany
+    {
+        return $this->hasMany(PredictionSubmission::class);
+    }
 }

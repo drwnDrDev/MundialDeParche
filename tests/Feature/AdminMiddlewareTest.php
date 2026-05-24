@@ -8,7 +8,15 @@ uses(RefreshDatabase::class);
 it('blocks non-admin users from admin routes', function () {
     $user = User::factory()->create(['role' => 'user']);
 
-    $response = $this->actingAs($user)->get('/admin');
+    $response = $this->withoutVite()->actingAs($user)->get('/admin');
+
+    $response->assertStatus(403);
+});
+
+it('blocks inactive admin users from admin routes', function () {
+    $admin = User::factory()->create(['role' => 'admin', 'is_active' => false]);
+
+    $response = $this->withoutVite()->actingAs($admin)->get('/admin');
 
     $response->assertStatus(403);
 });

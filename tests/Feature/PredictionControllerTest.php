@@ -81,3 +81,159 @@ it('shows round even when closed (read-only)', function () {
     $response->assertStatus(200);
     $response->assertInertia(fn ($page) => $page->component('Predictions/Round'));
 });
+
+it('saves predictions as draft', function () {
+    $round   = Round::factory()->r1()->create(['is_open' => true]);
+    $group   = \App\Models\Group::factory()->create(['name' => 'A']);
+    $home    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
+    $away    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
+    $fixture = \App\Models\Fixture::factory()->create([
+        'round_id'     => $round->id,
+        'group_id'     => $group->id,
+        'home_team_id' => $home->id,
+        'away_team_id' => $away->id,
+    ]);
+
+    $this->actingAs($this->user)->post("/predictions/{$round->id}/save", [
+        'predictions' => [
+            (string) $fixture->id => ['predicted_home' => 2, 'predicted_away' => 1],
+        ],
+    ])->assertRedirect();
+
+    expect(\App\Models\Prediction::count())->toBe(1);
+    expect(\App\Models\Prediction::first()->predicted_home)->toBe(2);
+    expect(\App\Models\PredictionSubmission::first()->status)->toBe('draft');
+});
+
+it('updates existing prediction on save', function () {
+    $round   = Round::factory()->r1()->create(['is_open' => true]);
+    $group   = \App\Models\Group::factory()->create(['name' => 'A']);
+    $home    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
+    $away    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
+    $fixture = \App\Models\Fixture::factory()->create([
+        'round_id' => $round->id, 'group_id' => $group->id,
+        'home_team_id' => $home->id, 'away_team_id' => $away->id,
+    ]);
+    \App\Models\Prediction::factory()->create([
+        'user_id' => $this->user->id, 'match_id' => $fixture->id,
+        'predicted_home' => 0, 'predicted_away' => 0,
+    ]);
+
+    $this->actingAs($this->user)->post("/predictions/{$round->id}/save", [
+        'predictions' => [
+            (string) $fixture->id => ['predicted_home' => 3, 'predicted_away' => 1],
+        ],
+    ])->assertRedirect();
+
+    expect(\App\Models\Prediction::count())->toBe(1);
+    expect(\App\Models\Prediction::first()->predicted_home)->toBe(3);
+});
+
+it('rejects save when round is not open', function () {
+    $round   = Round::factory()->r1()->create(['is_open' => false]);
+    $group   = \App\Models\Group::factory()->create();
+    $fixture = \App\Models\Fixture::factory()->create([
+        'round_id' => $round->id, 'group_id' => $group->id,
+    ]);
+
+    $this->actingAs($this->user)->post("/predictions/{$round->id}/save", [
+        'predictions' => [(string) $fixture->id => ['predicted_home' => 1, 'predicted_away' => 0]],
+    ])->assertRedirect();
+
+    expect(\App\Models\Prediction::count())->toBe(0);
+});
+
+it('rejects save when submission is locked', function () {
+    $round   = Round::factory()->r1()->create(['is_open' => true, 'is_locked' => true]);
+    $group   = \App\Models\Group::factory()->create(['name' => 'A']);
+    $home    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
+    $away    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
+    $fixture = \App\Models\Fixture::factory()->create([
+        'round_id' => $round->id, 'group_id' => $group->id,
+        'home_team_id' => $home->id, 'away_team_id' => $away->id,
+    ]);
+    \App\Models\PredictionSubmission::factory()->locked()->create([
+        'user_id' => $this->user->id, 'round_id' => $round->id,
+    ]);
+
+    $this->actingAs($this->user)->post("/predictions/{$round->id}/save", [
+        'predictions' => [(string) $fixture->id => ['predicted_home' => 1, 'predicted_away' => 0]],
+    ])->assertRedirect();
+
+    expect(\App\Models\Prediction::count())->toBe(0);
+});
+
+it('submits predictions when all fixtures are covered', function () {
+    $round   = Round::factory()->r1()->create(['is_open' => true]);
+    $group   = \App\Models\Group::factory()->create(['name' => 'A']);
+    $home    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
+    $away    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
+    $fixture = \App\Models\Fixture::factory()->create([
+        'round_id' => $round->id, 'group_id' => $group->id,
+        'home_team_id' => $home->id, 'away_team_id' => $away->id,
+    ]);
+
+    $this->actingAs($this->user)->post("/predictions/{$round->id}/submit", [
+        'predictions' => [
+            (string) $fixture->id => ['predicted_home' => 2, 'predicted_away' => 2],
+        ],
+    ])->assertRedirect(route('predictions.index'));
+
+    expect(\App\Models\PredictionSubmission::first()->status)->toBe('submitted');
+    expect(\App\Models\PredictionSubmission::first()->submitted_at)->not->toBeNull();
+});
+
+it('rejects submit when not all fixtures covered', function () {
+    $round   = Round::factory()->r1()->create(['is_open' => true]);
+    $group   = \App\Models\Group::factory()->create(['name' => 'A']);
+    $home    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
+    $away    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
+    \App\Models\Fixture::factory()->create([
+        'round_id' => $round->id, 'group_id' => $group->id,
+        'home_team_id' => $home->id, 'away_team_id' => $away->id,
+    ]);
+
+    $this->actingAs($this->user)->post("/predictions/{$round->id}/submit", [
+        'predictions' => [], // no predictions
+    ])->assertSessionHasErrors('predictions');
+
+    expect(\App\Models\PredictionSubmission::count())->toBe(0);
+});
+
+it('rejects submit with tie in knockout round', function () {
+    $round   = Round::factory()->r2()->create(['is_open' => true]);
+    $group   = \App\Models\Group::factory()->create(['name' => 'A']);
+    $home    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
+    $away    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
+    $fixture = \App\Models\Fixture::factory()->create([
+        'round_id' => $round->id,
+        'home_team_id' => $home->id, 'away_team_id' => $away->id,
+    ]);
+
+    $this->actingAs($this->user)->post("/predictions/{$round->id}/submit", [
+        'predictions' => [
+            (string) $fixture->id => ['predicted_home' => 1, 'predicted_away' => 1],
+        ],
+    ])->assertSessionHasErrors('predictions');
+
+    expect(\App\Models\PredictionSubmission::count())->toBe(0);
+});
+
+it('allows ties in group stage (R1) submit', function () {
+    $round   = Round::factory()->r1()->create(['is_open' => true]);
+    $group   = \App\Models\Group::factory()->create(['name' => 'A']);
+    $home    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
+    $away    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
+    $fixture = \App\Models\Fixture::factory()->create([
+        'round_id' => $round->id, 'group_id' => $group->id,
+        'home_team_id' => $home->id, 'away_team_id' => $away->id,
+    ]);
+
+    $this->actingAs($this->user)->post("/predictions/{$round->id}/submit", [
+        'predictions' => [
+            (string) $fixture->id => ['predicted_home' => 1, 'predicted_away' => 1],
+        ],
+    ])->assertRedirect(route('predictions.index'));
+
+    expect(\App\Models\PredictionSubmission::first()->status)->toBe('submitted');
+});

@@ -65,3 +65,19 @@ it('can have placeholder text for unknown teams', function () {
     expect($fixture->home_team_id)->toBeNull()
         ->and($fixture->home_placeholder)->toBe('Ganador Grupo A');
 });
+
+it('belongs to a group for group stage matches', function () {
+    $group = Group::factory()->create();
+    $fixture = Fixture::factory()->create(['group_id' => $group->id]);
+
+    expect($fixture->group)->toBeInstanceOf(Group::class)
+        ->and($fixture->group->id)->toBe($group->id);
+});
+
+it('can have a winner team', function () {
+    $team = Team::factory()->create();
+    $fixture = Fixture::factory()->finished(2, 0)->create(['winner_team_id' => $team->id]);
+
+    expect($fixture->winnerTeam)->toBeInstanceOf(Team::class)
+        ->and($fixture->winnerTeam->id)->toBe($team->id);
+});

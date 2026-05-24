@@ -33,6 +33,7 @@ it('lists fixtures filtered by round', function () {
         ->component('Admin/Fixtures/Index')
         ->has('fixtures', 1)
         ->has('rounds')
+        ->has('selectedRoundId')
     );
 });
 

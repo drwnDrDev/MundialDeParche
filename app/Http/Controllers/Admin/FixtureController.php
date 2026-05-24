@@ -87,7 +87,7 @@ class FixtureController extends Controller
 
         $fixture->update($data);
 
-        return redirect()->route('admin.fixtures.index', ['round_id' => $fixture->round_id])
+        return redirect()->route('admin.fixtures.index', ['round_id' => $data['round_id']])
             ->with('status', "Partido #{$fixture->match_number} actualizado.");
     }
 

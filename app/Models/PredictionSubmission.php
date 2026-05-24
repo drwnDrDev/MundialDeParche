@@ -10,7 +10,7 @@ class PredictionSubmission extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'round_id', 'status', 'submitted_at'];
+    protected $fillable = ['user_id', 'round_id', 'status', 'submitted_at', 'pts_classifier'];
 
     protected function casts(): array
     {

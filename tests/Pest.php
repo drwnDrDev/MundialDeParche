@@ -18,6 +18,9 @@ pest()->extend(Tests\TestCase::class)
 pest()->extend(Tests\TestCase::class)
     ->in('Unit/Models');
 
+pest()->extend(Tests\TestCase::class)
+    ->in('../.worktrees/plan-5-realtime-chat/tests/Feature');
+
 /*
 |--------------------------------------------------------------------------
 | Expectations

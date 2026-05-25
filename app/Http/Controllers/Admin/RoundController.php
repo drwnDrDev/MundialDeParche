@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Events\RoundFinalized;
 use App\Http\Controllers\Controller;
 use App\Models\Round;
 use Illuminate\Http\RedirectResponse;
@@ -38,7 +39,8 @@ class RoundController extends Controller
     public function finalize(Round $round): RedirectResponse
     {
         $round->update(['is_open' => false, 'is_locked' => true]);
-        // Plan 4 will add: RoundFinalized::dispatch($round)
+
+        RoundFinalized::dispatch($round);
 
         return back()->with('status', "Ronda '{$round->name}' finalizada.");
     }

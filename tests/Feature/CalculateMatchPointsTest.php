@@ -1,6 +1,9 @@
 <?php
 
+use App\Events\ExactScoreAlert;
+use App\Events\LiveScoreUpdated;
 use App\Events\MatchScoreUpdated;
+use App\Events\PointsUpdated;
 use App\Listeners\CalculateMatchPoints;
 use App\Models\Fixture;
 use App\Models\Group;
@@ -10,8 +13,13 @@ use App\Models\Round;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
 
 uses(RefreshDatabase::class);
+
+beforeEach(function () {
+    Event::fake([LiveScoreUpdated::class, PointsUpdated::class, ExactScoreAlert::class]);
+});
 
 it('prediction_submission has pts_classifier column', function () {
     $sub = PredictionSubmission::factory()->submitted()->create(['pts_classifier' => 6]);

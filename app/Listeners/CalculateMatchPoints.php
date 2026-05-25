@@ -2,7 +2,10 @@
 
 namespace App\Listeners;
 
+use App\Events\ExactScoreAlert;
+use App\Events\LiveScoreUpdated;
 use App\Events\MatchScoreUpdated;
+use App\Events\PointsUpdated;
 use App\Models\Prediction;
 use App\Models\PredictionSubmission;
 use App\Models\User;
@@ -27,7 +30,8 @@ class CalculateMatchPoints
             ->whereIn('user_id', $submittedUserIds)
             ->get();
 
-        $affectedUserIds = [];
+        $affectedUserIds   = [];
+        $exactScoreHitters = []; // user IDs who got pts_exact
 
         foreach ($predictions as $prediction) {
             $ptsExact  = 0;
@@ -66,10 +70,39 @@ class CalculateMatchPoints
             ]);
 
             $affectedUserIds[] = $prediction->user_id;
+
+            if ($ptsExact > 0) {
+                $exactScoreHitters[] = $prediction->user_id;
+            }
         }
 
+        // Recalculate totals and broadcast per-user updates
         foreach (array_unique($affectedUserIds) as $userId) {
             User::recalculateTotalPoints($userId);
+
+            $user     = User::find($userId);
+            $position = User::where('total_points', '>', $user->total_points)->count() + 1;
+
+            PointsUpdated::dispatch($userId, $user->total_points, $position);
+        }
+
+        // Broadcast live score once
+        LiveScoreUpdated::dispatch(
+            $fixture->id,
+            $fixture->home_score,
+            $fixture->away_score,
+            $fixture->status === 'in_progress',
+        );
+
+        // Broadcast exact score alerts
+        foreach ($exactScoreHitters as $userId) {
+            $user = User::find($userId);
+            ExactScoreAlert::dispatch(
+                $user->name,
+                $fixture->id,
+                $fixture->home_score,
+                $fixture->away_score,
+            );
         }
     }
 }

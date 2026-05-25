@@ -2,7 +2,10 @@
 
 namespace App\Listeners;
 
+use App\Events\ExactScoreAlert;
+use App\Events\LiveScoreUpdated;
 use App\Events\MatchScoreUpdated;
+use App\Events\PointsUpdated;
 use App\Models\Prediction;
 use App\Models\PredictionSubmission;
 use App\Models\User;
@@ -27,7 +30,8 @@ class CalculateMatchPoints
             ->whereIn('user_id', $submittedUserIds)
             ->get();
 
-        $affectedUserIds = [];
+        $affectedUserIds   = [];
+        $exactScoreHitters = []; // user IDs who got pts_exact
 
         foreach ($predictions as $prediction) {
             $ptsExact  = 0;
@@ -66,10 +70,46 @@ class CalculateMatchPoints
             ]);
 
             $affectedUserIds[] = $prediction->user_id;
+
+            if ($ptsExact > 0) {
+                $exactScoreHitters[] = $prediction->user_id;
+            }
         }
 
-        foreach (array_unique($affectedUserIds) as $userId) {
+        // Phase 1: recalculate all affected users first
+        $uniqueAffectedIds = array_unique($affectedUserIds);
+        foreach ($uniqueAffectedIds as $userId) {
             User::recalculateTotalPoints($userId);
+        }
+
+        // Phase 2: load all affected users in one query + compute positions from snapshot
+        $affectedUsers = User::whereIn('id', $uniqueAffectedIds)
+            ->select(['id', 'name', 'total_points'])
+            ->get()
+            ->keyBy('id');
+
+        foreach ($affectedUsers as $user) {
+            $position = User::where('total_points', '>', $user->total_points)->count() + 1;
+            PointsUpdated::dispatch($user->id, $user->total_points, $position);
+        }
+
+        // Broadcast live score once
+        LiveScoreUpdated::dispatch(
+            $fixture->id,
+            $fixture->home_score,
+            $fixture->away_score,
+            $fixture->status === 'in_progress',
+        );
+
+        // Phase 3: dispatch exact score alerts using already-loaded user names
+        foreach ($exactScoreHitters as $userId) {
+            $userName = $affectedUsers[$userId]->name ?? User::find($userId)?->name ?? 'Unknown';
+            ExactScoreAlert::dispatch(
+                $userName,
+                $fixture->id,
+                $fixture->home_score,
+                $fixture->away_score,
+            );
         }
     }
 }

@@ -1,16 +1,21 @@
 <?php
 
+use App\Events\ExactScoreAlert;
+use App\Events\LiveScoreUpdated;
+use App\Events\PointsUpdated;
 use App\Models\Fixture;
 use App\Models\Group;
 use App\Models\Round;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
     $this->admin = User::factory()->create(['role' => 'admin']);
+    Event::fake([LiveScoreUpdated::class, PointsUpdated::class, ExactScoreAlert::class]);
 });
 
 it('lists fixtures filtered by round', function () {

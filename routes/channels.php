@@ -22,6 +22,7 @@ Broadcast::channel('quinela', function (User $user) {
 });
 
 // Private channel per user (points, lock notifications)
-Broadcast::channel('user.{id}', function (User $user, int $id) {
-    return $user->id === $id;
+// Inactive users cannot log in, so this callback is only reachable by authenticated users.
+Broadcast::channel('user.{id}', function (User $user, $id) {
+    return $user->id === (int) $id;
 });

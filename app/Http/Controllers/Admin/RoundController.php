@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Events\RoundFinalized;
+use App\Events\RoundLocked;
+use App\Events\RoundOpened;
 use App\Http\Controllers\Controller;
 use App\Models\Round;
 use Illuminate\Http\RedirectResponse;
@@ -26,12 +28,16 @@ class RoundController extends Controller
 
         $round->update(['is_open' => true]);
 
+        RoundOpened::dispatch($round->name);
+
         return back()->with('status', "Ronda '{$round->name}' abierta.");
     }
 
     public function lock(Round $round): RedirectResponse
     {
         $round->update(['is_open' => false, 'is_locked' => true]);
+
+        RoundLocked::dispatch($round->name);
 
         return back()->with('status', "Ronda '{$round->name}' bloqueada.");
     }
@@ -44,6 +50,7 @@ class RoundController extends Controller
 
         $round->update(['is_open' => false, 'is_locked' => true]);
 
+        RoundLocked::dispatch($round->name);
         RoundFinalized::dispatch($round);
 
         return back()->with('status', "Ronda '{$round->name}' finalizada.");

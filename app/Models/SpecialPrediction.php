@@ -25,8 +25,11 @@ class SpecialPrediction extends Model
     protected function casts(): array
     {
         return [
-            'is_locked' => 'boolean',
-            'calculated_at' => 'datetime',
+            'champion_team_id'     => 'integer',
+            'runner_up_team_id'    => 'integer',
+            'top_scorer_player_id' => 'integer',
+            'is_locked'            => 'boolean',
+            'calculated_at'        => 'datetime',
         ];
     }
 

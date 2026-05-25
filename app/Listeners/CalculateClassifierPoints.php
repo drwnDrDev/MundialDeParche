@@ -61,6 +61,7 @@ class CalculateClassifierPoints
     {
         $byGroup = $fixtures->groupBy('group_id');
         $classifiers = [];
+        $thirds = [];
 
         foreach ($byGroup as $groupId => $groupFixtures) {
             $table = $this->buildGroupTable($groupFixtures, $getScores);
@@ -69,6 +70,22 @@ class CalculateClassifierPoints
 
             $classifiers[] = $table[0]['team_id'];
             $classifiers[] = $table[1]['team_id'];
+
+            if (isset($table[2])) {
+                $thirds[] = $table[2];
+            }
+        }
+
+        if (count($thirds) >= 8) {
+            usort($thirds, fn ($a, $b) =>
+                $b['pts'] <=> $a['pts']
+                ?: $b['gd'] <=> $a['gd']
+                ?: $b['gf'] <=> $a['gf']
+            );
+
+            foreach (array_slice($thirds, 0, 8) as $third) {
+                $classifiers[] = $third['team_id'];
+            }
         }
 
         return $classifiers;

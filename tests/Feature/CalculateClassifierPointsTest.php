@@ -145,3 +145,44 @@ it('updates user total_points after R1 classifier calculation', function () {
 
     expect($user->fresh()->total_points)->toBe(4);
 });
+
+it('awards classifier pts for correctly predicted 8-best-thirds across 9 groups', function () {
+    $round = Round::factory()->r1()->create(['points_classifier' => 2]);
+    $user  = User::factory()->create();
+    PredictionSubmission::factory()->submitted()->create(['user_id' => $user->id, 'round_id' => $round->id]);
+
+    // Create 9 groups. In each group: T1 wins all, T2 beats T3+T4, T3 beats T4.
+    // Real classifiers: T1 and T2 from each group (18 teams) + 8 best thirds out of 9.
+    // T3 from each group has 3 pts, 1 gd, 1 gf (beats T4 1-0, loses to T1 and T2).
+    // All 9 thirds are tied on pts/gd/gf, so top-8 thirds = any 8 of them.
+    $allFixtures = collect();
+    $matchStart = 1;
+
+    for ($g = 0; $g < 9; $g++) {
+        $name = chr(65 + $g); // A, B, C, ... I
+        ['fixtures' => $fixtures, 'teams' => $teams] = makeGroup($round, $name, $matchStart);
+        $matchStart += 6;
+
+        // Real scores: T1 wins all, T2 beats T3+T4, T3 beats T4
+        setActualScores($fixtures, [
+            [2,0],[2,0],[2,0],
+            [1,0],[1,0],
+            [1,0],
+        ]);
+
+        // User predicts same outcomes
+        createUserPredictions($user, $fixtures, [
+            [2,0],[2,0],[2,0],
+            [1,0],[1,0],
+            [1,0],
+        ]);
+
+        $allFixtures = $allFixtures->concat($fixtures);
+    }
+
+    (new CalculateClassifierPoints)->handle(new RoundFinalized($round));
+
+    $submission = PredictionSubmission::where('user_id', $user->id)->where('round_id', $round->id)->first();
+    // 9 groups × 2 top classifiers = 18 correct + 8 out of 9 thirds correct = 26 correct × 2 = 52 pts
+    expect($submission->pts_classifier)->toBe(52);
+});

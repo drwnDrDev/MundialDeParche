@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\RoundController;
 use App\Http\Controllers\Admin\TeamController;
 use App\Http\Controllers\Admin\TournamentController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\PredictionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SpecialPredictionController;
@@ -31,6 +32,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('/chat', [ChatController::class, 'index'])->name('chat');
+    Route::post('/chat/messages', [ChatController::class, 'store'])->name('chat.store');
 });
 
 Route::middleware(['auth'])->prefix('predictions')->name('predictions.')->group(function () {

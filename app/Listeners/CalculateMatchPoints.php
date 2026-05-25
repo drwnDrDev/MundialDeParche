@@ -76,14 +76,21 @@ class CalculateMatchPoints
             }
         }
 
-        // Recalculate totals and broadcast per-user updates
-        foreach (array_unique($affectedUserIds) as $userId) {
+        // Phase 1: recalculate all affected users first
+        $uniqueAffectedIds = array_unique($affectedUserIds);
+        foreach ($uniqueAffectedIds as $userId) {
             User::recalculateTotalPoints($userId);
+        }
 
-            $user     = User::find($userId);
+        // Phase 2: load all affected users in one query + compute positions from snapshot
+        $affectedUsers = User::whereIn('id', $uniqueAffectedIds)
+            ->select(['id', 'name', 'total_points'])
+            ->get()
+            ->keyBy('id');
+
+        foreach ($affectedUsers as $user) {
             $position = User::where('total_points', '>', $user->total_points)->count() + 1;
-
-            PointsUpdated::dispatch($userId, $user->total_points, $position);
+            PointsUpdated::dispatch($user->id, $user->total_points, $position);
         }
 
         // Broadcast live score once
@@ -94,11 +101,11 @@ class CalculateMatchPoints
             $fixture->status === 'in_progress',
         );
 
-        // Broadcast exact score alerts
+        // Phase 3: dispatch exact score alerts using already-loaded user names
         foreach ($exactScoreHitters as $userId) {
-            $user = User::find($userId);
+            $userName = $affectedUsers[$userId]->name ?? User::find($userId)?->name ?? 'Unknown';
             ExactScoreAlert::dispatch(
-                $user->name,
+                $userName,
                 $fixture->id,
                 $fixture->home_score,
                 $fixture->away_score,

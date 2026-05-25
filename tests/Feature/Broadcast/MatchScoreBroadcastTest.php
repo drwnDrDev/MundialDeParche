@@ -124,6 +124,33 @@ it('does not dispatch ExactScoreAlert when no user gets pts_exact', function () 
     Event::assertNotDispatched(ExactScoreAlert::class);
 });
 
+it('dispatches ExactScoreAlert for each user who gets pts_exact', function () {
+    Event::fake([LiveScoreUpdated::class, PointsUpdated::class, ExactScoreAlert::class]);
+
+    $round   = Round::factory()->r1()->create();
+    $userA   = User::factory()->create(['name' => 'Ana']);
+    $userB   = User::factory()->create(['name' => 'Bob']);
+    $fixture = makeGroupFixtureWithScore($round, 2, 0, matchNum: 1);
+
+    PredictionSubmission::factory()->submitted()->create(['user_id' => $userA->id, 'round_id' => $round->id]);
+    PredictionSubmission::factory()->submitted()->create(['user_id' => $userB->id, 'round_id' => $round->id]);
+
+    Prediction::factory()->create([
+        'user_id' => $userA->id, 'match_id' => $fixture->id,
+        'predicted_home' => 2, 'predicted_away' => 0, // exact
+    ]);
+    Prediction::factory()->create([
+        'user_id' => $userB->id, 'match_id' => $fixture->id,
+        'predicted_home' => 2, 'predicted_away' => 0, // also exact
+    ]);
+
+    (new CalculateMatchPoints)->handle(new MatchScoreUpdated($fixture));
+
+    Event::assertDispatchedTimes(ExactScoreAlert::class, 2);
+    Event::assertDispatched(ExactScoreAlert::class, fn ($e) => $e->userName === 'Ana');
+    Event::assertDispatched(ExactScoreAlert::class, fn ($e) => $e->userName === 'Bob');
+});
+
 it('dispatches LiveScoreUpdated with isLive=true when match is in_progress', function () {
     Event::fake([LiveScoreUpdated::class, PointsUpdated::class, ExactScoreAlert::class]);
 

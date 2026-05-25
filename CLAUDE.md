@@ -219,11 +219,18 @@ Incluye: PredictionController (index/show/save/submit), SpecialPredictionControl
 
 Tests: 112 pasando.
 
+### Plan 4: Points Engine — COMPLETADO ✓
+
+Commit final: `6ff13e1`
+
+Incluye: CalculateMatchPoints + CalculateClassifierPoints (R1 group stage + 8 best thirds + R2 R16) + CalculateSpecialPredictions listeners, TournamentController + Tournament.jsx, dispatch desde FixtureController y RoundController, Artisan command `points:recalculate --match= --round=`, integer casts en SpecialPrediction FKs.
+
+Tests: 145 pasando.
+
 ### Planes pendientes
 
 | Plan | Alcance | Estado |
 |---|---|---|
-| Plan 4 | Points Engine (eventos, cálculo, live scoring) | Pendiente |
 | Plan 5 | Real-time & Chat (Reverb, canales, chat grupal) | Pendiente |
 | Plan 6 | Admin Panel UI (React frontend admin) | Pendiente |
 | Plan 7 | User Frontend (predicciones, ranking, chat usuarios) | Pendiente |
@@ -236,3 +243,4 @@ Tests: 112 pasando.
 - Plan 1: `docs/superpowers/plans/2026-05-23-plan-1-foundation.md`
 - Plan 2: `docs/superpowers/plans/2026-05-24-plan-2-tournament-admin.md`
 - Plan 3: `docs/superpowers/plans/2026-05-24-plan-3-predictions-engine.md`
+- Plan 4: `docs/superpowers/plans/2026-05-24-plan-4-points-engine.md`

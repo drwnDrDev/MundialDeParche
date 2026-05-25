@@ -20,7 +20,7 @@ export default function Index({ teams }) {
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
                                 <tr>
-                                    {['Nombre', 'FIFA Code', 'Flag URL', ''].map(h => (
+                                    {['', 'Nombre', 'FIFA Code', ''].map(h => (
                                         <th key={h} className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{h}</th>
                                     ))}
                                 </tr>
@@ -28,9 +28,13 @@ export default function Index({ teams }) {
                             <tbody className="divide-y divide-gray-200 bg-white">
                                 {groupTeams.map(team => (
                                     <tr key={team.id}>
+                                        <td className="px-4 py-2">
+                                            {team.flag_url
+                                                ? <img src={team.flag_url} alt={team.fifa_code} className="h-5 w-8 object-cover rounded-sm shadow-sm" />
+                                                : <span className="text-gray-300">—</span>}
+                                        </td>
                                         <td className="px-4 py-2 text-sm font-medium text-gray-900">{team.name}</td>
                                         <td className="px-4 py-2 text-sm text-gray-600">{team.fifa_code}</td>
-                                        <td className="px-4 py-2 text-sm text-gray-400 truncate max-w-xs">{team.flag_url ?? '—'}</td>
                                         <td className="px-4 py-2 text-sm">
                                             <Link href={route('admin.teams.edit', team.id)}
                                                 className="text-indigo-600 hover:text-indigo-800">

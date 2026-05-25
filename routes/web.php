@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\FixtureController;
 use App\Http\Controllers\Admin\PlayerController;
 use App\Http\Controllers\Admin\RoundController;
 use App\Http\Controllers\Admin\TeamController;
+use App\Http\Controllers\Admin\TournamentController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\PredictionController;
 use App\Http\Controllers\ProfileController;
@@ -78,4 +79,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('users/{user}/activate-pot', [UserController::class, 'activatePot'])->name('users.activate-pot');
     Route::post('users/{user}/deactivate-pot', [UserController::class, 'deactivatePot'])->name('users.deactivate-pot');
     Route::post('users/{user}/reopen-predictions', [UserController::class, 'reopenPredictions'])->name('users.reopen-predictions');
+
+    // Tournament
+    Route::get('tournament', [TournamentController::class, 'show'])->name('tournament');
+    Route::post('tournament/finalize', [TournamentController::class, 'finalize'])->name('tournament.finalize');
 });

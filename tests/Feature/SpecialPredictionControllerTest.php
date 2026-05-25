@@ -33,7 +33,7 @@ it('saves special predictions', function () {
     $group   = Group::factory()->create(['name' => 'A']);
     $champ   = Team::factory()->create(['group_id' => $group->id]);
     $runner  = Team::factory()->create(['group_id' => $group->id]);
-    $scorer  = Player::factory()->create();
+    $scorer  = Player::factory()->create(['team_id' => $champ->id]);
 
     $this->actingAs($this->user)->post('/predictions/special', [
         'champion_team_id'     => $champ->id,
@@ -52,7 +52,7 @@ it('updates existing special prediction on re-save', function () {
     $champ   = Team::factory()->create(['group_id' => $group->id]);
     $runner  = Team::factory()->create(['group_id' => $group->id]);
     $newChamp = Team::factory()->create(['group_id' => $group->id]);
-    $scorer  = Player::factory()->create();
+    $scorer  = Player::factory()->create(['team_id' => $champ->id]);
 
     SpecialPrediction::create([
         'user_id'              => $this->user->id,
@@ -75,7 +75,7 @@ it('updates existing special prediction on re-save', function () {
 it('rejects save when champion equals runner-up', function () {
     $group  = Group::factory()->create(['name' => 'A']);
     $team   = Team::factory()->create(['group_id' => $group->id]);
-    $scorer = Player::factory()->create();
+    $scorer = Player::factory()->create(['team_id' => $team->id]);
 
     $this->actingAs($this->user)->post('/predictions/special', [
         'champion_team_id'     => $team->id,
@@ -88,7 +88,7 @@ it('blocks save when special predictions are locked', function () {
     $group   = Group::factory()->create(['name' => 'A']);
     $champ   = Team::factory()->create(['group_id' => $group->id]);
     $runner  = Team::factory()->create(['group_id' => $group->id]);
-    $scorer  = Player::factory()->create();
+    $scorer  = Player::factory()->create(['team_id' => $champ->id]);
 
     SpecialPrediction::create([
         'user_id'              => $this->user->id,

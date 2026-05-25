@@ -1,5 +1,6 @@
 <?php
 
+use App\Events\RoundFinalized;
 use App\Events\RoundLocked;
 use App\Events\RoundOpened;
 use App\Models\Round;
@@ -38,4 +39,14 @@ it('dispatches RoundLocked when admin locks a round', function () {
     $this->actingAs($this->admin)->post("/admin/rounds/{$round->id}/lock");
 
     Event::assertDispatched(RoundLocked::class, fn ($e) => $e->roundName === $round->name);
+});
+
+it('dispatches RoundLocked and RoundFinalized when admin finalizes a round', function () {
+    Event::fake([RoundLocked::class, RoundFinalized::class]);
+    $round = Round::factory()->r1()->create(['is_open' => true, 'is_locked' => false]);
+
+    $this->actingAs($this->admin)->post("/admin/rounds/{$round->id}/finalize");
+
+    Event::assertDispatched(RoundLocked::class, fn ($e) => $e->roundName === $round->name);
+    Event::assertDispatched(RoundFinalized::class, fn ($e) => $e->round->is($round));
 });

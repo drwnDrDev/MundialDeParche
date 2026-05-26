@@ -227,11 +227,33 @@ Incluye: CalculateMatchPoints + CalculateClassifierPoints (R1 group stage + 8 be
 
 Tests: 145 pasando.
 
+### Plan 5: Real-time & Chat — COMPLETADO ✓
+
+Commit final: `9e64bd6`
+
+Incluye: `routes/channels.php` (presence-quinela + private-user), 6 broadcast events (LiveScoreUpdated, PointsUpdated, RoundOpened, RoundLocked, MessageSent, ExactScoreAlert), ChatController (GET/POST), RankingController, Chat.jsx + Ranking.jsx.
+
+Tests: 175 pasando.
+
+### Paso 3: Biblioteca de Íconos SVG — COMPLETADO ✓
+
+Commit final: `9f27c9c`
+
+Incluye: 12 íconos de fútbol en `resources/js/Components/icons/football/` (Trophy, SoccerBall, Jersey, Boot, Whistle, Stadium, GoalNet, Mark26, HostStrip, FlagSmall, Pennant, PitchSwoosh), barrel export en `index.js`, 4 íconos de NavBar en `NavIcons.jsx` (NavStadium, NavVS, NavTrophy, NavFire con prop `active`). Todos usan CSS variables como defaults.
+
+### Paso 4: Componentes Compuestos — PLAN LISTO, PENDIENTE IMPLEMENTACIÓN
+
+Plan: `docs/superpowers/plans/2026-05-25-plan-composites.md`
+Spec: `docs/superpowers/specs/2026-05-25-composites-design.md`
+
+12 componentes presentacionales en `resources/js/Components/composed/`: ScoreBox, StatCard, PtsBadge, BetCard, MatchPredRow, MatchCard, TabBar, PodiumStep, RankRow, PozoCard, ChatBubble, GroupStandingCard.
+
 ### Planes pendientes
 
 | Plan | Alcance | Estado |
 |---|---|---|
-| Plan 5 | Real-time & Chat (Reverb, canales, chat grupal) | Pendiente |
+| Paso 4 | Componentes Compuestos (implementación) | Plan listo |
+| Paso 5 | Screens/Views: pantallas completas con compuestos | Pendiente |
 | Plan 6 | Admin Panel UI (React frontend admin) | Pendiente |
 | Plan 7 | User Frontend (predicciones, ranking, chat usuarios) | Pendiente |
 
@@ -244,3 +266,11 @@ Tests: 145 pasando.
 - Plan 2: `docs/superpowers/plans/2026-05-24-plan-2-tournament-admin.md`
 - Plan 3: `docs/superpowers/plans/2026-05-24-plan-3-predictions-engine.md`
 - Plan 4: `docs/superpowers/plans/2026-05-24-plan-4-points-engine.md`
+- Spec íconos (Paso 3): `docs/superpowers/specs/2026-05-25-icons-design.md`
+- Spec compuestos (Paso 4): `docs/superpowers/specs/2026-05-25-composites-design.md`
+- Plan compuestos (Paso 4): `docs/superpowers/plans/2026-05-25-plan-composites.md`
+- Design handoff: `/mnt/c/Users/dwndz/OneDrive/Escritorio/Mundial de parche_/design_handoff_mundial_parche/`
+  - `README.md` — sistema de diseño completo, 20 pantallas, lista de componentes
+  - `football-graphics.jsx` — 12 íconos SVG de fútbol
+  - `bits.jsx` — TabBar, PtsBadge, HalftoneCorner, KasBadge
+  - `screen-home.jsx`, `screen-ranking.jsx`, `screen-matches.jsx`, `screen-predict.jsx`, `screen-chat.jsx`

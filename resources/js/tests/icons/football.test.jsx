@@ -3,6 +3,9 @@ import FlagSmall from '../../Components/icons/football/FlagSmall';
 import Trophy from '../../Components/icons/football/Trophy';
 import SoccerBall from '../../Components/icons/football/SoccerBall';
 import Jersey from '../../Components/icons/football/Jersey';
+import Boot from '../../Components/icons/football/Boot';
+import Whistle from '../../Components/icons/football/Whistle';
+import Stadium from '../../Components/icons/football/Stadium';
 
 describe('Football icons', () => {
     describe('FlagSmall', () => {
@@ -44,6 +47,27 @@ describe('Football icons', () => {
     describe('Jersey', () => {
         it('renders svg', () => {
             const { container } = render(<Jersey />);
+            expect(container.querySelector('svg')).toBeInTheDocument();
+        });
+    });
+
+    describe('Boot', () => {
+        it('renders svg', () => {
+            const { container } = render(<Boot />);
+            expect(container.querySelector('svg')).toBeInTheDocument();
+        });
+    });
+
+    describe('Whistle', () => {
+        it('renders svg', () => {
+            const { container } = render(<Whistle />);
+            expect(container.querySelector('svg')).toBeInTheDocument();
+        });
+    });
+
+    describe('Stadium', () => {
+        it('renders svg', () => {
+            const { container } = render(<Stadium />);
             expect(container.querySelector('svg')).toBeInTheDocument();
         });
     });

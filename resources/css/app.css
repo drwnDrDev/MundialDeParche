@@ -1,3 +1,51 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer utilities {
+    /* Halftone (puntos Ben-Day) */
+    .halftone {
+        background-image: radial-gradient(rgba(0, 0, 0, 0.9) 1.2px, transparent 1.6px);
+        background-size: 8px 8px;
+        opacity: 0.18;
+    }
+    .halftone-red {
+        background-image: radial-gradient(#ff3d3d 1.2px, transparent 1.6px);
+        background-size: 8px 8px;
+        opacity: 0.18;
+    }
+    .halftone-yel {
+        background-image: radial-gradient(#ffd23f 1.2px, transparent 1.6px);
+        background-size: 8px 8px;
+        opacity: 0.18;
+    }
+    .halftone-teal {
+        background-image: radial-gradient(#00c2a8 1.2px, transparent 1.6px);
+        background-size: 8px 8px;
+        opacity: 0.18;
+    }
+    .halftone-navy {
+        background-image: radial-gradient(#0a1f3d 1.2px, transparent 1.6px);
+        background-size: 8px 8px;
+        opacity: 0.18;
+    }
+
+    /* Scanlines (CRT) */
+    .scanlines {
+        background-image: repeating-linear-gradient(
+            0deg,
+            rgba(0, 0, 0, 0.08) 0 1px,
+            transparent 1px 3px
+        );
+    }
+
+    /* Speedlines (anime) */
+    .speedlines {
+        background-image: repeating-linear-gradient(
+            75deg,
+            transparent 0 14px,
+            rgba(0, 0, 0, 0.18) 14px 16px,
+            transparent 16px 30px
+        );
+    }
+}

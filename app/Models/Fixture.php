@@ -27,6 +27,7 @@ class Fixture extends Model
         'winner_team_id',
         'went_to_extra_time',
         'status',
+        'venue',
     ];
 
     protected function casts(): array

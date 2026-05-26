@@ -50,4 +50,19 @@ describe('Burst', () => {
         const { container } = render(<Burst className="absolute top-2">X</Burst>);
         expect(container.firstChild).toHaveClass('absolute');
     });
+
+    it('applies sm text size on inner span', () => {
+        const { container } = render(<Burst size="sm">X</Burst>);
+        expect(container.querySelector('span')).toHaveClass('text-[10px]');
+    });
+
+    it('applies md text size on inner span by default', () => {
+        const { container } = render(<Burst>X</Burst>);
+        expect(container.querySelector('span')).toHaveClass('text-xs');
+    });
+
+    it('applies lg text size on inner span', () => {
+        const { container } = render(<Burst size="lg">X</Burst>);
+        expect(container.querySelector('span')).toHaveClass('text-sm');
+    });
 });

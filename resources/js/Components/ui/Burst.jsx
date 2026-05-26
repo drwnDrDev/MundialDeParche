@@ -46,6 +46,7 @@ export default function Burst({
                 className={[
                     'relative z-10 font-display uppercase text-center leading-tight',
                     c.text,
+                    s.text,
                 ].join(' ')}
             >
                 {children}

@@ -10,6 +10,7 @@ import GoalNet from '../../Components/icons/football/GoalNet';
 import Mark26 from '../../Components/icons/football/Mark26';
 import Pennant from '../../Components/icons/football/Pennant';
 import PitchSwoosh from '../../Components/icons/football/PitchSwoosh';
+import HostStrip from '../../Components/icons/football/HostStrip';
 
 describe('Football icons', () => {
     describe('FlagSmall', () => {
@@ -107,6 +108,15 @@ describe('Football icons', () => {
         it('renders svg', () => {
             const { container } = render(<PitchSwoosh />);
             expect(container.querySelector('svg')).toBeInTheDocument();
+        });
+    });
+
+    describe('HostStrip', () => {
+        it('renders with country labels', () => {
+            const { getByText } = render(<HostStrip />);
+            expect(getByText('USA')).toBeInTheDocument();
+            expect(getByText('CAN')).toBeInTheDocument();
+            expect(getByText('MEX')).toBeInTheDocument();
         });
     });
 });

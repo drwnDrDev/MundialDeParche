@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    --c-navy:  #0a1f3d;
+    --c-red:   #ff3d3d;
+    --c-yel:   #ffd23f;
+    --c-teal:  #00c2a8;
+    --c-cream: #f4ecd8;
+    --c-ink:   #0e1320;
+  }
+}
+
 @layer utilities {
     /* Halftone (puntos Ben-Day) */
     .halftone {

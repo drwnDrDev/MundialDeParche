@@ -31,17 +31,24 @@ class PredictionController extends Controller
 
     public function show(Round $round): Response|RedirectResponse
     {
-        if ($round->is_open) {
-            $hasUnassigned = $round->fixtures()
-                ->where(function ($q) {
-                    $q->whereNull('home_team_id')->orWhereNull('away_team_id');
-                })
-                ->exists();
+        if (!$round->is_open) {
+            return Inertia::render('Predictions/Locked', [
+                'roundName'  => $round->name,
+                'roundOrder' => $round->order,
+                'isLocked'   => $round->is_locked,
+                'opensAt'    => null,
+            ]);
+        }
 
-            if ($hasUnassigned) {
-                return redirect()->route('predictions.index')
-                    ->with('status', 'Esta ronda aún tiene partidos sin equipos asignados.');
-            }
+        $hasUnassigned = $round->fixtures()
+            ->where(function ($q) {
+                $q->whereNull('home_team_id')->orWhereNull('away_team_id');
+            })
+            ->exists();
+
+        if ($hasUnassigned) {
+            return redirect()->route('predictions.index')
+                ->with('status', 'Esta ronda aún tiene partidos sin equipos asignados.');
         }
 
         $fixtures = $round->fixtures()

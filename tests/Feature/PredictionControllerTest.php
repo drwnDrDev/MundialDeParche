@@ -64,7 +64,7 @@ it('redirects from round show when fixtures have unassigned teams', function () 
         ->assertRedirect(route('predictions.index'));
 });
 
-it('shows round even when closed (read-only)', function () {
+it('shows locked page when round is closed', function () {
     $round   = Round::factory()->r1()->create(['is_open' => false, 'is_locked' => true]);
     $group   = \App\Models\Group::factory()->create(['name' => 'A']);
     $home    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
@@ -79,7 +79,7 @@ it('shows round even when closed (read-only)', function () {
     $response = $this->withoutVite()->actingAs($this->user)->get("/predictions/{$round->id}");
 
     $response->assertStatus(200);
-    $response->assertInertia(fn ($page) => $page->component('Predictions/Round'));
+    $response->assertInertia(fn ($page) => $page->component('Predictions/Locked')->has('roundName')->has('isLocked'));
 });
 
 it('saves predictions as draft', function () {

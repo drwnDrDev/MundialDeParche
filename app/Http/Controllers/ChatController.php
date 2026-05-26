@@ -20,8 +20,21 @@ class ChatController extends Controller
             ->reverse()
             ->values();
 
+        $liveMatch = \App\Models\Fixture::with(['homeTeam', 'awayTeam'])
+            ->where('status', 'live')
+            ->first();
+
+        $liveMatchData = $liveMatch ? [
+            'teamA'  => $liveMatch->homeTeam?->fifa_code ?? 'TBD',
+            'teamB'  => $liveMatch->awayTeam?->fifa_code ?? 'TBD',
+            'scoreA' => $liveMatch->home_score,
+            'scoreB' => $liveMatch->away_score,
+            'minute' => null,
+        ] : null;
+
         return Inertia::render('Chat', [
-            'messages' => $messages,
+            'messages'  => $messages,
+            'liveMatch' => $liveMatchData,
         ]);
     }
 

@@ -25,7 +25,7 @@ it('lists rounds', function () {
 it('opens a round', function () {
     $round = Round::factory()->r1()->create(['is_open' => false]);
 
-    $this->actingAs($this->admin)->post("/admin/rounds/{$round->id}/open");
+    $this->actingAs($this->admin)->post("/admin/rounds/{$round->slug}/open");
 
     expect($round->fresh()->is_open)->toBeTrue();
 });
@@ -33,7 +33,7 @@ it('opens a round', function () {
 it('locks a round', function () {
     $round = Round::factory()->r1()->create(['is_open' => true, 'is_locked' => false]);
 
-    $this->actingAs($this->admin)->post("/admin/rounds/{$round->id}/lock");
+    $this->actingAs($this->admin)->post("/admin/rounds/{$round->slug}/lock");
 
     expect($round->fresh()->is_locked)->toBeTrue();
     expect($round->fresh()->is_open)->toBeFalse();
@@ -42,7 +42,7 @@ it('locks a round', function () {
 it('finalizes a round', function () {
     $round = Round::factory()->r1()->create(['is_open' => true, 'is_locked' => false]);
 
-    $this->actingAs($this->admin)->post("/admin/rounds/{$round->id}/finalize");
+    $this->actingAs($this->admin)->post("/admin/rounds/{$round->slug}/finalize");
 
     expect($round->fresh()->is_locked)->toBeTrue();
     expect($round->fresh()->is_open)->toBeFalse();
@@ -51,7 +51,7 @@ it('finalizes a round', function () {
 it('does not reopen a locked round', function () {
     $round = Round::factory()->r1()->create(['is_open' => false, 'is_locked' => true]);
 
-    $this->actingAs($this->admin)->post("/admin/rounds/{$round->id}/open")->assertRedirect();
+    $this->actingAs($this->admin)->post("/admin/rounds/{$round->slug}/open")->assertRedirect();
 
     expect($round->fresh()->is_open)->toBeFalse();
 });

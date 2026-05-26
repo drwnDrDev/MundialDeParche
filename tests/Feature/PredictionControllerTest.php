@@ -40,7 +40,7 @@ it('shows a round prediction page when round is open with teams assigned', funct
         'away_team_id' => $away->id,
     ]);
 
-    $response = $this->withoutVite()->actingAs($this->user)->get("/predictions/{$round->id}");
+    $response = $this->withoutVite()->actingAs($this->user)->get("/predictions/{$round->slug}");
 
     $response->assertStatus(200);
     $response->assertInertia(fn ($page) => $page
@@ -60,7 +60,7 @@ it('redirects from round show when fixtures have unassigned teams', function () 
         'away_team_id' => null,
     ]);
 
-    $this->actingAs($this->user)->get("/predictions/{$round->id}")
+    $this->actingAs($this->user)->get("/predictions/{$round->slug}")
         ->assertRedirect(route('predictions.index'));
 });
 
@@ -76,7 +76,7 @@ it('shows locked page when round is closed', function () {
         'away_team_id' => $away->id,
     ]);
 
-    $response = $this->withoutVite()->actingAs($this->user)->get("/predictions/{$round->id}");
+    $response = $this->withoutVite()->actingAs($this->user)->get("/predictions/{$round->slug}");
 
     $response->assertStatus(200);
     $response->assertInertia(fn ($page) => $page->component('Predictions/Locked')->has('roundName')->has('isLocked'));
@@ -94,7 +94,7 @@ it('saves predictions as draft', function () {
         'away_team_id' => $away->id,
     ]);
 
-    $this->actingAs($this->user)->post("/predictions/{$round->id}/save", [
+    $this->actingAs($this->user)->post("/predictions/{$round->slug}/save", [
         'predictions' => [
             (string) $fixture->id => ['predicted_home' => 2, 'predicted_away' => 1],
         ],
@@ -119,7 +119,7 @@ it('updates existing prediction on save', function () {
         'predicted_home' => 0, 'predicted_away' => 0,
     ]);
 
-    $this->actingAs($this->user)->post("/predictions/{$round->id}/save", [
+    $this->actingAs($this->user)->post("/predictions/{$round->slug}/save", [
         'predictions' => [
             (string) $fixture->id => ['predicted_home' => 3, 'predicted_away' => 1],
         ],
@@ -136,7 +136,7 @@ it('rejects save when round is not open', function () {
         'round_id' => $round->id, 'group_id' => $group->id,
     ]);
 
-    $this->actingAs($this->user)->post("/predictions/{$round->id}/save", [
+    $this->actingAs($this->user)->post("/predictions/{$round->slug}/save", [
         'predictions' => [(string) $fixture->id => ['predicted_home' => 1, 'predicted_away' => 0]],
     ])->assertRedirect();
 
@@ -156,7 +156,7 @@ it('rejects save when submission is locked', function () {
         'user_id' => $this->user->id, 'round_id' => $round->id,
     ]);
 
-    $this->actingAs($this->user)->post("/predictions/{$round->id}/save", [
+    $this->actingAs($this->user)->post("/predictions/{$round->slug}/save", [
         'predictions' => [(string) $fixture->id => ['predicted_home' => 1, 'predicted_away' => 0]],
     ])->assertRedirect();
 
@@ -173,7 +173,7 @@ it('submits predictions when all fixtures are covered', function () {
         'home_team_id' => $home->id, 'away_team_id' => $away->id,
     ]);
 
-    $this->actingAs($this->user)->post("/predictions/{$round->id}/submit", [
+    $this->actingAs($this->user)->post("/predictions/{$round->slug}/submit", [
         'predictions' => [
             (string) $fixture->id => ['predicted_home' => 2, 'predicted_away' => 2],
         ],
@@ -193,7 +193,7 @@ it('rejects submit when not all fixtures covered', function () {
         'home_team_id' => $home->id, 'away_team_id' => $away->id,
     ]);
 
-    $this->actingAs($this->user)->post("/predictions/{$round->id}/submit", [
+    $this->actingAs($this->user)->post("/predictions/{$round->slug}/submit", [
         'predictions' => [], // no predictions
     ])->assertSessionHasErrors('predictions');
 
@@ -210,7 +210,7 @@ it('rejects submit with tie in knockout round', function () {
         'home_team_id' => $home->id, 'away_team_id' => $away->id,
     ]);
 
-    $this->actingAs($this->user)->post("/predictions/{$round->id}/submit", [
+    $this->actingAs($this->user)->post("/predictions/{$round->slug}/submit", [
         'predictions' => [
             (string) $fixture->id => ['predicted_home' => 1, 'predicted_away' => 1],
         ],
@@ -229,7 +229,7 @@ it('allows ties in group stage (R1) submit', function () {
         'home_team_id' => $home->id, 'away_team_id' => $away->id,
     ]);
 
-    $this->actingAs($this->user)->post("/predictions/{$round->id}/submit", [
+    $this->actingAs($this->user)->post("/predictions/{$round->slug}/submit", [
         'predictions' => [
             (string) $fixture->id => ['predicted_home' => 1, 'predicted_away' => 1],
         ],

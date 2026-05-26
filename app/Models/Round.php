@@ -29,6 +29,11 @@ class Round extends Model
         ];
     }
 
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
     public function fixtures(): HasMany
     {
         return $this->hasMany(Fixture::class);

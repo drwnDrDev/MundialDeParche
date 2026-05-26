@@ -36,7 +36,7 @@ export default function Index({ rounds, submissions }) {
                                 </div>
                                 {(canPredict || status) && (
                                     <Link
-                                        href={route('predictions.show', round.id)}
+                                        href={route('predictions.show', round.slug)}
                                         className="ml-4 inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700"
                                     >
                                         {canPredict ? 'Predecir' : 'Ver'}

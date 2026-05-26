@@ -278,7 +278,7 @@ export default function Round({ round, fixtures, predictions, submission }) {
     }
 
     function submit() {
-        router.post(route('predictions.save', round.id), buildPayload());
+        router.post(route('predictions.save', round.slug), buildPayload());
     }
 
     const activeFixtures = activeGroup ? (grouped[activeGroup] ?? []) : [];

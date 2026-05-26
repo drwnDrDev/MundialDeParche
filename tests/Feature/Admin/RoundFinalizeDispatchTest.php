@@ -16,7 +16,7 @@ it('dispatches RoundFinalized when admin finalizes a round', function () {
     Event::fake();
     $round = Round::factory()->r1()->create(['is_open' => true, 'is_locked' => false]);
 
-    $this->actingAs($this->admin)->post("/admin/rounds/{$round->id}/finalize");
+    $this->actingAs($this->admin)->post("/admin/rounds/{$round->slug}/finalize");
 
     Event::assertDispatched(RoundFinalized::class, function ($event) use ($round) {
         return $event->round->id === $round->id;

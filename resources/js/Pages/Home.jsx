@@ -1,0 +1,170 @@
+import { Head } from '@inertiajs/react';
+import TabBar from '@/Components/composed/TabBar';
+import StatCard from '@/Components/composed/StatCard';
+import BetCard from '@/Components/composed/BetCard';
+import PtsBadge from '@/Components/composed/PtsBadge';
+import FeaturedMatchCard from '@/Components/composed/FeaturedMatchCard';
+
+const AVATAR_CLASSES = {
+    yel:   'bg-pop-yel text-ink',
+    teal:  'bg-pop-teal text-ink',
+    red:   'bg-pop-red text-white',
+    cream: 'bg-cream text-ink border-2 border-ink',
+};
+
+function SectionHead({ title, accent = 'red' }) {
+    return (
+        <div className="flex items-center gap-2 py-2.5">
+            <span className={`w-3.5 h-3.5 flex-shrink-0 bg-pop-${accent} border-2 border-ink`} />
+            <div className="font-display text-[14px] tracking-[.02em]">{title}</div>
+            <div className="flex-1 h-[3px] bg-ink" />
+        </div>
+    );
+}
+
+function Ticker({ text }) {
+    const doubled = `${text}   ${text}`;
+    return (
+        <div className="overflow-hidden bg-ink py-1.5">
+            <span className="inline-block whitespace-nowrap font-mono text-[11px] tracking-[.08em] text-pop-yel animate-[ticker_22s_linear_infinite]">
+                {doubled}
+            </span>
+        </div>
+    );
+}
+
+export default function Home({ user, featured, stats, phase, nextBets }) {
+    const avatarCls = AVATAR_CLASSES[user.avatarColor] ?? AVATAR_CLASSES.yel;
+    const firstName = user.name.split(' ')[0].toUpperCase();
+    const initial   = user.name.charAt(0).toUpperCase();
+
+    return (
+        <>
+            <Head title="PARCHE" />
+            <div className="min-h-screen bg-cream relative overflow-x-hidden pb-28">
+
+                {/* Halftone decoration — top right */}
+                <div
+                    className="halftone halftone-yel absolute top-0 right-0 w-60 h-56 pointer-events-none"
+                    style={{
+                        WebkitMaskImage: 'radial-gradient(circle at 100% 0%, #000, transparent 70%)',
+                        maskImage:       'radial-gradient(circle at 100% 0%, #000, transparent 70%)',
+                        opacity: 0.18,
+                    }}
+                />
+
+                {/* Header */}
+                <div className="relative flex items-center justify-between px-[18px] pt-1.5">
+                    <div className="flex items-center gap-2.5">
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center font-display text-[16px] border-2 border-ink flex-shrink-0 ${avatarCls}`}>
+                            {initial}
+                        </div>
+                        <div>
+                            <div className="font-mono text-[11px] opacity-70 tracking-[.08em]">QUÉ MÁS, LLAVE</div>
+                            <div className="font-display text-[18px] leading-none">{firstName}</div>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <button
+                            className="w-9 h-9 border-[2.5px] border-ink bg-cream shadow-pop-sm font-display text-[18px] flex items-center justify-center cursor-pointer"
+                            aria-label="Cómo se juega y reglas"
+                        >
+                            ?
+                        </button>
+                        <PtsBadge value={user.totalPoints} rank={`#${user.position}`} />
+                    </div>
+                </div>
+
+                {/* Ticker */}
+                <div className="mt-3.5">
+                    <Ticker text="★ MUNDIAL 2026 EN VIVO · PREDICE TUS MARCADORES · ACUMULA PUNTOS · LLEVA EL RANKING · ¡PILAS! ★" />
+                </div>
+
+                {/* Featured match */}
+                <div className="px-5 mt-5">
+                    <SectionHead
+                        title={featured?.status === 'live' ? 'AHORA MISMO' : 'EL PRÓXIMO'}
+                        accent="red"
+                    />
+                    {featured ? (
+                        <FeaturedMatchCard {...featured} />
+                    ) : (
+                        <div className="border-[2.5px] border-ink p-4 text-center font-mono text-[12px] opacity-60">
+                            No hay partidos programados
+                        </div>
+                    )}
+                </div>
+
+                {/* Mini stats */}
+                <div className="px-5 mt-5 grid grid-cols-3 gap-2">
+                    <StatCard
+                        label="POSICIÓN"
+                        value={`#${stats.position}`}
+                        sub={`/ ${stats.totalActive}`}
+                        color="red"
+                        icon="trophy"
+                    />
+                    <StatCard
+                        label="ACERTADOS"
+                        value={stats.acertados}
+                        sub="marcadores"
+                        color="teal"
+                        icon="ball"
+                    />
+                    <StatCard
+                        label="RACHA"
+                        value="--"
+                        sub="ganadores"
+                        color="yel"
+                        icon="boot"
+                    />
+                </div>
+
+                {/* Phase banner */}
+                {phase && (
+                    <div className="px-5 mt-4">
+                        <div className="bg-pop-red text-white border-[2.5px] border-ink shadow-pop-md px-3 py-2.5 flex items-center gap-2.5 relative overflow-hidden">
+                            <div className="halftone halftone-yel absolute inset-0 pointer-events-none" style={{ opacity: 0.25 }} />
+                            <div className="relative flex-1">
+                                <div className="font-mono text-[9px] tracking-[.1em] opacity-90">
+                                    RONDA · {phase.name.toUpperCase()}
+                                </div>
+                                <div className="font-display text-[15px] mt-0.5 leading-tight">
+                                    FALTAN{' '}
+                                    <span className="text-pop-yel">{phase.missing}</span>{' '}
+                                    PARTIDOS
+                                </div>
+                                {phase.closeDate && (
+                                    <div className="font-mono text-[9px] opacity-85 mt-0.5">
+                                        Cierre:{' '}
+                                        {new Date(phase.closeDate).toLocaleDateString('es-CO', {
+                                            day: 'numeric',
+                                            month: 'short',
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                            <div className="relative font-display text-[24px] leading-none">→</div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Next bets carousel */}
+                {nextBets.length > 0 && (
+                    <div className="mt-4">
+                        <div className="px-5">
+                            <SectionHead title="TUS PRÓXIMOS" accent="teal" />
+                        </div>
+                        <div className="flex gap-2.5 overflow-x-auto px-5 pb-1">
+                            {nextBets.map((bet, i) => (
+                                <BetCard key={i} {...bet} />
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            <TabBar active="home" />
+        </>
+    );
+}

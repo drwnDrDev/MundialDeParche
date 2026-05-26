@@ -1,3 +1,4 @@
+export { default as FeaturedMatchCard }  from './FeaturedMatchCard';
 export { default as TabBar }             from './TabBar';
 export { default as PtsBadge }           from './PtsBadge';
 export { default as StatCard }           from './StatCard';

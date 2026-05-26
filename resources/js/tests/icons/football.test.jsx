@@ -6,6 +6,7 @@ import Jersey from '../../Components/icons/football/Jersey';
 import Boot from '../../Components/icons/football/Boot';
 import Whistle from '../../Components/icons/football/Whistle';
 import Stadium from '../../Components/icons/football/Stadium';
+import GoalNet from '../../Components/icons/football/GoalNet';
 
 describe('Football icons', () => {
     describe('FlagSmall', () => {
@@ -69,6 +70,19 @@ describe('Football icons', () => {
         it('renders svg', () => {
             const { container } = render(<Stadium />);
             expect(container.querySelector('svg')).toBeInTheDocument();
+        });
+    });
+
+    describe('GoalNet', () => {
+        it('renders svg', () => {
+            const { container } = render(<GoalNet />);
+            expect(container.querySelector('svg')).toBeInTheDocument();
+        });
+
+        it('renders 18 net lines (11 vertical + 7 horizontal)', () => {
+            const { container } = render(<GoalNet />);
+            const lines = container.querySelectorAll('line');
+            expect(lines).toHaveLength(18);
         });
     });
 });

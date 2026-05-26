@@ -35,19 +35,19 @@ export default function Index({ rounds }) {
                                 </td>
                                 <td className="flex gap-2 px-4 py-3">
                                     {!round.is_open && !round.is_locked && (
-                                        <button onClick={() => action(route('admin.rounds.open', round.id))}
+                                        <button onClick={() => action(route('admin.rounds.open', round.slug))}
                                             className="rounded bg-green-600 px-3 py-1 text-xs text-white hover:bg-green-700">
                                             Abrir
                                         </button>
                                     )}
                                     {round.is_open && !round.is_locked && (
-                                        <button onClick={() => action(route('admin.rounds.lock', round.id))}
+                                        <button onClick={() => action(route('admin.rounds.lock', round.slug))}
                                             className="rounded bg-yellow-600 px-3 py-1 text-xs text-white hover:bg-yellow-700">
                                             Bloquear
                                         </button>
                                     )}
                                     {round.is_locked && (
-                                        <button onClick={() => action(route('admin.rounds.finalize', round.id))}
+                                        <button onClick={() => action(route('admin.rounds.finalize', round.slug))}
                                             className="rounded bg-red-600 px-3 py-1 text-xs text-white hover:bg-red-700">
                                             Finalizar
                                         </button>

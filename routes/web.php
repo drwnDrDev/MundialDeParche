@@ -14,18 +14,15 @@ use App\Http\Controllers\PredictionController;
 use App\Http\Controllers\RankingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SpecialPredictionController;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin'       => Route::has('login'),
-        'canRegister'    => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion'     => PHP_VERSION,
-    ]);
-});
+    if (auth()->check()) {
+        return redirect()->route('dashboard');
+    }
+    return Inertia::render('Splash');
+})->name('home');
 
 Route::get('/dashboard', [HomeController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 

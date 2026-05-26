@@ -32,7 +32,7 @@ it('shows ranking page with active users ordered by total_points desc', function
     expect($users[2]['position'])->toBe(3);
 });
 
-it('includes id, name, avatar, total_points, position in each row', function () {
+it('includes id, name, total_points, position, avatarColor, delta in each row', function () {
     $response = $this->withoutVite()->actingAs($this->user)->get('/ranking');
 
     $response->assertInertia(fn ($page) => $page
@@ -40,6 +40,13 @@ it('includes id, name, avatar, total_points, position in each row', function () 
         ->has('users.0.name')
         ->has('users.0.total_points')
         ->has('users.0.position')
+        ->has('users.0.avatarColor')
+        ->has('users.0.delta')
+        ->has('pozo')
+        ->has('pozo.total')
+        ->has('pozo.players')
+        ->has('pozo.prize1')
+        ->has('pozo.prize2')
     );
 });
 

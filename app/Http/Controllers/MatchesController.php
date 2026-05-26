@@ -48,7 +48,7 @@ class MatchesController extends Controller
         $groups = Group::with('teams')->orderBy('name')->get()
             ->map(fn ($g) => [
                 'id'    => $g->name,
-                'teams' => $this->buildStandings($g),
+                'teams' => $this->buildStandings($g, $fixtures),
             ]);
 
         return Inertia::render('Matches', [
@@ -74,8 +74,8 @@ class MatchesController extends Controller
 
     private function formatFixture(Fixture $f, ?Prediction $pred): array
     {
-        $status = $f->status ?? ($f->home_score !== null ? 'ft' : 'upcoming');
-        $pts    = $pred ? ($pred->pts_exact + $pred->pts_result) : null;
+        $status = $f->status ?? ($f->home_score !== null ? 'finished' : 'upcoming');
+        $pts    = $pred ? ($pred->pts_exact + $pred->pts_result + $pred->pts_classifier) : null;
 
         return [
             'id'       => $f->id,
@@ -91,17 +91,18 @@ class MatchesController extends Controller
             'group'    => $f->group?->name ?? '—',
             'venue'    => $f->venue ?? '—',
             'myPick'   => $pred ? "{$pred->predicted_home}-{$pred->predicted_away}" : null,
-            'myPts'    => ($status === 'ft' && $pts > 0) ? $pts : null,
+            'myPts'    => (in_array($status, ['ft', 'finished']) && $pts > 0) ? $pts : null,
         ];
     }
 
-    private function buildStandings(Group $group): array
+    private function buildStandings(Group $group, \Illuminate\Support\Collection $allFixtures): array
     {
         $teams    = $group->teams;
-        $fixtures = Fixture::where('group_id', $group->id)
-            ->whereNotNull('home_score')
-            ->whereNotNull('away_score')
-            ->get();
+        $fixtures = $allFixtures->filter(fn ($f) =>
+            $f->group_id === $group->id
+            && $f->home_score !== null
+            && $f->away_score !== null
+        );
 
         return $teams->map(function (Team $team) use ($fixtures) {
             $home = $fixtures->filter(fn ($f) => $f->home_team_id === $team->id);

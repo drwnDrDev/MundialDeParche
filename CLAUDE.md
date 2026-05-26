@@ -241,19 +241,35 @@ Commit final: `9f27c9c`
 
 Incluye: 12 íconos de fútbol en `resources/js/Components/icons/football/` (Trophy, SoccerBall, Jersey, Boot, Whistle, Stadium, GoalNet, Mark26, HostStrip, FlagSmall, Pennant, PitchSwoosh), barrel export en `index.js`, 4 íconos de NavBar en `NavIcons.jsx` (NavStadium, NavVS, NavTrophy, NavFire con prop `active`). Todos usan CSS variables como defaults.
 
-### Paso 4: Componentes Compuestos — PLAN LISTO, PENDIENTE IMPLEMENTACIÓN
+### Paso 4: Componentes Compuestos — COMPLETADO ✓
 
-Plan: `docs/superpowers/plans/2026-05-25-plan-composites.md`
-Spec: `docs/superpowers/specs/2026-05-25-composites-design.md`
+Commit final: `ea10615`
 
 12 componentes presentacionales en `resources/js/Components/composed/`: ScoreBox, StatCard, PtsBadge, BetCard, MatchPredRow, MatchCard, TabBar, PodiumStep, RankRow, PozoCard, ChatBubble, GroupStandingCard.
+
+### Paso 5: Screens/Views — COMPLETADO ✓
+
+Commit final: `a5c2e2f`
+
+8 pantallas completas con design system pop-art. Commits principales: `a8b56d4` (MobileShell+TabBar), `3a10ecb` (MatchesController), `76b35aa` (RankingController), `67fd79b` (Chat), `5397615` (Splash+ruta), `efc9453` (Login), `2116eb0` (Ranking), `bf7872b` (Locked), `493455f` (Round+cleanup).
+
+Incluye:
+- `MobileShell.jsx` — shell compartido reemplazando AuthenticatedLayout
+- `TabBar.jsx` — navegación Inertia con `router.visit()`
+- `MatchesController` + ruta `/matches` + feature tests
+- `RankingController` actualizado: dense rank, avatarColor, pozo
+- `ChatController` actualizado: liveMatch prop
+- `PredictionController` actualizado: redirect a Locked cuando `!is_open`
+- Páginas nuevas: `Splash.jsx`, `Matches.jsx`, `Predictions/Locked.jsx`
+- Páginas refactorizadas: `Home.jsx` (ya estaba), `Ranking.jsx`, `Chat.jsx`, `Auth/Login.jsx`, `Predictions/Round.jsx`
+- Ruta `/` → Splash para guests, redirect dashboard para autenticados
+
+Tests: 189 pasando.
 
 ### Planes pendientes
 
 | Plan | Alcance | Estado |
 |---|---|---|
-| Paso 4 | Componentes Compuestos (implementación) | Plan listo |
-| Paso 5 | Screens/Views: pantallas completas con compuestos | Pendiente |
 | Plan 6 | Admin Panel UI (React frontend admin) | Pendiente |
 | Plan 7 | User Frontend (predicciones, ranking, chat usuarios) | Pendiente |
 

@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\TournamentController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\MatchesController;
 use App\Http\Controllers\PredictionController;
 use App\Http\Controllers\RankingController;
 use App\Http\Controllers\ProfileController;
@@ -36,6 +37,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/chat', [ChatController::class, 'index'])->name('chat');
     Route::post('/chat/messages', [ChatController::class, 'store'])->name('chat.store');
     Route::get('/ranking', [RankingController::class, 'index'])->name('ranking');
+    Route::get('/matches', [MatchesController::class, 'index'])->name('matches');
 });
 
 Route::middleware(['auth'])->prefix('predictions')->name('predictions.')->group(function () {

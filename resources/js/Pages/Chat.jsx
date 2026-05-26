@@ -1,99 +1,141 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
+import TabBar from '@/Components/composed/TabBar';
+import ChatBubble from '@/Components/composed/ChatBubble';
+import { SoccerBall } from '@/Components/icons/football';
 
-export default function Chat({ messages: initialMessages }) {
-    const [messages, setMessages] = useState(initialMessages);
+const COLORS = ['yel', 'teal', 'red', 'cream'];
+
+function mapMessage(msg, myId) {
+    return {
+        id:    msg.id,
+        name:  msg.user.name.split(' ')[0].toUpperCase(),
+        color: `var(--c-${COLORS[msg.user.id % 4]})`,
+        text:  msg.content,
+        time:  new Date(msg.created_at).toLocaleTimeString('es', {
+            hour: '2-digit', minute: '2-digit', hour12: false,
+        }),
+        isMe: msg.user.id === myId,
+    };
+}
+
+export default function Chat({ messages: initialMessages, liveMatch }) {
+    const { auth } = usePage().props;
+    const myId = auth.user.id;
+
+    const [messages, setMessages]       = useState(initialMessages.map(m => mapMessage(m, myId)));
+    const [onlineCount, setOnlineCount] = useState(0);
     const bottomRef = useRef(null);
+
     const { data, setData, post, processing, reset } = useForm({ content: '' });
-
-    useEffect(() => {
-        const channel = window.Echo.join('quinela');
-
-        channel.listen('.MessageSent', (event) => {
-            setMessages((prev) => [
-                ...prev,
-                {
-                    id:         event.id,
-                    content:    event.content,
-                    created_at: event.created_at,
-                    user: {
-                        id:     event.user_id,
-                        name:   event.user_name,
-                        avatar: event.user_avatar,
-                    },
-                },
-            ]);
-        });
-
-        return () => {
-            window.Echo.leave('quinela');
-        };
-    }, []);
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
-    function handleSubmit(e) {
+    useEffect(() => {
+        const channel = window.Echo.join('quinela');
+
+        channel
+            .here(users => setOnlineCount(users.length))
+            .joining(() => setOnlineCount(c => c + 1))
+            .leaving(() => setOnlineCount(c => Math.max(0, c - 1)))
+            .listen('.MessageSent', (event) => {
+                const raw = {
+                    id:         event.id,
+                    user:       { id: event.user_id, name: event.user_name },
+                    content:    event.content,
+                    created_at: event.created_at,
+                };
+                setMessages(prev => [...prev, mapMessage(raw, myId)]);
+            });
+
+        return () => { window.Echo.leave('quinela'); };
+    }, [myId]);
+
+    const send = (e) => {
         e.preventDefault();
-        if (!data.content.trim()) return;
-        post(route('chat.store'), {
-            preserveScroll: true,
-            onSuccess: () => reset('content'),
-        });
-    }
+        if (!data.content.trim() || processing) return;
+        post(route('chat.store'), { onSuccess: () => reset() });
+    };
 
     return (
-        <AuthenticatedLayout header={<h2 className="text-xl font-semibold text-gray-800">Chat</h2>}>
-            <Head title="Chat" />
+        <>
+            <Head title="El Parche" />
+            <div className="flex flex-col bg-cream overflow-hidden" style={{ height: 'calc(100vh - 80px)' }}>
 
-            <div className="py-8">
-                <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 flex flex-col gap-4">
-
-                    <div className="bg-white shadow rounded-lg p-4 h-96 overflow-y-auto flex flex-col gap-3">
-                        {messages.length === 0 && (
-                            <p className="text-center text-sm text-gray-400 mt-auto mb-auto">
-                                Aún no hay mensajes. ¡Sé el primero!
-                            </p>
-                        )}
-                        {messages.map((msg) => (
-                            <div key={msg.id} className="flex items-start gap-2">
-                                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-200 flex items-center justify-center text-xs font-bold text-indigo-700">
-                                    {msg.user.name.charAt(0).toUpperCase()}
-                                </div>
-                                <div>
-                                    <span className="text-xs font-semibold text-gray-700">{msg.user.name}</span>
-                                    <p className="text-sm text-gray-800">{msg.content}</p>
-                                    <span className="text-xs text-gray-400">
-                                        {new Date(msg.created_at).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
-                                    </span>
-                                </div>
+                {/* Header */}
+                <div className="flex-shrink-0 px-4 pb-2.5 pt-1.5 border-b-[3px] border-ink bg-pop-yel relative overflow-hidden">
+                    <div className="halftone absolute inset-0 pointer-events-none" style={{ opacity: .15 }} />
+                    <div className="flex items-center gap-3 relative">
+                        <div className="w-9 h-9 rounded-[6px] border-[2.5px] border-ink bg-pop-red flex items-center justify-center flex-shrink-0">
+                            <SoccerBall size={22} />
+                        </div>
+                        <div className="flex-1">
+                            <div className="font-display text-[18px] leading-none">EL PARCHE</div>
+                            <div className="font-mono text-[10px] opacity-75 mt-0.5">
+                                ● {onlineCount > 0 ? `${onlineCount} en línea` : 'conectando…'}
                             </div>
-                        ))}
-                        <div ref={bottomRef} />
+                        </div>
+                        <div className="w-8 h-8 border-[2.5px] border-ink bg-white flex items-center justify-center font-display text-[16px]">
+                            ⋯
+                        </div>
                     </div>
+                </div>
 
-                    <form onSubmit={handleSubmit} className="flex gap-2">
+                {/* Live match banner */}
+                {liveMatch && (
+                    <div className="flex-shrink-0 px-4 py-2 bg-navy text-cream border-b-[3px] border-ink flex items-center gap-2.5 relative overflow-hidden">
+                        <div className="absolute right-[-12px] top-[-8px] opacity-25 pointer-events-none">
+                            <SoccerBall size={50} />
+                        </div>
+                        <span className="w-2 h-2 rounded-full bg-pop-red animate-[blink_1.2s_infinite]" />
+                        <span className="font-pixel text-[16px] text-pop-yel">EN VIVO</span>
+                        <span className="font-mono text-[13px] font-bold">
+                            {liveMatch.teamA} {liveMatch.scoreA} - {liveMatch.scoreB} {liveMatch.teamB}
+                        </span>
+                        {liveMatch.minute && (
+                            <span className="font-mono text-[11px] opacity-70 ml-auto z-10">
+                                {liveMatch.minute}
+                            </span>
+                        )}
+                    </div>
+                )}
+
+                {/* Messages */}
+                <div className="flex-1 overflow-y-auto px-3.5 py-3.5 flex flex-col gap-3 min-h-0">
+                    {messages.map(msg => (
+                        <ChatBubble key={msg.id} {...msg} />
+                    ))}
+                    <div ref={bottomRef} />
+                </div>
+
+                {/* Input bar */}
+                <div className="flex-shrink-0 flex items-center gap-2 px-3 py-2.5 bg-cream border-t-[3px] border-ink">
+                    <button
+                        type="button"
+                        className="w-10 h-10 border-[2.5px] border-ink bg-pop-yel font-display text-[18px] shadow-pop-sm flex items-center justify-center flex-shrink-0"
+                    >
+                        +
+                    </button>
+                    <form onSubmit={send} className="flex-1 flex gap-2">
                         <input
-                            type="text"
                             value={data.content}
-                            onChange={(e) => setData('content', e.target.value)}
-                            placeholder="Escribí un mensaje..."
-                            maxLength={500}
-                            className="flex-1 rounded-md border-gray-300 shadow-sm text-sm"
+                            onChange={e => setData('content', e.target.value)}
+                            placeholder="Escribí algo, parcero…"
+                            className="flex-1 border-[2.5px] border-ink bg-white px-3.5 py-2.5 font-body text-[13px] shadow-pop-sm focus:outline-none"
                         />
                         <button
                             type="submit"
-                            disabled={processing || !data.content.trim()}
-                            className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 disabled:opacity-50"
+                            disabled={processing}
+                            className="w-11 h-11 border-[2.5px] border-ink bg-pop-red text-white font-display text-[18px] shadow-pop-sm flex items-center justify-center flex-shrink-0 disabled:opacity-60"
                         >
-                            Enviar
+                            ▶
                         </button>
                     </form>
-
                 </div>
             </div>
-        </AuthenticatedLayout>
+            <TabBar active="chat" />
+        </>
     );
 }

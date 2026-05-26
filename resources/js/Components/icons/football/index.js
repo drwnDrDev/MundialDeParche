@@ -1,0 +1,12 @@
+export { default as Trophy } from './Trophy';
+export { default as SoccerBall } from './SoccerBall';
+export { default as Jersey } from './Jersey';
+export { default as Boot } from './Boot';
+export { default as Whistle } from './Whistle';
+export { default as Stadium } from './Stadium';
+export { default as GoalNet } from './GoalNet';
+export { default as Mark26 } from './Mark26';
+export { default as HostStrip } from './HostStrip';
+export { default as FlagSmall } from './FlagSmall';
+export { default as Pennant } from './Pennant';
+export { default as PitchSwoosh } from './PitchSwoosh';

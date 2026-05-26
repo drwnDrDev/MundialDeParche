@@ -10,15 +10,15 @@
 | # | Pantalla | Sección | Archivo | Controller | Estado |
 |---|---|---|---|---|---|
 | 1 | Home | B | `Pages/Home.jsx` | `HomeController` | ✅ DONE |
-| 2 | Ranking | F | `Pages/Ranking.jsx` | `RankingController` | 🔄 Refactor pendiente |
-| 3 | Chat | G | `Pages/Chat.jsx` | `ChatController` | 🔄 Refactor pendiente |
-| 4 | Partidos | C | `Pages/Matches.jsx` | — por crear — | ❌ Pendiente |
-| 5 | Mis Goles | D | `Pages/Predictions/Round.jsx` (ya existe) | `PredictionController` | 🔄 Refactor pendiente |
-| 6 | Splash | A4 | `Pages/Splash.jsx` | — por crear — | ❌ Pendiente |
-| 7 | Login | A5 | `Pages/Auth/Login.jsx` (ya existe) | Breeze | 🔄 Refactor pendiente |
-| 8 | Alerta Locked | E3 | `Pages/PhaseLocked.jsx` | — por crear — | ❌ Pendiente |
+| 2 | Ranking | F | `Pages/Ranking.jsx` | `RankingController` | ✅ DONE |
+| 3 | Chat | G | `Pages/Chat.jsx` | `ChatController` | ✅ DONE |
+| 4 | Partidos | C | `Pages/Matches.jsx` | `MatchesController` | ✅ DONE |
+| 5 | Mis Goles | D | `Pages/Predictions/Round.jsx` | `PredictionController` | ✅ DONE |
+| 6 | Splash | A4 | `Pages/Splash.jsx` | route `/` | ✅ DONE |
+| 7 | Login | A5 | `Pages/Auth/Login.jsx` | Breeze | ✅ DONE |
+| 8 | Alerta Locked | E3 | `Pages/Predictions/Locked.jsx` | `PredictionController` | ✅ DONE |
 
-**Progreso: 1 / 8 pantallas DONE**
+**Progreso: 8 / 8 pantallas DONE ✅**
 
 ---
 

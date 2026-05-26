@@ -62,6 +62,7 @@ export default function Chat({ messages: initialMessages, liveMatch }) {
     return (
         <>
             <Head title="El Parche" />
+            {/* 80px = approximate TabBar rendered height (pt-2.5 + pb-[22px] + icon ~36px) */}
             <div className="flex flex-col bg-cream overflow-hidden" style={{ height: 'calc(100vh - 80px)' }}>
 
                 {/* Header */}

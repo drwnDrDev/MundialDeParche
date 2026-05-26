@@ -306,12 +306,14 @@ export default function Round({ round, fixtures, predictions, submission }) {
                         </div>
                     </div>
                     <div className="flex flex-col items-end gap-1.5 mt-1.5">
+                        {auth.user.is_activated && (
                         <div
                             className="inline-flex items-center gap-1.5 bg-pop-teal text-white border-2 border-ink px-2 py-1 font-mono text-[10px] font-bold tracking-[.06em]"
                             style={{ boxShadow: '2px 2px 0 var(--c-ink)' }}
                         >
                             ✓ ENTRADA 50K PAGA
                         </div>
+                        )}
                         <div style={{ transform: 'rotate(6deg)' }}>
                             <Mark26 size={26} fill="var(--c-red)" accent="var(--c-yel)" />
                         </div>

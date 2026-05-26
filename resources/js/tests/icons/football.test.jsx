@@ -7,6 +7,9 @@ import Boot from '../../Components/icons/football/Boot';
 import Whistle from '../../Components/icons/football/Whistle';
 import Stadium from '../../Components/icons/football/Stadium';
 import GoalNet from '../../Components/icons/football/GoalNet';
+import Mark26 from '../../Components/icons/football/Mark26';
+import Pennant from '../../Components/icons/football/Pennant';
+import PitchSwoosh from '../../Components/icons/football/PitchSwoosh';
 
 describe('Football icons', () => {
     describe('FlagSmall', () => {
@@ -83,6 +86,27 @@ describe('Football icons', () => {
             const { container } = render(<GoalNet />);
             const lines = container.querySelectorAll('line');
             expect(lines).toHaveLength(18);
+        });
+    });
+
+    describe('Mark26', () => {
+        it('renders svg', () => {
+            const { container } = render(<Mark26 />);
+            expect(container.querySelector('svg')).toBeInTheDocument();
+        });
+    });
+
+    describe('Pennant', () => {
+        it('renders svg', () => {
+            const { container } = render(<Pennant />);
+            expect(container.querySelector('svg')).toBeInTheDocument();
+        });
+    });
+
+    describe('PitchSwoosh', () => {
+        it('renders svg', () => {
+            const { container } = render(<PitchSwoosh />);
+            expect(container.querySelector('svg')).toBeInTheDocument();
         });
     });
 });

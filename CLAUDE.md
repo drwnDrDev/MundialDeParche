@@ -264,7 +264,7 @@ Incluye:
 - Páginas refactorizadas: `Home.jsx` (ya estaba), `Ranking.jsx`, `Chat.jsx`, `Auth/Login.jsx`, `Predictions/Round.jsx`
 - Ruta `/` → Splash para guests, redirect dashboard para autenticados
 
-Tests: 189 pasando.
+Tests: 207 pasando.
 
 ### Planes pendientes
 

@@ -17,7 +17,6 @@ class Prediction extends Model
         'predicted_away',
         'pts_exact',
         'pts_result',
-        'pts_classifier',
         'total_points',
         'calculated_at',
     ];

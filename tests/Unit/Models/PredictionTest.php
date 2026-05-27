@@ -28,7 +28,6 @@ it('starts with zero points', function () {
 
     expect($prediction->pts_exact)->toBe(0)
         ->and($prediction->pts_result)->toBe(0)
-        ->and($prediction->pts_classifier)->toBe(0)
         ->and($prediction->total_points)->toBe(0);
 });
 

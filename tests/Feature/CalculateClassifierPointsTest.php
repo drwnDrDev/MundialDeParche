@@ -192,7 +192,7 @@ it('awards R2 classifier pts for correctly predicted R16 QF teams', function () 
     $user  = User::factory()->create();
     PredictionSubmission::factory()->submitted()->create(['user_id' => $user->id, 'round_id' => $round->id]);
 
-    // Create 24 R2 fixtures: first 16 = R32 (match_number 1–16), last 8 = R16 (17–24)
+    // R32: match_numbers 73–88 (real FIFA numbers), R16: 89–96
     $group = Group::factory()->create();
     $r32Teams = Team::factory(32)->create(['group_id' => $group->id]);
 
@@ -202,11 +202,11 @@ it('awards R2 classifier pts for correctly predicted R16 QF teams', function () 
             'group_id'     => null,
             'home_team_id' => $r32Teams[$i * 2]->id,
             'away_team_id' => $r32Teams[$i * 2 + 1]->id,
-            'match_number' => $i + 1,
+            'match_number' => 73 + $i,
         ]);
     }
 
-    // R16 fixtures (17–24): 8 matches, real winner_team_id set
+    // R16 fixtures (M89–M96): 8 matches, real winner_team_id set
     $r16Teams = Team::factory(16)->create(['group_id' => $group->id]);
     $r16Fixtures = collect();
     for ($i = 0; $i < 8; $i++) {
@@ -218,7 +218,7 @@ it('awards R2 classifier pts for correctly predicted R16 QF teams', function () 
             'home_team_id'   => $home->id,
             'away_team_id'   => $away->id,
             'winner_team_id' => $home->id, // home wins R16
-            'match_number'   => $i + 17,
+            'match_number'   => 89 + $i,
         ]));
     }
 
@@ -243,6 +243,7 @@ it('awards partial R2 classifier pts when only some QF teams predicted correctly
     $user  = User::factory()->create();
     PredictionSubmission::factory()->submitted()->create(['user_id' => $user->id, 'round_id' => $round->id]);
 
+    // R32: M73–M88, R16: M89–M96 (real FIFA match numbers)
     $group = Group::factory()->create();
     $r32Teams = Team::factory(32)->create(['group_id' => $group->id]);
     for ($i = 0; $i < 16; $i++) {
@@ -250,7 +251,7 @@ it('awards partial R2 classifier pts when only some QF teams predicted correctly
             'round_id' => $round->id, 'group_id' => null,
             'home_team_id' => $r32Teams[$i * 2]->id,
             'away_team_id' => $r32Teams[$i * 2 + 1]->id,
-            'match_number' => $i + 1,
+            'match_number' => 73 + $i,
         ]);
     }
 
@@ -264,7 +265,7 @@ it('awards partial R2 classifier pts when only some QF teams predicted correctly
             'home_team_id'   => $home->id,
             'away_team_id'   => $away->id,
             'winner_team_id' => $home->id, // home always wins
-            'match_number'   => $i + 17,
+            'match_number'   => 89 + $i,
         ]));
     }
 

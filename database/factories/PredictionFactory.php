@@ -17,7 +17,6 @@ class PredictionFactory extends Factory
             'predicted_away' => fake()->numberBetween(0, 5),
             'pts_exact' => 0,
             'pts_result' => 0,
-            'pts_classifier' => 0,
             'total_points' => 0,
             'calculated_at' => null,
         ];

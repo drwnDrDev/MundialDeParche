@@ -93,6 +93,14 @@ class PredictionController extends Controller
             'predictions.*.predicted_away'      => ['required', 'integer', 'min:0', 'max:20'],
         ]);
 
+        if ($round->slug !== 'grupos') {
+            foreach ($data['predictions'] as $scores) {
+                if ((int) $scores['predicted_home'] === (int) $scores['predicted_away']) {
+                    return back()->withErrors(['predictions' => 'En rondas de eliminación debe haber un ganador (no empates).']);
+                }
+            }
+        }
+
         $fixtureIds = $round->fixtures()->pluck('id');
 
         foreach ($data['predictions'] as $matchId => $scores) {

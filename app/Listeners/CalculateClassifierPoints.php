@@ -128,11 +128,13 @@ class CalculateClassifierPoints
 
     private function calculateR2(\App\Models\Round $round): void
     {
-        $r2Fixtures = Fixture::where('round_id', $round->id)
+        // R16 matches are M89–M96 (the final 8 matches of the R32+R16 round).
+        // We filter by match_number instead of slicing by position so the query
+        // is resilient to any extra fixtures the admin might create in this round.
+        $r16Fixtures = Fixture::where('round_id', $round->id)
+            ->whereBetween('match_number', [89, 96])
             ->orderBy('match_number')
             ->get();
-
-        $r16Fixtures = $r2Fixtures->slice(16)->values();
 
         $realClassifiers = $r16Fixtures
             ->pluck('winner_team_id')

@@ -75,7 +75,7 @@ class MatchesController extends Controller
     private function formatFixture(Fixture $f, ?Prediction $pred): array
     {
         $status = $f->status ?? ($f->home_score !== null ? 'finished' : 'upcoming');
-        $pts    = $pred ? ($pred->pts_exact + $pred->pts_result + $pred->pts_classifier) : null;
+        $pts    = $pred ? ($pred->pts_exact + $pred->pts_result) : null;
 
         return [
             'id'       => $f->id,

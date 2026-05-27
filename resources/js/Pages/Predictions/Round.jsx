@@ -172,7 +172,7 @@ function GroupPanel({ groupKey, fixtures, scores, isLocked, onChange }) {
                 <div className="mt-10 px-2.5 pb-2 border-b-2 border-dashed border-ink">
                     <div className="flex justify-between items-baseline mb-1.5">
                         <div className="font-mono text-[9px] font-bold tracking-[.08em] opacity-70">TUS CLASIFICADOS</div>
-                        <div className="font-mono text-[8.5px] opacity-55">+3 PTS C/U</div>
+                        <div className="font-mono text-[8.5px] opacity-55">+{round.points_classifier} PTS C/U</div>
                     </div>
                     <div className="grid grid-cols-2 gap-1.5">
                         {teams.map((t, i) => {
@@ -341,9 +341,11 @@ export default function Round({ round, fixtures, predictions, submission }) {
 
                 {/* Point chips */}
                 <div className="px-[14px] pt-2.5 flex gap-1.5">
-                    <PointChip label="EXACTO"    pts="+5" color="var(--c-red)"  />
-                    <PointChip label="GANADOR"   pts="+2" color="var(--c-teal)" />
-                    <PointChip label="CLASIFICA" pts="+3" color="var(--c-yel)" />
+                    <PointChip label="EXACTO"    pts={`+${round.points_exact}`}  color="var(--c-red)"  />
+                    <PointChip label="GANADOR"   pts={`+${round.points_result}`} color="var(--c-teal)" />
+                    {round.points_classifier > 0 && (
+                        <PointChip label="CLASIFICA" pts={`+${round.points_classifier}`} color="var(--c-yel)" />
+                    )}
                 </div>
 
                 {/* Group chips — only for group stage */}

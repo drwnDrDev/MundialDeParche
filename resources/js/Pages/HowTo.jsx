@@ -1,5 +1,4 @@
-import { Head } from '@inertiajs/react';
-import { router } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { Trophy, SoccerBall } from '@/Components/icons/football';
 import Cromo from '@/Components/ui/Cromo';
 

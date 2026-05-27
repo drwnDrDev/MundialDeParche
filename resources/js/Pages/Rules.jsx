@@ -1,5 +1,4 @@
-import { Head } from '@inertiajs/react';
-import { router } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 
 function Rule({ n, title, children }) {
     return (
@@ -82,7 +81,7 @@ export default function Rules() {
                 {/* Index strip */}
                 <div className="flex-shrink-0 px-3.5 pt-3 pb-0">
                     <div className="flex gap-1 overflow-x-auto pb-1.5" style={{ WebkitOverflowScrolling: 'touch' }}>
-                        {['INSCRIPCIÓN', 'FASES', 'PUNTOS', 'EMPATES', 'PREMIOS', 'CONDUCTA'].map((s, i) => (
+                        {['INSCRIPCIÓN', 'FASES', 'PUNTOS', 'EMPATES', 'PREMIOS', 'CONDUCTA', 'LO IMPREVISTO'].map((s, i) => (
                             <div
                                 key={s}
                                 className={`flex-shrink-0 px-2 py-1 border-2 border-ink font-mono text-[9px] font-bold tracking-[.06em] ${i === 0 ? 'bg-pop-yel text-ink' : 'bg-white text-ink'}`}

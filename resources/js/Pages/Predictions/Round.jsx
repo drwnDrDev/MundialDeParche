@@ -143,7 +143,7 @@ function MatchPredRow({ fixture, homeScore, awayScore, onChangeHome, onChangeAwa
 
 // ── GroupPanel ─────────────────────────────────────────────────────────────
 
-function GroupPanel({ groupKey, fixtures, scores, isLocked, onChange }) {
+function GroupPanel({ groupKey, fixtures, scores, isLocked, onChange, round }) {
     // Get unique teams for "TUS CLASIFICADOS"
     const teamMap = {};
     fixtures.forEach(f => {
@@ -382,6 +382,7 @@ export default function Round({ round, fixtures, predictions, submission }) {
                             scores={scores}
                             isLocked={isLocked || isSubmitted}
                             onChange={handleChange}
+                            round={round}
                         />
                     )}
                     {!isGroupStage && !activeGroup && (

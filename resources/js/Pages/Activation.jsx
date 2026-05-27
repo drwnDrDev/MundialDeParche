@@ -12,7 +12,7 @@ function SectionHead({ title, accent = 'red' }) {
     );
 }
 
-function PayMethod({ label, sub, color, dark = false }) {
+function PayMethod({ label, sub, color }) {
     return (
         <div
             className="bg-white border-[2.5px] border-ink px-2.5 py-2 relative overflow-hidden"
@@ -127,7 +127,7 @@ export default function Activation({ adminName, adminPhone, adminWhatsApp }) {
                     <div className="grid grid-cols-2 gap-2">
                         <PayMethod label="NEQUI" sub="300 123 4567" color="#ff006e" />
                         <PayMethod label="DAVIPLATA" sub="300 123 4567" color="#ed1c24" />
-                        <PayMethod label="BANCOLOMBIA" sub="© ahorros 123-456" color="#fdda24" dark />
+                        <PayMethod label="BANCOLOMBIA" sub="© ahorros 123-456" color="#fdda24" />
                         <PayMethod label="EFECTIVO" sub="al admin, en persona" color="var(--c-teal)" />
                     </div>
 

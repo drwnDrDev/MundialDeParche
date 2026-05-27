@@ -50,7 +50,7 @@ class UserFactory extends Factory
 
     public function admin(): static
     {
-        return $this->state(fn (array $attributes) => ['role' => 'admin']);
+        return $this->state(fn (array $attributes) => ['role' => 'admin', 'is_activated' => true]);
     }
 
     public function activated(): static

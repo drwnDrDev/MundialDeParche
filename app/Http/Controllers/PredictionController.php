@@ -187,8 +187,33 @@ class PredictionController extends Controller
 
     public function receipt(Round $round): Response|RedirectResponse
     {
-        // TODO: implementar en Task 4
-        return redirect()->route('predictions.index');
+        $userId = Auth::id();
+
+        $submission = PredictionSubmission::where('user_id', $userId)
+            ->where('round_id', $round->id)
+            ->first();
+
+        if (! $submission) {
+            return redirect()->route('predictions.index');
+        }
+
+        $fixtures = $round->fixtures()
+            ->with(['homeTeam', 'awayTeam', 'group'])
+            ->orderBy('match_number')
+            ->get();
+
+        $predictions = Prediction::where('user_id', $userId)
+            ->whereIn('match_id', $fixtures->pluck('id'))
+            ->get()
+            ->keyBy('match_id');
+
+        return Inertia::render('Predictions/Receipt', [
+            'round'       => $round,
+            'fixtures'    => $fixtures,
+            'predictions' => $predictions,
+            'submission'  => $submission,
+            'isFinalized' => $round->is_locked,
+        ]);
     }
 
     private function buildPhasePts(Collection $rounds, int $userId, \Illuminate\Support\Collection $submissions): array

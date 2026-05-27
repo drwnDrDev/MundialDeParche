@@ -123,4 +123,13 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Admin Contact
+    |--------------------------------------------------------------------------
+    */
+    'admin_name'      => env('ADMIN_NAME', 'Admin'),
+    'admin_phone'     => env('ADMIN_PHONE', '+57 300 000 0000'),
+    'admin_whatsapp'  => env('ADMIN_WHATSAPP', '573000000000'),
+
 ];

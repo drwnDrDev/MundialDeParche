@@ -7,9 +7,10 @@ const COLORS = {
 };
 
 const SIZES = {
-    sm: { outer: 'w-12 h-12', text: 'text-[10px]' },
-    md: { outer: 'w-20 h-20', text: 'text-xs' },
-    lg: { outer: 'w-28 h-28', text: 'text-sm' },
+    sm: { outer: 'w-12 h-12',  text: 'text-[10px]' },
+    md: { outer: 'w-20 h-20',  text: 'text-xs' },
+    lg: { outer: 'w-28 h-28',  text: 'text-sm' },
+    xl: { outer: 'w-36 h-36',  text: 'text-base' },
 };
 
 export default function Burst({

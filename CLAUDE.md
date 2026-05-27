@@ -266,12 +266,43 @@ Incluye:
 
 Tests: 207 pasando.
 
+### Plan 6a: User Predictions UI — COMPLETADO ✓
+
+Commit final: `0415265`
+
+Incluye: auditoría del motor de puntos (4 bugs identificados/resueltos), nuevo Predictions/Index con MobileShell + PhaseCard + TournamentProgress, nueva pantalla Predictions/Receipt (comprobante por fase), correcciones de scoring hardcodeado en Round.jsx + HowTo.jsx + Rules.jsx.
+
+Tests: 217 pasando (217 total, todos deprecated por PDO::MYSQL_ATTR_SSL_CA — warning del entorno, no fallos reales).
+
+**Bugs del motor de puntos resueltos en esta sesión:**
+- `predictions.pts_classifier` era columna muerta → eliminada por migración
+- `CalculateClassifierPoints` R2 usaba `slice(16)` frágil → reemplazado con `whereBetween('match_number', [89, 96])`
+- Validación de empates en knockout solo existía en `submit()` → agregada también a `save()`
+- `MatchesController` sumaba `pts_classifier` muerto → corregido a `pts_exact + pts_result`
+
+**Componentes nuevos:**
+- `Components/ui/PtsChip.jsx` — chip de puntos coloreado por tipo
+- `Components/composed/ReceiptMatchRow.jsx` — fila partido en comprobante
+- `Components/composed/TournamentProgress.jsx` — barra 4 nodos del torneo
+- `Components/composed/PhaseCard.jsx` — card de fase con 6 estados (upcoming/open/draft/submitted/locked/finalized)
+
+**Páginas nuevas/reescritas:**
+- `Predictions/Index.jsx` — reescrito con MobileShell + PhaseCard + TournamentProgress
+- `Predictions/Receipt.jsx` — nueva pantalla comprobante: predicción vs resultado + chips de puntos
+
+**Ruta nueva:**
+- `GET /predictions/{round}/receipt` → `predictions.receipt`
+
+**PredictionController actualizado:**
+- `index()` incluye `phasePts` (desglose pts_exact/result/classifier/total por ronda) y `fixtures_count`
+- `receipt()` nueva acción: carga fixtures + predictions + submission + isFinalized
+
 ### Planes pendientes
 
 | Plan | Alcance | Estado |
 |---|---|---|
-| Plan 6 | Admin Panel UI (React frontend admin) | Pendiente |
-| Plan 7 | User Frontend (predicciones, ranking, chat usuarios) | Pendiente |
+| Plan 6b | Admin Panel UI (React frontend admin) | Pendiente |
+| Plan 7 | User Frontend: mejoras avanzadas (especiales, streaks) | Pendiente |
 
 ---
 
@@ -285,6 +316,9 @@ Tests: 207 pasando.
 - Spec íconos (Paso 3): `docs/superpowers/specs/2026-05-25-icons-design.md`
 - Spec compuestos (Paso 4): `docs/superpowers/specs/2026-05-25-composites-design.md`
 - Plan compuestos (Paso 4): `docs/superpowers/plans/2026-05-25-plan-composites.md`
+- Auditoría motor de puntos: `docs/superpowers/audits/2026-05-27-points-engine-audit.md`
+- Spec User Predictions UI: `docs/superpowers/specs/2026-05-27-user-predictions-ui-design.md`
+- Plan User Predictions UI: `docs/superpowers/plans/2026-05-27-user-predictions-ui.md`
 - Design handoff: `/mnt/c/Users/dwndz/OneDrive/Escritorio/Mundial de parche_/design_handoff_mundial_parche/`
   - `README.md` — sistema de diseño completo, 20 pantallas, lista de componentes
   - `football-graphics.jsx` — 12 íconos SVG de fútbol

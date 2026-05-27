@@ -121,7 +121,7 @@ export default function DeadlineAlert({ deadlineAlert, onDismiss }) {
                     onClick={onDismiss}
                     className="w-full py-2 text-ink font-display text-[12px] tracking-[.01em] opacity-80"
                 >
-                    AVISARME EN 1 HORA
+                    YA LO SÉ, CERRAR
                 </button>
             </div>
         </div>

@@ -20,6 +20,11 @@ class MessageSent implements ShouldBroadcastNow
         public readonly string  $createdAt,
     ) {}
 
+    public function broadcastAs(): string
+    {
+        return 'MessageSent';
+    }
+
     public function broadcastOn(): array
     {
         return [new PresenceChannel('quinela')];

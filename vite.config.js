@@ -8,6 +8,7 @@ export default defineConfig({
         hmr: {
             host: 'localhost',
             port: 5173,
+            clientPort: 5173,
         },
     },
     plugins: [

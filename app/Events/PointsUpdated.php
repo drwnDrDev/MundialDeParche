@@ -18,6 +18,11 @@ class PointsUpdated implements ShouldBroadcastNow
         public readonly int $position,
     ) {}
 
+    public function broadcastAs(): string
+    {
+        return 'PointsUpdated';
+    }
+
     public function broadcastOn(): array
     {
         return [

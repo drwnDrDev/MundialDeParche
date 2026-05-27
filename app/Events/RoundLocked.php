@@ -13,6 +13,11 @@ class RoundLocked implements ShouldBroadcastNow
 
     public function __construct(public readonly string $roundName) {}
 
+    public function broadcastAs(): string
+    {
+        return 'RoundLocked';
+    }
+
     public function broadcastOn(): array
     {
         return [new PresenceChannel('quinela')];

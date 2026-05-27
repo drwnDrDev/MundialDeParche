@@ -13,6 +13,11 @@ class RoundOpened implements ShouldBroadcastNow
 
     public function __construct(public readonly string $roundName) {}
 
+    public function broadcastAs(): string
+    {
+        return 'RoundOpened';
+    }
+
     public function broadcastOn(): array
     {
         return [new PresenceChannel('quinela')];

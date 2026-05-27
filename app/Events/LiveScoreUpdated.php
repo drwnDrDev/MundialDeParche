@@ -18,6 +18,11 @@ class LiveScoreUpdated implements ShouldBroadcastNow
         public readonly bool $isLive,
     ) {}
 
+    public function broadcastAs(): string
+    {
+        return 'LiveScoreUpdated';
+    }
+
     public function broadcastOn(): array
     {
         return [new PresenceChannel('quinela')];

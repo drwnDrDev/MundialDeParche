@@ -18,6 +18,11 @@ class ExactScoreAlert implements ShouldBroadcastNow
         public readonly int    $awayScore,
     ) {}
 
+    public function broadcastAs(): string
+    {
+        return 'ExactScoreAlert';
+    }
+
     public function broadcastOn(): array
     {
         return [new PresenceChannel('quinela')];

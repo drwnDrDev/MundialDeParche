@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Fixture;
 use App\Models\Prediction;
+use App\Models\PredictionSubmission;
 use App\Models\Round;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -158,8 +159,70 @@ class HomeController extends Controller
                 'totalActive' => $totalActive,
                 'acertados'   => $acertados,
             ],
-            'phase'    => $phaseData,
-            'nextBets' => $nextBets,
+            'phase'         => $phaseData,
+            'nextBets'      => $nextBets,
+            'phaseAlert'    => $this->detectPhaseAlert($user),
+            'deadlineAlert' => $this->detectDeadlineAlert($user),
         ]);
+    }
+
+    private function detectPhaseAlert(User $user): ?array
+    {
+        $round = Round::where('is_open', true)
+            ->where('updated_at', '>=', now()->subHours(24))
+            ->latest('updated_at')
+            ->first();
+
+        if (! $round) return null;
+
+        $hasSubmission = $user->predictionSubmissions()
+            ->where('round_id', $round->id)
+            ->whereIn('status', ['submitted', 'locked'])
+            ->exists();
+
+        if ($hasSubmission) return null;
+
+        $prevRound = Round::where('order', $round->order - 1)->first();
+
+        return [
+            'fromRound' => $prevRound?->name ?? 'Fase anterior',
+            'toRound'   => $round->name,
+            'closeDate' => $round->closes_at?->format('d M · H:i') ?? 'Por confirmar',
+        ];
+    }
+
+    private function detectDeadlineAlert(User $user): ?array
+    {
+        $round = Round::where('is_open', true)
+            ->where('is_locked', false)
+            ->whereNotNull('closes_at')
+            ->where('closes_at', '<=', now()->addHours(24))
+            ->first();
+
+        if (! $round) return null;
+
+        $submission = $user->predictionSubmissions()
+            ->where('round_id', $round->id)
+            ->where('status', 'draft')
+            ->first();
+
+        if (! $submission) return null;
+
+        $totalMatches = $round->fixtures()->count();
+        $predicted    = $user->predictions()
+            ->whereHas('fixture', fn ($q) => $q->where('round_id', $round->id))
+            ->count();
+
+        $hoursLeft = (int) now()->diffInHours($round->closes_at, false);
+
+        if ($hoursLeft < 0) return null;
+
+        return [
+            'round'       => $round->name,
+            'hoursLeft'   => $hoursLeft,
+            'minutesLeft' => (int) now()->diffInMinutes($round->closes_at, false) % 60,
+            'pending'     => max(0, $totalMatches - $predicted),
+            'total'       => $totalMatches,
+        ];
     }
 }

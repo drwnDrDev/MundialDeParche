@@ -1,65 +1,79 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
+import { usePage } from '@inertiajs/react';
+import MobileShell from '@/Components/MobileShell';
+import TabBar from '@/Components/composed/TabBar';
+import TournamentProgress from '@/Components/composed/TournamentProgress';
+import PhaseCard from '@/Components/composed/PhaseCard';
 
-const STATUS_LABELS = {
-    draft:     { label: 'Borrador',    className: 'bg-yellow-100 text-yellow-800' },
-    submitted: { label: 'Confirmado',  className: 'bg-green-100 text-green-800' },
-    locked:    { label: 'Bloqueado',   className: 'bg-red-100 text-red-800' },
-};
+export default function Index({ rounds, submissions, phasePts }) {
+    const { auth } = usePage().props;
+    const totalPts = auth.user?.total_points ?? 0;
 
-export default function Index({ rounds, submissions }) {
     return (
-        <AuthenticatedLayout header={<h2 className="text-xl font-semibold text-gray-800">Mis Predicciones</h2>}>
-            <Head title="Predicciones" />
-            <div className="py-12">
-                <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 space-y-4">
-                    {rounds.map((round) => {
-                        const submission = submissions[round.id];
-                        const status     = submission?.status;
-                        const badge      = STATUS_LABELS[status];
-                        const canPredict = round.is_open && status !== 'locked';
+        <MobileShell>
+            <Head title="Mis Fases · Mundial de Parche" />
 
-                        return (
-                            <div key={round.id} className="bg-white shadow rounded-lg p-5 flex items-center justify-between">
-                                <div>
-                                    <h3 className="font-semibold text-gray-900">{round.name}</h3>
-                                    <div className="mt-1 flex items-center gap-2 text-sm text-gray-500">
-                                        {round.is_locked && <span className="text-red-600">Cerrada</span>}
-                                        {round.is_open && !round.is_locked && <span className="text-green-600">Abierta</span>}
-                                        {!round.is_open && !round.is_locked && <span>No disponible</span>}
-                                        {badge && (
-                                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${badge.className}`}>
-                                                {badge.label}
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                                {(canPredict || status) && (
-                                    <Link
-                                        href={route('predictions.show', round.slug)}
-                                        className="ml-4 inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700"
-                                    >
-                                        {canPredict ? 'Predecir' : 'Ver'}
-                                    </Link>
-                                )}
-                            </div>
-                        );
-                    })}
-
-                    <div className="bg-white shadow rounded-lg p-5 flex items-center justify-between">
-                        <div>
-                            <h3 className="font-semibold text-gray-900">Predicciones Especiales</h3>
-                            <p className="text-sm text-gray-500">Campeón · Sub-campeón · Goleador</p>
-                        </div>
-                        <Link
-                            href={route('predictions.special')}
-                            className="ml-4 inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700"
-                        >
-                            Completar
-                        </Link>
+            {/* Header */}
+            <div className="px-[18px] pt-4 pb-0">
+                <div className="flex items-start justify-between">
+                    <div>
+                        <div className="font-mono text-[9px] tracking-[.1em] opacity-50">MUNDIAL 2026</div>
+                        <div className="font-display text-[32px] leading-none mt-0.5">MIS FASES</div>
+                    </div>
+                    <div
+                        className="bg-pop-yel text-ink border-[2.5px] border-ink px-2.5 py-1.5 text-right flex-shrink-0"
+                        style={{ boxShadow: '3px 3px 0 var(--c-ink)' }}
+                    >
+                        <div className="font-display text-[22px] leading-none">{totalPts}</div>
+                        <div className="font-mono text-[8px] tracking-[.06em] opacity-70">PTS TOTALES</div>
                     </div>
                 </div>
             </div>
-        </AuthenticatedLayout>
+
+            {/* Progress bar del torneo */}
+            <TournamentProgress rounds={rounds} submissions={submissions} />
+
+            {/* Divisor */}
+            <div className="h-[3px] bg-ink mx-[18px]" />
+
+            {/* Stack de phase cards */}
+            <div className="px-[18px] py-4 flex flex-col gap-3">
+                {rounds.map(round => (
+                    <PhaseCard
+                        key={round.id}
+                        round={round}
+                        submission={submissions[round.id] ?? null}
+                        phasePts={phasePts[round.id] ?? null}
+                    />
+                ))}
+
+                {/* Bloque especiales */}
+                <SpecialsCard />
+            </div>
+
+            <div className="pb-6" />
+            <TabBar active="home" />
+        </MobileShell>
+    );
+}
+
+function SpecialsCard() {
+    return (
+        <div
+            className="border-[2.5px] border-dashed border-ink p-3.5 flex items-center justify-between"
+            style={{ boxShadow: '2px 2px 0 var(--c-ink)' }}
+        >
+            <div>
+                <div className="font-display text-[13px] leading-tight">PREDICCIONES ESPECIALES</div>
+                <div className="font-mono text-[10px] opacity-60 mt-0.5">Campeón · Sub-campeón · Goleador</div>
+            </div>
+            <Link
+                href={route('predictions.special')}
+                className="ml-3 px-3 py-1.5 bg-ink text-cream font-display text-[11px] tracking-[.01em] border-[2px] border-ink flex-shrink-0"
+                style={{ boxShadow: '2px 2px 0 var(--c-yel)' }}
+            >
+                VER →
+            </Link>
+        </div>
     );
 }

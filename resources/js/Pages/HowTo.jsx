@@ -147,10 +147,35 @@ export default function HowTo() {
                     />
 
                     <SectionHead title="LA PUNTUACIÓN" accent="red" />
-                    <div className="flex flex-col gap-2">
-                        <ScoreLine pts="+5" label="MARCADOR EXACTO" sub="Le pegaste al 2-1 clavado" color="var(--c-red)" />
-                        <ScoreLine pts="+2" label="GANADOR" sub="Acertaste quién gana (sin el score exacto)" color="var(--c-teal)" />
-                        <ScoreLine pts="+3" label="CLASIFICA A LA SIGUIENTE" sub="Adivinaste qué equipo avanza" color="var(--c-yel)" dark />
+                    <div
+                        className="bg-white border-[2.5px] border-ink overflow-hidden"
+                        style={{ boxShadow: '3px 3px 0 var(--c-ink)' }}
+                    >
+                        {/* Header de columnas */}
+                        <div className="grid grid-cols-4 border-b-[2px] border-ink bg-ink text-cream">
+                            <div className="col-span-1 px-2 py-1.5 font-mono text-[8px] tracking-[.06em]">FASE</div>
+                            <div className="px-2 py-1.5 font-mono text-[8px] tracking-[.06em] text-center text-pop-red">EXACTO</div>
+                            <div className="px-2 py-1.5 font-mono text-[8px] tracking-[.06em] text-center text-pop-teal">GANADOR</div>
+                            <div className="px-2 py-1.5 font-mono text-[8px] tracking-[.06em] text-center text-pop-yel">CLASIF</div>
+                        </div>
+                        {[
+                            { fase: 'Grupos',    exacto: 3,  ganador: 1, clasif: 2 },
+                            { fase: 'R32+R16',  exacto: 5,  ganador: 2, clasif: 4 },
+                            { fase: '8vos+SF',  exacto: 8,  ganador: 3, clasif: null },
+                            { fase: 'Final',    exacto: 13, ganador: 5, clasif: null },
+                        ].map(({ fase, exacto, ganador, clasif }, i) => (
+                            <div key={fase} className={`grid grid-cols-4 ${i < 3 ? 'border-b border-ink/15' : ''}`}>
+                                <div className="col-span-1 px-2 py-2 font-mono text-[9px] font-bold opacity-70">{fase}</div>
+                                <div className="px-2 py-2 font-display text-[14px] text-center text-pop-red">+{exacto}</div>
+                                <div className="px-2 py-2 font-display text-[14px] text-center text-pop-teal">+{ganador}</div>
+                                <div className="px-2 py-2 font-display text-[14px] text-center text-pop-yel">
+                                    {clasif ? `+${clasif}` : <span className="text-ink/20 text-[12px]">—</span>}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="font-mono text-[10px] opacity-60 mt-2 leading-[1.4]">
+                        Los puntos aumentan cada fase — vale más acertar en la final.
                     </div>
 
                     <SectionHead title="EL POZO" accent="teal" />

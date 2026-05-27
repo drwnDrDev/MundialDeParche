@@ -114,13 +114,9 @@ export default function Rules() {
                     <Rule n="3" title="PUNTUACIÓN">
                         Sumás puntos por cada acierto, según lo que metiste:
                         <RuleList items={[
-                            '+5 pts · marcador exacto (ej: si pusiste 2-1 y queda 2-1)',
-                            '+2 pts · ganador correcto (si pusiste 2-1 y queda 3-0, igual sumás)',
-                            '+3 pts · clasificado correcto a la siguiente ronda',
+                            'Los puntos son progresivos por fase: Grupos (exacto +3, ganador +1, clasif +2) · R32+R16 (exacto +5, ganador +2, clasif +4) · 8vos+SF (exacto +8, ganador +3) · Final (exacto +13, ganador +5).',
+                            'En rondas de eliminación, el marcador exacto es siempre a 90 minutos. Tiempos extra y penales no cuentan para el score exacto, pero sí para determinar el ganador.',
                         ]} />
-                        <span className="inline-block mt-1.5 font-mono text-[10px] opacity-70 leading-[1.5]">
-                            Los goles de tiempos extra y penales <b>no cuentan</b> para el marcador.
-                        </span>
                     </Rule>
 
                     <Rule n="4" title="EMPATES DE PUNTAJE">

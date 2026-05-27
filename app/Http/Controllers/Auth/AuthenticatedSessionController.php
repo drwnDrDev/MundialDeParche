@@ -33,6 +33,10 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        if (! $request->user()->is_activated) {
+            return redirect()->route('activation');
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

@@ -47,3 +47,32 @@ it('passes admin contact props to Activation page', function () {
             ->where('adminWhatsApp', '573001112222')
         );
 });
+
+it('redirects non-activated user to activation after login', function () {
+    $user = User::factory()->create([
+        'email'        => 'test@example.com',
+        'password'     => bcrypt('password'),
+        'is_activated' => false,
+    ]);
+
+    $this->withoutVite()
+        ->post('/login', [
+            'email'    => 'test@example.com',
+            'password' => 'password',
+        ])
+        ->assertRedirect(route('activation'));
+});
+
+it('redirects activated user to dashboard after login', function () {
+    $user = User::factory()->activated()->create([
+        'email'    => 'activated@example.com',
+        'password' => bcrypt('password'),
+    ]);
+
+    $this->withoutVite()
+        ->post('/login', [
+            'email'    => 'activated@example.com',
+            'password' => 'password',
+        ])
+        ->assertRedirect(route('dashboard'));
+});

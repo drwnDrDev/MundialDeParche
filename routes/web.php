@@ -21,8 +21,11 @@ Route::get('/', function () {
     if (auth()->check()) {
         return redirect()->route('dashboard');
     }
-    return Inertia::render('Splash');
+    return Inertia::render('Welcome');
 })->name('home');
+
+Route::inertia('/how-to-play', 'HowTo')->name('how-to-play');
+Route::inertia('/rules', 'Rules')->name('rules');
 
 Route::get('/dashboard', [HomeController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 

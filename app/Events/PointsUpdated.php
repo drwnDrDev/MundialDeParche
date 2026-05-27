@@ -5,10 +5,10 @@ namespace App\Events;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 
-class PointsUpdated implements ShouldBroadcast
+class PointsUpdated implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets;
 

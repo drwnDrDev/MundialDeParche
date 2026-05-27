@@ -4,10 +4,10 @@ namespace App\Events;
 
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 
-class LiveScoreUpdated implements ShouldBroadcast
+class LiveScoreUpdated implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets;
 

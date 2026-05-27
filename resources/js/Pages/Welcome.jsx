@@ -110,14 +110,14 @@ export default function Welcome() {
                 {/* CTAs */}
                 <div className="relative z-10 flex flex-col gap-2.5 px-[26px] pb-7 flex-shrink-0">
                     <button
-                        onClick={() => router.visit('/register')}
+                        onClick={() => router.visit(route('register'))}
                         className="w-full py-[18px] bg-pop-yel text-ink font-display text-[17px] tracking-[.01em] border-[2.5px] border-ink active:translate-x-[3px] active:translate-y-[3px]"
                         style={{ boxShadow: '4px 4px 0 var(--c-ink)' }}
                     >
                         ACEPTO EL RETO →
                     </button>
                     <button
-                        onClick={() => router.visit('/how-to-play')}
+                        onClick={() => router.visit(route('how-to-play'))}
                         className="w-full py-2 text-cream font-display text-[11px] tracking-[.01em] opacity-80"
                     >
                         ¿CÓMO SE JUEGA?

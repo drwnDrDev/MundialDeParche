@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\RoundController;
 use App\Http\Controllers\Admin\TeamController;
 use App\Http\Controllers\Admin\TournamentController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\ActivationController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MatchesController;
@@ -34,6 +35,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    Route::get('/activation', [ActivationController::class, 'show'])->name('activation');
     Route::get('/chat', [ChatController::class, 'index'])->name('chat');
     Route::post('/chat/messages', [ChatController::class, 'store'])->name('chat.store');
     Route::get('/ranking', [RankingController::class, 'index'])->name('ranking');

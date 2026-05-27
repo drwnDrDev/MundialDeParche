@@ -18,9 +18,10 @@ class PredictionController extends Controller
 {
     public function index(): Response
     {
-        $rounds = Round::orderBy('order')->get();
+        $userId  = Auth::id();
+        $rounds  = Round::orderBy('order')->withCount('fixtures')->get();
 
-        $submissions = PredictionSubmission::where('user_id', Auth::id())
+        $submissions = PredictionSubmission::where('user_id', $userId)
             ->whereIn('round_id', $rounds->pluck('id'))
             ->get()
             ->keyBy('round_id');
@@ -28,6 +29,7 @@ class PredictionController extends Controller
         return Inertia::render('Predictions/Index', [
             'rounds'      => $rounds,
             'submissions' => $submissions,
+            'phasePts'    => $this->buildPhasePts($rounds, $userId, $submissions),
         ]);
     }
 
@@ -187,5 +189,40 @@ class PredictionController extends Controller
     {
         // TODO: implementar en Task 4
         return redirect()->route('predictions.index');
+    }
+
+    private function buildPhasePts(Collection $rounds, int $userId, \Illuminate\Support\Collection $submissions): array
+    {
+        $phasePts = [];
+
+        foreach ($rounds as $round) {
+            $fixtureIds    = Fixture::where('round_id', $round->id)->pluck('id');
+            $ptsExact      = 0;
+            $ptsResult     = 0;
+            $predCount     = 0;
+
+            if ($fixtureIds->isNotEmpty()) {
+                $agg = Prediction::where('user_id', $userId)
+                    ->whereIn('match_id', $fixtureIds)
+                    ->selectRaw('COALESCE(SUM(pts_exact),0) as pts_exact, COALESCE(SUM(pts_result),0) as pts_result, COUNT(*) as prediction_count')
+                    ->first();
+
+                $ptsExact  = (int) ($agg->pts_exact ?? 0);
+                $ptsResult = (int) ($agg->pts_result ?? 0);
+                $predCount = (int) ($agg->prediction_count ?? 0);
+            }
+
+            $classifierPts = (int) ($submissions[$round->id]?->pts_classifier ?? 0);
+
+            $phasePts[$round->id] = [
+                'pts_exact'        => $ptsExact,
+                'pts_result'       => $ptsResult,
+                'pts_classifier'   => $classifierPts,
+                'total'            => $ptsExact + $ptsResult + $classifierPts,
+                'prediction_count' => $predCount,
+            ];
+        }
+
+        return $phasePts;
     }
 }

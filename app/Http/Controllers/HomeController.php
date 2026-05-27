@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Fixture;
 use App\Models\Prediction;
-use App\Models\PredictionSubmission;
 use App\Models\Round;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -169,6 +168,7 @@ class HomeController extends Controller
     private function detectPhaseAlert(User $user): ?array
     {
         $round = Round::where('is_open', true)
+            ->where('is_locked', false)
             ->where('updated_at', '>=', now()->subHours(24))
             ->latest('updated_at')
             ->first();

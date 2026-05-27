@@ -46,6 +46,7 @@ Route::middleware(['auth'])->prefix('predictions')->name('predictions.')->group(
     Route::get('/', [PredictionController::class, 'index'])->name('index');
     Route::get('/special', [SpecialPredictionController::class, 'show'])->name('special');
     Route::post('/special', [SpecialPredictionController::class, 'save'])->name('special.save');
+    Route::get('/{round}/receipt', [PredictionController::class, 'receipt'])->name('receipt');
     Route::get('/{round}', [PredictionController::class, 'show'])->name('show');
     Route::post('/{round}/save', [PredictionController::class, 'save'])->name('save');
     Route::post('/{round}/submit', [PredictionController::class, 'submit'])->name('submit');

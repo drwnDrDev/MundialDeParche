@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Fixture;
 use App\Models\Prediction;
 use App\Models\PredictionSubmission;
 use App\Models\Round;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -179,5 +181,11 @@ class PredictionController extends Controller
             return redirect()->route('predictions.index')
                 ->with('status', "¡Predicciones de {$round->name} confirmadas!");
         });
+    }
+
+    public function receipt(Round $round): Response|RedirectResponse
+    {
+        // TODO: implementar en Task 4
+        return redirect()->route('predictions.index');
     }
 }

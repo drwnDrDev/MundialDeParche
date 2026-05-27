@@ -276,3 +276,136 @@ it('allows ties in group stage (R1) save', function () {
     expect(\App\Models\Prediction::first()->predicted_home)->toBe(1)
         ->and(\App\Models\Prediction::first()->predicted_away)->toBe(1);
 });
+
+// ── phasePts en index ─────────────────────────────────────────────────────
+
+it('index includes phasePts with zeros for rounds with no predictions', function () {
+    $round = Round::factory()->r1()->create();
+
+    $this->actingAs($this->user)
+        ->get(route('predictions.index'))
+        ->assertInertia(fn ($page) => $page
+            ->component('Predictions/Index')
+            ->has('phasePts')
+            ->where("phasePts.{$round->id}.pts_exact", 0)
+            ->where("phasePts.{$round->id}.pts_result", 0)
+            ->where("phasePts.{$round->id}.pts_classifier", 0)
+            ->where("phasePts.{$round->id}.total", 0)
+            ->where("phasePts.{$round->id}.prediction_count", 0)
+        );
+});
+
+it('index phasePts sums pts_exact and pts_result from predictions', function () {
+    $round   = Round::factory()->r1()->create(['points_classifier' => 2]);
+    $group   = \App\Models\Group::factory()->create();
+    $fixture = \App\Models\Fixture::factory()->create([
+        'round_id' => $round->id, 'group_id' => $group->id,
+    ]);
+
+    \App\Models\Prediction::factory()->create([
+        'user_id'      => $this->user->id,
+        'match_id'     => $fixture->id,
+        'pts_exact'    => 3,
+        'pts_result'   => 1,
+        'total_points' => 4,
+    ]);
+
+    \App\Models\PredictionSubmission::factory()->submitted()->create([
+        'user_id'        => $this->user->id,
+        'round_id'       => $round->id,
+        'pts_classifier' => 6,
+    ]);
+
+    $this->actingAs($this->user)
+        ->get(route('predictions.index'))
+        ->assertInertia(fn ($page) => $page
+            ->where("phasePts.{$round->id}.pts_exact", 3)
+            ->where("phasePts.{$round->id}.pts_result", 1)
+            ->where("phasePts.{$round->id}.pts_classifier", 6)
+            ->where("phasePts.{$round->id}.total", 10)
+            ->where("phasePts.{$round->id}.prediction_count", 1)
+        );
+});
+
+it('index includes fixtures_count on each round', function () {
+    $round = Round::factory()->r1()->create();
+    $group = \App\Models\Group::factory()->create();
+    \App\Models\Fixture::factory(3)->create(['round_id' => $round->id, 'group_id' => $group->id]);
+
+    $this->actingAs($this->user)
+        ->get(route('predictions.index'))
+        ->assertInertia(fn ($page) => $page
+            ->where("rounds.0.fixtures_count", 3)
+        );
+});
+
+// ── receipt ───────────────────────────────────────────────────────────────
+
+it('receipt renders when submission exists', function () {
+    $round = Round::factory()->r1()->create(['is_open' => true]);
+    \App\Models\PredictionSubmission::factory()->submitted()->create([
+        'user_id' => $this->user->id, 'round_id' => $round->id,
+    ]);
+
+    $this->withoutVite()->actingAs($this->user)
+        ->get(route('predictions.receipt', $round->slug))
+        ->assertInertia(fn ($page) => $page->component('Predictions/Receipt'));
+});
+
+it('receipt redirects to index when no submission exists', function () {
+    $round = Round::factory()->r1()->create();
+
+    $this->actingAs($this->user)
+        ->get(route('predictions.receipt', $round->slug))
+        ->assertRedirect(route('predictions.index'));
+});
+
+it('receipt sets isFinalized true when round is locked', function () {
+    $round = Round::factory()->r1()->create(['is_locked' => true, 'is_open' => false]);
+    \App\Models\PredictionSubmission::factory()->locked()->create([
+        'user_id' => $this->user->id, 'round_id' => $round->id,
+    ]);
+
+    $this->withoutVite()->actingAs($this->user)
+        ->get(route('predictions.receipt', $round->slug))
+        ->assertInertia(fn ($page) => $page->where('isFinalized', true));
+});
+
+it('receipt sets isFinalized false when round is not locked', function () {
+    $round = Round::factory()->r1()->create(['is_open' => true, 'is_locked' => false]);
+    \App\Models\PredictionSubmission::factory()->submitted()->create([
+        'user_id' => $this->user->id, 'round_id' => $round->id,
+    ]);
+
+    $this->withoutVite()->actingAs($this->user)
+        ->get(route('predictions.receipt', $round->slug))
+        ->assertInertia(fn ($page) => $page->where('isFinalized', false));
+});
+
+it('receipt includes fixtures and user predictions keyed by match_id', function () {
+    $round   = Round::factory()->r1()->create(['is_open' => true]);
+    $group   = \App\Models\Group::factory()->create();
+    $fixture = \App\Models\Fixture::factory()->create([
+        'round_id' => $round->id, 'group_id' => $group->id,
+    ]);
+
+    \App\Models\PredictionSubmission::factory()->submitted()->create([
+        'user_id' => $this->user->id, 'round_id' => $round->id,
+    ]);
+
+    \App\Models\Prediction::factory()->create([
+        'user_id'        => $this->user->id,
+        'match_id'       => $fixture->id,
+        'predicted_home' => 2,
+        'predicted_away' => 1,
+    ]);
+
+    $this->withoutVite()->actingAs($this->user)
+        ->get(route('predictions.receipt', $round->slug))
+        ->assertInertia(fn ($page) => $page
+            ->has('fixtures', 1)
+            ->has("predictions.{$fixture->id}")
+            ->where("predictions.{$fixture->id}.predicted_home", 2)
+            ->where("predictions.{$fixture->id}.predicted_away", 1)
+        );
+});

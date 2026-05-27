@@ -1,5 +1,8 @@
+import { useState } from 'react';
 import { Head } from '@inertiajs/react';
 import TabBar from '@/Components/composed/TabBar';
+import PhaseOpenAlert from '@/Components/overlays/PhaseOpenAlert';
+import DeadlineAlert from '@/Components/overlays/DeadlineAlert';
 import StatCard from '@/Components/composed/StatCard';
 import BetCard from '@/Components/composed/BetCard';
 import PtsBadge from '@/Components/composed/PtsBadge';
@@ -33,13 +36,38 @@ function Ticker({ text }) {
     );
 }
 
-export default function Home({ user, featured, stats, phase, nextBets }) {
+export default function Home({ user, featured, stats, phase, nextBets, phaseAlert, deadlineAlert }) {
     const avatarCls = AVATAR_CLASSES[user.avatarColor] ?? AVATAR_CLASSES.yel;
     const firstName = user.name.split(' ')[0].toUpperCase();
     const initial   = user.name.charAt(0).toUpperCase();
 
+    const [alertDismissed, setAlertDismissed] = useState(() => {
+        if (phaseAlert) {
+            return localStorage.getItem(`alert_phase_${phaseAlert.toRound}`) === '1';
+        }
+        if (deadlineAlert) {
+            return localStorage.getItem(`alert_deadline_${deadlineAlert.round}`) === '1';
+        }
+        return true;
+    });
+
+    const handleDismiss = () => {
+        if (phaseAlert) {
+            localStorage.setItem(`alert_phase_${phaseAlert.toRound}`, '1');
+        } else if (deadlineAlert) {
+            localStorage.setItem(`alert_deadline_${deadlineAlert.round}`, '1');
+        }
+        setAlertDismissed(true);
+    };
+
     return (
         <>
+            {!alertDismissed && phaseAlert && (
+                <PhaseOpenAlert phaseAlert={phaseAlert} onDismiss={handleDismiss} />
+            )}
+            {!alertDismissed && !phaseAlert && deadlineAlert && (
+                <DeadlineAlert deadlineAlert={deadlineAlert} onDismiss={handleDismiss} />
+            )}
             <Head title="PARCHE" />
             <div className="min-h-screen bg-cream relative overflow-x-hidden pb-28">
 

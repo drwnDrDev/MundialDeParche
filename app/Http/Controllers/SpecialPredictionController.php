@@ -42,7 +42,7 @@ class SpecialPredictionController extends Controller
         ];
 
         if ($isCustom) {
-            $rules['top_scorer_custom_name']    = ['required', 'string', 'max:100'];
+            $rules['top_scorer_custom_name']    = ['required', 'string', 'min:2', 'max:100'];
             $rules['top_scorer_custom_team_id'] = ['required', 'exists:teams,id'];
         } else {
             $rules['top_scorer_player_id'] = ['required', 'exists:players,id'];
@@ -52,7 +52,7 @@ class SpecialPredictionController extends Controller
 
         if ($isCustom) {
             $player = Player::firstOrCreate([
-                'name'    => $data['top_scorer_custom_name'],
+                'name'    => trim($data['top_scorer_custom_name']),
                 'team_id' => (int) $data['top_scorer_custom_team_id'],
             ]);
             $topScorerId = $player->id;

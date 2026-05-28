@@ -92,9 +92,13 @@ class PredictionController extends Controller
         }
 
         $data = $request->validate([
-            'predictions'                       => ['required', 'array'],
-            'predictions.*.predicted_home'      => ['required', 'integer', 'min:0', 'max:20'],
-            'predictions.*.predicted_away'      => ['required', 'integer', 'min:0', 'max:20'],
+            'predictions'                          => ['required', 'array'],
+            'predictions.*.predicted_home'         => ['required', 'integer', 'min:0', 'max:20'],
+            'predictions.*.predicted_away'         => ['required', 'integer', 'min:0', 'max:20'],
+            'predicted_classifiers'                => ['nullable', 'array'],
+            'predicted_classifiers.*.team_id'      => ['required', 'integer'],
+            'predicted_classifiers.*.group'        => ['required', 'string'],
+            'predicted_classifiers.*.position'     => ['required', 'integer', 'min:1', 'max:4'],
         ]);
 
         if ($round->slug !== 'grupos') {
@@ -107,22 +111,38 @@ class PredictionController extends Controller
 
         $fixtureIds = $round->fixtures()->pluck('id');
 
-        foreach ($data['predictions'] as $matchId => $scores) {
-            if (! $fixtureIds->contains((int) $matchId)) {
-                continue;
+        return DB::transaction(function () use ($data, $fixtureIds, $round) {
+            foreach ($data['predictions'] as $matchId => $scores) {
+                if (! $fixtureIds->contains((int) $matchId)) continue;
+                Prediction::updateOrCreate(
+                    ['user_id' => Auth::id(), 'match_id' => (int) $matchId],
+                    ['predicted_home' => $scores['predicted_home'], 'predicted_away' => $scores['predicted_away']]
+                );
             }
-            Prediction::updateOrCreate(
-                ['user_id' => Auth::id(), 'match_id' => (int) $matchId],
-                ['predicted_home' => $scores['predicted_home'], 'predicted_away' => $scores['predicted_away']]
+
+            $isGroupStage   = $round->slug === 'grupos';
+            $hasClassifiers = ! empty($data['predicted_classifiers'] ?? null);
+            $coveredIds     = collect($data['predictions'])->keys()->map(fn ($k) => (int) $k);
+            $allCovered     = $fixtureIds->diff($coveredIds)->isEmpty();
+
+            if ($isGroupStage && $hasClassifiers && $allCovered) {
+                PredictionSubmission::updateOrCreate(
+                    ['user_id' => Auth::id(), 'round_id' => $round->id],
+                    [
+                        'status'                => 'submitted',
+                        'submitted_at'          => now(),
+                        'predicted_classifiers' => $data['predicted_classifiers'],
+                    ]
+                );
+                return back()->with('status', '¡Fase de grupos confirmada con tus 32 clasificados!');
+            }
+
+            PredictionSubmission::updateOrCreate(
+                ['user_id' => Auth::id(), 'round_id' => $round->id],
+                ['status' => 'draft']
             );
-        }
-
-        PredictionSubmission::updateOrCreate(
-            ['user_id' => Auth::id(), 'round_id' => $round->id],
-            ['status' => 'draft']
-        );
-
-        return back()->with('status', 'Borrador guardado.');
+            return back()->with('status', 'Borrador guardado.');
+        });
     }
 
     public function submit(Request $request, Round $round): RedirectResponse

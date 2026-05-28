@@ -57,7 +57,6 @@ Route::middleware('auth')->prefix('predictions')->name('predictions.')->group(fu
     Route::middleware('activated')->group(function () {
         Route::post('/special', [SpecialPredictionController::class, 'save'])->name('special.save');
         Route::post('/{round}/save', [PredictionController::class, 'save'])->name('save');
-        Route::post('/{round}/submit', [PredictionController::class, 'submit'])->name('submit');
     });
 });
 

@@ -32,7 +32,7 @@ class GroupStageClassifierService
             }
         }
 
-        if (count($thirds) >= 8) {
+        if (count($thirds) > 0) {
             usort($thirds, fn ($a, $b) =>
                 $b['pts'] <=> $a['pts']
                     ?: $b['gd'] <=> $a['gd']
@@ -53,7 +53,7 @@ class GroupStageClassifierService
      * @return array  Filas ordenadas desc por pts → gd → gf.
      *                Cada fila: ['team_id', 'pts', 'gd', 'gf']
      */
-    public function buildGroupTable(Collection $fixtures, callable $getScores): array
+    private function buildGroupTable(Collection $fixtures, callable $getScores): array
     {
         $table = [];
 

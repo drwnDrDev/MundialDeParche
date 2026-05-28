@@ -120,3 +120,65 @@ it('blocks save when special predictions are locked', function () {
 
     expect(SpecialPrediction::first()->champion_team_id)->toBe($champ->id); // unchanged
 });
+
+it('saves with custom player via firstOrCreate', function () {
+    $group  = Group::factory()->create(['name' => 'A']);
+    $champ  = Team::factory()->create(['group_id' => $group->id]);
+    $runner = Team::factory()->create(['group_id' => $group->id]);
+    $team   = Team::factory()->create(['group_id' => $group->id]);
+
+    $this->actingAs($this->user)->post('/predictions/special', [
+        'champion_team_id'          => $champ->id,
+        'runner_up_team_id'         => $runner->id,
+        'top_scorer_custom_name'    => 'Lionel Messi',
+        'top_scorer_custom_team_id' => $team->id,
+    ])->assertRedirect();
+
+    $player = Player::where('name', 'Lionel Messi')->where('team_id', $team->id)->first();
+    expect($player)->not->toBeNull();
+
+    $special = SpecialPrediction::where('user_id', $this->user->id)->first();
+    expect($special->top_scorer_player_id)->toBe($player->id);
+});
+
+it('reuses existing player on duplicate custom save', function () {
+    $group    = Group::factory()->create(['name' => 'A']);
+    $champ    = Team::factory()->create(['group_id' => $group->id]);
+    $runner   = Team::factory()->create(['group_id' => $group->id]);
+    $team     = Team::factory()->create(['group_id' => $group->id]);
+    $existing = Player::factory()->create(['name' => 'Lionel Messi', 'team_id' => $team->id]);
+
+    $this->actingAs($this->user)->post('/predictions/special', [
+        'champion_team_id'          => $champ->id,
+        'runner_up_team_id'         => $runner->id,
+        'top_scorer_custom_name'    => 'Lionel Messi',
+        'top_scorer_custom_team_id' => $team->id,
+    ])->assertRedirect();
+
+    expect(Player::count())->toBe(1);
+    $special = SpecialPrediction::where('user_id', $this->user->id)->first();
+    expect($special->top_scorer_player_id)->toBe($existing->id);
+});
+
+it('rejects custom player without team', function () {
+    $group  = Group::factory()->create(['name' => 'A']);
+    $champ  = Team::factory()->create(['group_id' => $group->id]);
+    $runner = Team::factory()->create(['group_id' => $group->id]);
+
+    $this->actingAs($this->user)->post('/predictions/special', [
+        'champion_team_id'       => $champ->id,
+        'runner_up_team_id'      => $runner->id,
+        'top_scorer_custom_name' => 'Some Player',
+    ])->assertSessionHasErrors('top_scorer_custom_team_id');
+});
+
+it('rejects save with neither player id nor custom name', function () {
+    $group  = Group::factory()->create(['name' => 'A']);
+    $champ  = Team::factory()->create(['group_id' => $group->id]);
+    $runner = Team::factory()->create(['group_id' => $group->id]);
+
+    $this->actingAs($this->user)->post('/predictions/special', [
+        'champion_team_id'  => $champ->id,
+        'runner_up_team_id' => $runner->id,
+    ])->assertSessionHasErrors('top_scorer_player_id');
+});

@@ -34,15 +34,39 @@ class SpecialPredictionController extends Controller
             return back()->with('status', 'Tus predicciones especiales están bloqueadas.');
         }
 
-        $data = $request->validate([
-            'champion_team_id'     => ['required', 'exists:teams,id'],
-            'runner_up_team_id'    => ['required', 'exists:teams,id', 'different:champion_team_id'],
-            'top_scorer_player_id' => ['required', 'exists:players,id'],
-        ]);
+        $isCustom = $request->filled('top_scorer_custom_name');
+
+        $rules = [
+            'champion_team_id'  => ['required', 'exists:teams,id'],
+            'runner_up_team_id' => ['required', 'exists:teams,id', 'different:champion_team_id'],
+        ];
+
+        if ($isCustom) {
+            $rules['top_scorer_custom_name']    = ['required', 'string', 'max:100'];
+            $rules['top_scorer_custom_team_id'] = ['required', 'exists:teams,id'];
+        } else {
+            $rules['top_scorer_player_id'] = ['required', 'exists:players,id'];
+        }
+
+        $data = $request->validate($rules);
+
+        if ($isCustom) {
+            $player = Player::firstOrCreate([
+                'name'    => $data['top_scorer_custom_name'],
+                'team_id' => (int) $data['top_scorer_custom_team_id'],
+            ]);
+            $topScorerId = $player->id;
+        } else {
+            $topScorerId = (int) $data['top_scorer_player_id'];
+        }
 
         SpecialPrediction::updateOrCreate(
             ['user_id' => Auth::id()],
-            $data
+            [
+                'champion_team_id'     => (int) $data['champion_team_id'],
+                'runner_up_team_id'    => (int) $data['runner_up_team_id'],
+                'top_scorer_player_id' => $topScorerId,
+            ]
         );
 
         return back()->with('status', 'Predicciones especiales guardadas.');

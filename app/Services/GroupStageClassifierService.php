@@ -32,7 +32,7 @@ class GroupStageClassifierService
             }
         }
 
-        if (count($thirds) > 0) {
+        if (count($thirds) >= 8) {
             usort($thirds, fn ($a, $b) =>
                 $b['pts'] <=> $a['pts']
                     ?: $b['gd'] <=> $a['gd']

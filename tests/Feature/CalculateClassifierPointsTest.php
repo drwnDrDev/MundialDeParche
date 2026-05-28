@@ -62,36 +62,63 @@ function createUserPredictions(User $user, iterable $fixtures, array $prediction
 }
 
 it('uses saved predicted_classifiers when available instead of re-deriving', function () {
-    // Set up a round with points_classifier = 2
     $round = Round::factory()->r1()->create(['is_open' => false, 'is_locked' => true]);
 
-    // 4-team group: T1 wins all, T2 second, T3 third, T4 last
-    // Real classifiers: T1 and T2 only
-    ['fixtures' => $fixtures, 'teams' => $teams] = makeGroup($round, 'A', 1);
-    [$t1, $t2, $t3, $t4] = $teams;
+    // Create 8 groups, each with 2 teams and 1 fixture so thirds pool >= 8
+    $teams = [];
+    for ($i = 0; $i < 8; $i++) {
+        $group = \App\Models\Group::factory()->create(['name' => chr(65 + $i)]); // A–H
+        $home  = \App\Models\Team::factory()->create(['group_id' => $group->id]);
+        $away  = \App\Models\Team::factory()->create(['group_id' => $group->id]);
+        $teams[$i] = ['group' => $group, 'home' => $home, 'away' => $away];
 
-    setActualScores($fixtures, [
-        [3, 0], [3, 0], [3, 0], // T1 beats T2, T3, T4
-        [1, 0], [1, 0],         // T2 beats T3, T4
-        [1, 0],                 // T3 beats T4
+        \App\Models\Fixture::factory()->create([
+            'round_id'     => $round->id,
+            'group_id'     => $group->id,
+            'home_team_id' => $home->id,
+            'away_team_id' => $away->id,
+            'home_score'   => 2,  // home wins in all groups
+            'away_score'   => 0,
+        ]);
+    }
+
+    $user = \App\Models\User::factory()->create(['is_activated' => true]);
+
+    // Create Prediction rows where AWAY wins (opposite of real scores)
+    // If re-derived, away teams would be classifiers; but we save home teams as classifiers
+    foreach ($teams as $t) {
+        $fixture = \App\Models\Fixture::where('round_id', $round->id)
+            ->where('home_team_id', $t['home']->id)
+            ->first();
+        \App\Models\Prediction::factory()->create([
+            'user_id'        => $user->id,
+            'match_id'       => $fixture->id,
+            'predicted_home' => 0,  // user's prediction: away wins
+            'predicted_away' => 2,
+        ]);
+    }
+
+    // Save predicted_classifiers with home teams (correct per real scores, but opposite of user's prediction scores)
+    $savedClassifiers = collect($teams)->map(fn ($t, $i) => [
+        'team_id'  => $t['home']->id,
+        'group'    => chr(65 + $i),
+        'position' => 1,
+    ])->values()->all();
+
+    $submission = \App\Models\PredictionSubmission::factory()->submitted()->create([
+        'user_id'                => $user->id,
+        'round_id'               => $round->id,
+        'predicted_classifiers'  => $savedClassifiers,
     ]);
 
-    $user = User::factory()->create(['is_activated' => true]);
+    event(new \App\Events\RoundFinalized($round));
 
-    // User saved T3 and T4 as their predicted classifiers (both wrong)
-    $submission = PredictionSubmission::factory()->submitted()->create([
-        'user_id'  => $user->id,
-        'round_id' => $round->id,
-        'predicted_classifiers' => [
-            ['team_id' => $t3->id, 'group' => 'A', 'position' => 1],
-            ['team_id' => $t4->id, 'group' => 'A', 'position' => 2],
-        ],
-    ]);
-
-    event(new RoundFinalized($round));
-
-    // Real classifiers: T1, T2, T3 (the best third from group A). User predicted: T3, T4 → 1 correct (T3) → 2 pts
-    expect($submission->fresh()->pts_classifier)->toBe(2);
+    // Real classifiers = home teams (home_score 2 > 0).
+    // Saved classifiers = home teams → all 8 match → 8 × points_classifier pts.
+    // If re-derived from predictions (away wins), away teams would be classifiers → 0 correct.
+    // The fact that pts > 0 proves the saved JSON path was taken, not re-derivation.
+    $pts = 8 * $round->points_classifier;
+    expect($submission->fresh()->pts_classifier)->toBe($pts);
 });
 
 it('awards classifier pts when user correctly predicts R1 top-2 classifiers', function () {
@@ -119,7 +146,7 @@ it('awards classifier pts when user correctly predicts R1 top-2 classifiers', fu
     app(CalculateClassifierPoints::class)->handle(new RoundFinalized($round));
 
     $submission = PredictionSubmission::where('user_id', $user->id)->where('round_id', $round->id)->first();
-    expect($submission->pts_classifier)->toBe(6); // 3 correct classifiers (T1, T2, T3) × 2 pts
+    expect($submission->pts_classifier)->toBe(4); // 2 correct classifiers (T1, T2) × 2 pts (no thirds: only 1 group < 8)
 });
 
 it('awards zero pts when user predicts wrong R1 classifiers', function () {
@@ -147,9 +174,9 @@ it('awards zero pts when user predicts wrong R1 classifiers', function () {
     app(CalculateClassifierPoints::class)->handle(new RoundFinalized($round));
 
     $submission = PredictionSubmission::where('user_id', $user->id)->where('round_id', $round->id)->first();
-    // Real classifiers: T1, T2, T3 (best third)
-    // User predicts T3 as first, T4 as second, T1 as best third → intersection [T3, T1] = 2 correct × 2 pts
-    expect($submission->pts_classifier)->toBe(4);
+    // Real classifiers: T1, T2 only (no thirds: only 1 group < 8)
+    // User predicts T3, T4 win everything → derived classifiers = T3, T4 → intersection with {T1,T2} = 0 correct
+    expect($submission->pts_classifier)->toBe(0);
 });
 
 it('does not award classifier pts to draft submissions', function () {
@@ -178,7 +205,7 @@ it('updates user total_points after R1 classifier calculation', function () {
 
     app(CalculateClassifierPoints::class)->handle(new RoundFinalized($round));
 
-    expect($user->fresh()->total_points)->toBe(6); // 3 correct classifiers (T1, T2, T3) × 2 pts
+    expect($user->fresh()->total_points)->toBe(4); // 2 correct classifiers (T1, T2) × 2 pts (no thirds: only 1 group < 8)
 });
 
 it('awards classifier pts for correctly predicted 8-best-thirds across 9 groups', function () {

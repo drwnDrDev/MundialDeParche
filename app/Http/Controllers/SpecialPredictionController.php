@@ -15,7 +15,9 @@ class SpecialPredictionController extends Controller
 {
     public function show(): Response
     {
-        $special = SpecialPrediction::where('user_id', Auth::id())->first();
+        $special = SpecialPrediction::with(['champion', 'runnerUp', 'topScorer.team'])
+            ->where('user_id', Auth::id())
+            ->first();
 
         return Inertia::render('Predictions/Special', [
             'special' => $special,

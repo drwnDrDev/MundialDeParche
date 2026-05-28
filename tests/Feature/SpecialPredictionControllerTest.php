@@ -13,19 +13,31 @@ beforeEach(function () {
     $this->user = User::factory()->create(['role' => 'user', 'is_active' => true]);
 });
 
-it('shows the special predictions form', function () {
+it('shows the special predictions form with relations', function () {
     $group  = Group::factory()->create(['name' => 'A']);
-    $team   = Team::factory()->create(['group_id' => $group->id]);
-    Player::factory()->create(['team_id' => $team->id]);
+    $champ  = Team::factory()->create(['group_id' => $group->id]);
+    $runner = Team::factory()->create(['group_id' => $group->id]);
+    $scorer = Player::factory()->create(['team_id' => $champ->id]);
+
+    SpecialPrediction::create([
+        'user_id'              => $this->user->id,
+        'champion_team_id'     => $champ->id,
+        'runner_up_team_id'    => $runner->id,
+        'top_scorer_player_id' => $scorer->id,
+        'is_locked'            => false,
+    ]);
 
     $response = $this->withoutVite()->actingAs($this->user)->get('/predictions/special');
 
     $response->assertStatus(200);
     $response->assertInertia(fn ($page) => $page
         ->component('Predictions/Special')
-        ->has('teams', 1)
+        ->has('teams', 2)
         ->has('players', 1)
-        ->has('special')
+        ->where('special.champion_team_id', $champ->id)
+        ->where('special.champion.id', $champ->id)
+        ->where('special.top_scorer.id', $scorer->id)
+        ->where('special.top_scorer.team.id', $champ->id)
     );
 });
 

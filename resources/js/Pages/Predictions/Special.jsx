@@ -1,4 +1,4 @@
-import { Head, router, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import MobileShell from '@/Components/MobileShell';
 import TabBar from '@/Components/composed/TabBar';
@@ -40,6 +40,15 @@ function TeamCard({ team, selected, disabled, onSelect }) {
 // ── TeamPickerGrid ────────────────────────────────────────────────────────────
 
 function TeamPickerGrid({ teams, selectedId, disabledId, onSelect, locked }) {
+    // En modo locked sin selección, mostrar placeholder en vez de grid todo dimmed
+    if (locked && !selectedId) {
+        return (
+            <div className="border-[2px] border-dashed border-ink/30 px-3 py-4 text-center">
+                <div className="font-mono text-[10px] opacity-40">SIN PREDICCIÓN</div>
+            </div>
+        );
+    }
+
     return (
         <div className="grid grid-cols-4 gap-1.5">
             {teams.map(team => {
@@ -149,9 +158,8 @@ function SectionHeader({ title, subtitle, pts, ptsType }) {
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
-export default function Special({ special, teams, players }) {
+export default function Special({ special, teams, players, status }) {
     const { auth } = usePage().props;
-    const flash       = usePage().props.flash ?? {};
     const isLocked    = special?.is_locked ?? false;
     const totalPts    = auth.user?.total_points ?? 0;
     const isActivated = auth.user?.is_activated ?? false;
@@ -268,9 +276,9 @@ export default function Special({ special, teams, players }) {
                 </div>
 
                 {/* Flash status */}
-                {flash.status && (
+                {status && (
                     <div className="mx-[18px] mt-3 bg-pop-teal text-white border-[2px] border-ink px-3 py-2 font-mono text-[11px] font-bold">
-                        ✓ {flash.status}
+                        ✓ {status}
                     </div>
                 )}
 
@@ -428,13 +436,13 @@ export default function Special({ special, teams, players }) {
                             {processing ? 'GUARDANDO...' : 'GUARDAR →'}
                         </button>
                     ) : (
-                        <a
+                        <Link
                             href={route('activation')}
                             className="py-3 px-4 bg-ink text-cream font-display text-[13px] border-[2.5px] border-ink"
                             style={{ boxShadow: '3px 3px 0 var(--c-yel)' }}
                         >
                             ACTIVAR CUENTA →
-                        </a>
+                        </Link>
                     )}
                 </div>
             )}

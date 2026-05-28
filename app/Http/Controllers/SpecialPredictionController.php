@@ -23,6 +23,7 @@ class SpecialPredictionController extends Controller
             'special' => $special,
             'teams'   => Team::with('group')->orderBy('name')->get(),
             'players' => Player::with('team')->orderBy('name')->get(),
+            'status'  => session('status'),
         ]);
     }
 

@@ -73,7 +73,7 @@ Dos inputs inline que aparecen debajo del dropdown:
 1. **Nombre del jugador** — `<input type="text">` con placeholder `"Nombre del jugador"`, estilo pop-art
 2. **Equipo** — `<select>` con la lista de 48 equipos, placeholder `"— Equipo —"`, mismo estilo pop-art
 
-Ambos campos son requeridos si se activa el modo custom. El equipo elegido se envía como `top_scorer_custom_team_id`.
+Ambos campos son requeridos si se activa el modo custom. Al guardar, el backend hace `Player::firstOrCreate(['name' => $name, 'team_id' => $teamId])` y usa el ID resultante como `top_scorer_player_id` normal — el jugador queda registrado en la tabla `players` y disponible para todos.
 
 ### Modo locked
 - Muestra nombre del jugador (de la lista o custom) + equipo en cromo pequeño
@@ -101,24 +101,19 @@ TOTAL:        XX PTS
 
 ## Cambios de backend
 
-### 1. Migración: columnas custom en `special_predictions`
-```
-top_scorer_custom          string nullable  — nombre libre del jugador
-top_scorer_custom_team_id  FK nullable → teams.id  — equipo del jugador custom
-```
+### Sin migración necesaria
+No se agregan columnas a `special_predictions`. El jugador custom se convierte en un `Player` real mediante `firstOrCreate`.
 
-### 2. `SpecialPredictionController@show`
-- Pasar `top_scorer_custom` y `top_scorer_custom_team_id` al frontend junto con `special`
+### `SpecialPredictionController@save` — validación actualizada
+- Request acepta: `top_scorer_player_id` (ID existente) **OR** (`top_scorer_custom_name` + `top_scorer_custom_team_id`) para el path custom
+- Si viene path custom: `Player::firstOrCreate(['name' => $name, 'team_id' => $teamId])` → usar el ID resultante como `top_scorer_player_id`
+- Validación: exactamente uno de los dos paths requerido; `top_scorer_custom_team_id` debe existir en `teams`
 
-### 3. `SpecialPredictionController@save` — validación actualizada
-- `top_scorer_player_id` OR (`top_scorer_custom` + `top_scorer_custom_team_id`) requerido — uno de los dos paths, no ambos
-- Si viene `top_scorer_custom`: guardar nombre + `top_scorer_custom_team_id`; dejar `top_scorer_player_id` null
-- Si viene `top_scorer_player_id`: guardar ID; dejar custom null
+### `SpecialPredictionController@show`
+- Pasar `special` con `top_scorer_player_id` cargado con `player.name` y `player.team.name` al frontend (sin cambios adicionales)
 
-### 4. `CalculateSpecialPredictions` — sin cambio de lógica
-- Solo aplica puntos a `top_scorer_player_id`. El campo custom no recibe puntos automáticos (el admin asigna puntos manualmente o se ignora para el torneo real).
-
-> **Nota:** El jugador custom es para satisfacción del usuario (apostar a alguien no listado). La resolución de puntos para el custom queda fuera del alcance de este plan — se trata como caso edge sin puntos automáticos.
+### `CalculateSpecialPredictions` — sin cambio
+- Lógica existente funciona sin modificación: compara `top_scorer_player_id` directamente. El jugador custom ya tiene ID real.
 
 ---
 
@@ -136,6 +131,6 @@ Todos son componentes internos de `Special.jsx` (no extraídos a `composed/`) ya
 
 ## No incluido en este plan
 
-- Puntos automáticos para goleador custom
+- Deduplicación avanzada de jugadores custom (ej. variantes de nombre — queda en manos del admin via Plan 6b)
 - Validación de que campeón ≠ subcampeón en el frontend (ya existe en backend; agregar validación visual)
 - Animaciones de selección

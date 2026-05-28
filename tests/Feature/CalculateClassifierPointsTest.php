@@ -90,8 +90,8 @@ it('uses saved predicted_classifiers when available instead of re-deriving', fun
 
     event(new RoundFinalized($round));
 
-    // Real classifiers: T1, T2. User predicted: T3, T4 → 0 correct → 0 pts
-    expect($submission->fresh()->pts_classifier)->toBe(0);
+    // Real classifiers: T1, T2, T3 (the best third from group A). User predicted: T3, T4 → 1 correct (T3) → 2 pts
+    expect($submission->fresh()->pts_classifier)->toBe(2);
 });
 
 it('awards classifier pts when user correctly predicts R1 top-2 classifiers', function () {
@@ -119,7 +119,7 @@ it('awards classifier pts when user correctly predicts R1 top-2 classifiers', fu
     app(CalculateClassifierPoints::class)->handle(new RoundFinalized($round));
 
     $submission = PredictionSubmission::where('user_id', $user->id)->where('round_id', $round->id)->first();
-    expect($submission->pts_classifier)->toBe(4); // 2 correct classifiers × 2 pts
+    expect($submission->pts_classifier)->toBe(6); // 3 correct classifiers (T1, T2, T3) × 2 pts
 });
 
 it('awards zero pts when user predicts wrong R1 classifiers', function () {
@@ -147,7 +147,9 @@ it('awards zero pts when user predicts wrong R1 classifiers', function () {
     app(CalculateClassifierPoints::class)->handle(new RoundFinalized($round));
 
     $submission = PredictionSubmission::where('user_id', $user->id)->where('round_id', $round->id)->first();
-    expect($submission->pts_classifier)->toBe(0);
+    // Real classifiers: T1, T2, T3 (best third)
+    // User predicts T3 as first, T4 as second, T1 as best third → intersection [T3, T1] = 2 correct × 2 pts
+    expect($submission->pts_classifier)->toBe(4);
 });
 
 it('does not award classifier pts to draft submissions', function () {
@@ -176,7 +178,7 @@ it('updates user total_points after R1 classifier calculation', function () {
 
     app(CalculateClassifierPoints::class)->handle(new RoundFinalized($round));
 
-    expect($user->fresh()->total_points)->toBe(4);
+    expect($user->fresh()->total_points)->toBe(6); // 3 correct classifiers (T1, T2, T3) × 2 pts
 });
 
 it('awards classifier pts for correctly predicted 8-best-thirds across 9 groups', function () {

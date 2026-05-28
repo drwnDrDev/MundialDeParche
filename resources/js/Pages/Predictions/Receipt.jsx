@@ -151,7 +151,7 @@ export default function Receipt({ round, fixtures, predictions, submission, isFi
                                                          className={[
                                                              'flex items-center gap-1 border border-ink/20 px-1.5 py-0.5',
                                                              hit === true  ? 'bg-pop-teal/15' :
-                                                             hit === false ? 'bg-red-50 opacity-40' : 'bg-black/5',
+                                                             hit === false ? 'bg-pop-red/15 opacity-40' : 'bg-black/5',
                                                          ].join(' ')}>
                                                         {isFinalized && (
                                                             <span className={`font-mono text-[9px] font-bold ${hit ? 'text-pop-teal' : 'text-pop-red'}`}>

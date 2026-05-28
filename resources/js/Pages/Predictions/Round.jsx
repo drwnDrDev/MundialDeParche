@@ -186,6 +186,47 @@ function simulateStandings(fixtures, scores) {
     });
 }
 
+// ── simulateAllGroups — simula los 32 clasificados de toda la fase de grupos
+
+function simulateAllGroups(fixtures, scores) {
+    // Agrupar por nombre de grupo
+    const byGroup = {};
+    fixtures.forEach(f => {
+        const key = f.group?.name ?? 'Sin Grupo';
+        if (!byGroup[key]) byGroup[key] = [];
+        byGroup[key].push(f);
+    });
+
+    const classifiers = [];
+    const thirdsPool  = [];
+
+    Object.entries(byGroup).forEach(([groupName, groupFixtures]) => {
+        const standings = simulateStandings(groupFixtures, scores);
+        standings.forEach((row, i) => {
+            const entry = { team_id: row.team.id, group: groupName, position: i + 1 };
+            if (i < 2) {
+                classifiers.push(entry);
+            } else if (i === 2) {
+                thirdsPool.push({ ...entry, pts: row.pts, gf: row.gf, ga: row.ga });
+            }
+        });
+    });
+
+    // Seleccionar los 8 mejores terceros (pts → GD → GF)
+    thirdsPool.sort((a, b) => {
+        if (b.pts !== a.pts) return b.pts - a.pts;
+        const gdDiff = (b.gf - b.ga) - (a.gf - a.ga);
+        if (gdDiff !== 0) return gdDiff;
+        return b.gf - a.gf;
+    });
+
+    thirdsPool.slice(0, 8).forEach(({ team_id, group, position }) => {
+        classifiers.push({ team_id, group, position });
+    });
+
+    return classifiers; // 32 entradas: {team_id, group, position}
+}
+
 // ── GroupPanel ─────────────────────────────────────────────────────────────
 
 function GroupPanel({ groupKey, fixtures, scores, isLocked, onChange, round }) {
@@ -329,7 +370,13 @@ export default function Round({ round, fixtures, predictions, submission }) {
     }
 
     function submit() {
-        router.post(route('predictions.save', round.slug), buildPayload());
+        const payload = buildPayload();
+
+        if (isGroupStage && filledCount === totalFixtures) {
+            payload.predicted_classifiers = simulateAllGroups(fixtures, scores);
+        }
+
+        router.post(route('predictions.save', round.slug), payload);
     }
 
     const activeFixtures = activeGroup ? (grouped[activeGroup] ?? []) : [];
@@ -442,6 +489,82 @@ export default function Round({ round, fixtures, predictions, submission }) {
                         </div>
                     )}
                 </div>
+
+                {/* Panel TUS 32 CLASIFICADOS — visible solo cuando todos los partidos están predichos */}
+                {isGroupStage && filledCount === totalFixtures && (() => {
+                    const allClassifiers = simulateAllGroups(fixtures, scores);
+                    const byGroup = {};
+                    allClassifiers.forEach(c => {
+                        if (!byGroup[c.group]) byGroup[c.group] = [];
+                        byGroup[c.group].push(c);
+                    });
+                    const bestThirds = allClassifiers.filter(c => c.position === 3);
+
+                    return (
+                        <div className="px-[14px] pt-4">
+                            <div className="border-[3px] border-ink bg-navy text-cream p-3.5 relative overflow-hidden"
+                                 style={{ boxShadow: '5px 5px 0 var(--c-yel)' }}>
+                                <div className="font-mono text-[9px] tracking-[.1em] text-pop-yel opacity-90 mb-1">
+                                    SEGÚN TUS PREDICCIONES
+                                </div>
+                                <div className="font-display text-[18px] leading-none mb-3">
+                                    TUS 32 CLASIFICADOS
+                                </div>
+
+                                {/* Grid por grupo */}
+                                <div className="grid grid-cols-2 gap-x-2 gap-y-1 mb-3">
+                                    {Object.entries(byGroup)
+                                        .sort(([a], [b]) => a.localeCompare(b))
+                                        .map(([groupName, entries]) => {
+                                            const first  = entries.find(e => e.position === 1);
+                                            const second = entries.find(e => e.position === 2);
+                                            const t1 = first  ? fixtures.find(f => f.home_team?.id === first.team_id  || f.away_team?.id === first.team_id)  : null;
+                                            const t2 = second ? fixtures.find(f => f.home_team?.id === second.team_id || f.away_team?.id === second.team_id) : null;
+                                            const team1 = t1?.home_team?.id === first?.team_id  ? t1?.home_team  : t1?.away_team;
+                                            const team2 = t2?.home_team?.id === second?.team_id ? t2?.home_team  : t2?.away_team;
+                                            return (
+                                                <div key={groupName} className="bg-white/10 px-2 py-1.5 border border-cream/20">
+                                                    <div className="font-mono text-[8px] opacity-60 mb-1">GRUPO {groupName}</div>
+                                                    {[team1, team2].map((t, i) => t && (
+                                                        <div key={i} className="flex items-center gap-1 mb-0.5">
+                                                            <span className="font-mono text-[8px] opacity-50 w-3">{i + 1}°</span>
+                                                            {t.flag_url && <img src={t.flag_url} alt="" className="h-2.5 w-3.5 object-cover" />}
+                                                            <span className="font-display text-[9px] leading-none truncate">{(t.fifa_code ?? t.name).toUpperCase()}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            );
+                                        })
+                                    }
+                                </div>
+
+                                {/* 8 mejores terceros */}
+                                {bestThirds.length > 0 && (
+                                    <div className="border-t border-cream/20 pt-2.5">
+                                        <div className="font-mono text-[8px] opacity-60 mb-1.5">8 MEJORES TERCEROS</div>
+                                        <div className="flex flex-wrap gap-1">
+                                            {bestThirds.map(c => {
+                                                const fix = fixtures.find(f => f.home_team?.id === c.team_id || f.away_team?.id === c.team_id);
+                                                const t   = fix?.home_team?.id === c.team_id ? fix?.home_team : fix?.away_team;
+                                                return t ? (
+                                                    <div key={c.team_id} className="flex items-center gap-1 bg-white/10 px-1.5 py-0.5 border border-cream/20">
+                                                        {t.flag_url && <img src={t.flag_url} alt="" className="h-2.5 w-3.5 object-cover" />}
+                                                        <span className="font-display text-[9px]">{(t.fifa_code ?? t.name).toUpperCase()}</span>
+                                                        <span className="font-mono text-[7px] opacity-50">({c.group})</span>
+                                                    </div>
+                                                ) : null;
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="mt-3 font-mono text-[9px] opacity-60 leading-[1.4]">
+                                    Estos se guardarán cuando confirmes tus predicciones →
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })()}
             </div>
 
             {/* Sticky CTA */}

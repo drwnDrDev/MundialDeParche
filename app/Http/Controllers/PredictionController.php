@@ -6,6 +6,7 @@ use App\Models\Fixture;
 use App\Models\Prediction;
 use App\Models\PredictionSubmission;
 use App\Models\Round;
+use App\Services\GroupStageClassifierService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -235,13 +236,45 @@ class PredictionController extends Controller
             ->get()
             ->keyBy('match_id');
 
-        return Inertia::render('Predictions/Receipt', [
+        // Enriquecer classifiers con nombre y bandera del equipo
+        $classifiers = null;
+        if ($round->slug === 'grupos' && ! empty($submission->predicted_classifiers)) {
+            $teamIds = collect($submission->predicted_classifiers)->pluck('team_id');
+            $teams   = \App\Models\Team::whereIn('id', $teamIds)->get()->keyBy('id');
+
+            $classifiers = collect($submission->predicted_classifiers)->map(function ($item) use ($teams) {
+                $team = $teams->get($item['team_id']);
+                return array_merge($item, [
+                    'team_name' => $team?->name,
+                    'flag_url'  => $team?->flag_url,
+                ]);
+            })->values()->all();
+        }
+
+        // Cuando la ronda está finalizada, calcular los clasificados reales para comparación
+        $realClassifierIds = null;
+        if ($round->is_locked && $round->slug === 'grupos') {
+            $service           = app(GroupStageClassifierService::class);
+            $realClassifierIds = $service->getClassifierIds(
+                $fixtures,
+                fn ($f) => [$f->home_score, $f->away_score]
+            );
+        }
+
+        $props = [
             'round'       => $round,
             'fixtures'    => $fixtures,
             'predictions' => $predictions,
             'submission'  => $submission,
             'isFinalized' => $round->is_locked,
-        ]);
+            'classifiers' => $classifiers,
+        ];
+
+        if ($realClassifierIds !== null) {
+            $props['realClassifierIds'] = $realClassifierIds;
+        }
+
+        return Inertia::render('Predictions/Receipt', $props);
     }
 
     private function buildPhasePts(Collection $rounds, int $userId, \Illuminate\Support\Collection $submissions): array

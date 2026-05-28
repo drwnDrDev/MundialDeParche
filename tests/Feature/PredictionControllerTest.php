@@ -479,3 +479,64 @@ it('receipt includes fixtures and user predictions keyed by match_id', function 
             ->where("predictions.{$fixture->id}.predicted_away", 1)
         );
 });
+
+it('receipt includes predicted_classifiers enriched with team data for R1', function () {
+    $round = Round::factory()->r1()->create(['is_open' => false, 'is_locked' => false]);
+    $group = \App\Models\Group::factory()->create(['name' => 'A']);
+    $home  = \App\Models\Team::factory()->create(['group_id' => $group->id, 'name' => 'Colombia', 'flag_url' => '/flags/col.png']);
+    $away  = \App\Models\Team::factory()->create(['group_id' => $group->id, 'name' => 'Brasil']);
+
+    \App\Models\PredictionSubmission::factory()->submitted()->create([
+        'user_id'  => $this->user->id,
+        'round_id' => $round->id,
+        'predicted_classifiers' => [
+            ['team_id' => $home->id, 'group' => 'A', 'position' => 1],
+            ['team_id' => $away->id, 'group' => 'A', 'position' => 2],
+        ],
+    ]);
+
+    $response = $this->actingAs($this->user)
+        ->get("/predictions/{$round->slug}/receipt");
+
+    $response->assertInertia(fn ($page) => $page
+        ->component('Predictions/Receipt')
+        ->has('classifiers', 2)
+        ->where('classifiers.0.team_name', 'Colombia')
+        ->where('classifiers.0.flag_url', '/flags/col.png')
+        ->where('classifiers.0.position', 1)
+        ->missing('realClassifierIds')
+    );
+});
+
+it('receipt includes realClassifierIds when round is finalized', function () {
+    $round = Round::factory()->r1()->create(['is_open' => false, 'is_locked' => true]);
+    $group = \App\Models\Group::factory()->create(['name' => 'A']);
+    $home  = \App\Models\Team::factory()->create(['group_id' => $group->id]);
+    $away  = \App\Models\Team::factory()->create(['group_id' => $group->id]);
+
+    \App\Models\Fixture::factory()->create([
+        'round_id'     => $round->id,
+        'group_id'     => $group->id,
+        'home_team_id' => $home->id,
+        'away_team_id' => $away->id,
+        'home_score'   => 2,
+        'away_score'   => 0,
+    ]);
+
+    \App\Models\PredictionSubmission::factory()->submitted()->create([
+        'user_id'  => $this->user->id,
+        'round_id' => $round->id,
+        'predicted_classifiers' => [
+            ['team_id' => $home->id, 'group' => 'A', 'position' => 1],
+        ],
+    ]);
+
+    $response = $this->actingAs($this->user)
+        ->get("/predictions/{$round->slug}/receipt");
+
+    $response->assertInertia(fn ($page) => $page
+        ->component('Predictions/Receipt')
+        ->has('realClassifierIds')
+        ->where('realClassifierIds', fn ($ids) => in_array($home->id, is_array($ids) ? $ids : $ids->toArray()))
+    );
+});

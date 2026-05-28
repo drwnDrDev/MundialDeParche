@@ -111,7 +111,7 @@ class PredictionController extends Controller
 
         $fixtureIds = $round->fixtures()->pluck('id');
 
-        return DB::transaction(function () use ($data, $fixtureIds, $round) {
+        return DB::transaction(function () use ($data, $fixtureIds, $round, $submission) {
             foreach ($data['predictions'] as $matchId => $scores) {
                 if (! $fixtureIds->contains((int) $matchId)) continue;
                 Prediction::updateOrCreate(
@@ -122,7 +122,9 @@ class PredictionController extends Controller
 
             $isGroupStage   = $round->slug === 'grupos';
             $hasClassifiers = ! empty($data['predicted_classifiers'] ?? null);
-            $coveredIds     = collect($data['predictions'])->keys()->map(fn ($k) => (int) $k);
+            $coveredIds     = collect($data['predictions'])->keys()
+                ->map(fn ($k) => (int) $k)
+                ->filter(fn ($id) => $fixtureIds->contains($id));
             $allCovered     = $fixtureIds->diff($coveredIds)->isEmpty();
 
             if ($isGroupStage && $hasClassifiers && $allCovered) {
@@ -137,14 +139,20 @@ class PredictionController extends Controller
                 return back()->with('status', '¡Fase de grupos confirmada con tus 32 clasificados!');
             }
 
-            PredictionSubmission::updateOrCreate(
-                ['user_id' => Auth::id(), 'round_id' => $round->id],
-                ['status' => 'draft']
-            );
+            if (! $submission || $submission->status === 'draft') {
+                PredictionSubmission::updateOrCreate(
+                    ['user_id' => Auth::id(), 'round_id' => $round->id],
+                    ['status' => 'draft']
+                );
+            }
             return back()->with('status', 'Borrador guardado.');
         });
     }
 
+    /**
+     * @deprecated Route removed — save() now auto-promotes to submitted when all fixtures covered.
+     * Kept for reference only. Do not re-register this route.
+     */
     public function submit(Request $request, Round $round): RedirectResponse
     {
         if (! $round->is_open) {

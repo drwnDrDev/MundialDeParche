@@ -495,7 +495,7 @@ it('receipt includes predicted_classifiers enriched with team data for R1', func
         ],
     ]);
 
-    $response = $this->actingAs($this->user)
+    $response = $this->withoutVite()->actingAs($this->user)
         ->get("/predictions/{$round->slug}/receipt");
 
     $response->assertInertia(fn ($page) => $page
@@ -531,7 +531,7 @@ it('receipt includes realClassifierIds when round is finalized', function () {
         ],
     ]);
 
-    $response = $this->actingAs($this->user)
+    $response = $this->withoutVite()->actingAs($this->user)
         ->get("/predictions/{$round->slug}/receipt");
 
     $response->assertInertia(fn ($page) => $page

@@ -253,6 +253,9 @@ class PredictionController extends Controller
 
         // Cuando la ronda está finalizada, calcular los clasificados reales para comparación
         $realClassifierIds = null;
+        // Nota: si la ronda fue bloqueada antes de que todos los fixtures tuvieran marcador,
+        // getClassifierIds puede devolver menos de 32 equipos. En ese caso, el frontend
+        // simplemente mostrará menos acertados — sin excepción.
         if ($round->is_locked && $round->slug === 'grupos') {
             $service           = app(GroupStageClassifierService::class);
             $realClassifierIds = $service->getClassifierIds(

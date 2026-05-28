@@ -1,4 +1,4 @@
-import { Head, router, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import MobileShell from '@/Components/MobileShell';
 import TabBar from '@/Components/composed/TabBar';
@@ -113,8 +113,8 @@ function MatchPredRow({ fixture, homeScore, awayScore, onChangeHome, onChangeAwa
             </div>
             <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
                 <div className="flex items-center justify-end gap-1.5">
-                    <span className="font-display text-[12px]">{home}</span>
-                    {flagHome && <img src={flagHome} alt={home} className="h-4 w-6 object-cover border border-ink" />}
+                    <span className="font-display text-8">{home}</span>
+                    {flagHome && <img src={flagHome} alt={home} className="h-8 w-12 object-cover border border-ink" />}
                 </div>
                 <div className="flex items-center gap-0.5">
                     <ScoreBoxInput value={homeScore} onChange={onChangeHome} disabled={disabled} />
@@ -122,11 +122,11 @@ function MatchPredRow({ fixture, homeScore, awayScore, onChangeHome, onChangeAwa
                     <ScoreBoxInput value={awayScore} onChange={onChangeAway} disabled={disabled} />
                 </div>
                 <div className="flex items-center gap-1.5">
-                    {flagAway && <img src={flagAway} alt={away} className="h-4 w-6 object-cover border border-ink" />}
-                    <span className="font-display text-[12px]">{away}</span>
+                    {flagAway && <img src={flagAway} alt={away} className="h-8 w-12 object-cover border border-ink" />}
+                    <span className="font-display text-8">{away}</span>
                 </div>
             </div>
-            <div className="flex justify-center mt-1">
+            <div className="flex justify-center mt-2">
                 {filled ? (
                     <span className="inline-flex items-center gap-1 font-mono text-[8.5px] font-bold tracking-[.08em] bg-pop-teal text-white px-1.5 py-0.5 border-[1.5px] border-ink">
                         ✓ GUARDADO
@@ -221,6 +221,7 @@ function GroupPanel({ groupKey, fixtures, scores, isLocked, onChange, round }) {
 
 export default function Round({ round, fixtures, predictions, submission }) {
     const { auth } = usePage().props;
+    const isActivated = auth.user.is_activated;
     const isLocked    = submission?.status === 'locked';
     const isSubmitted = submission?.status === 'submitted';
     const isGroupStage = round.slug === 'grupos';
@@ -380,7 +381,7 @@ export default function Round({ round, fixtures, predictions, submission }) {
                             groupKey={activeGroup}
                             fixtures={activeFixtures}
                             scores={scores}
-                            isLocked={isLocked || isSubmitted}
+                            isLocked={isLocked || isSubmitted || !isActivated}
                             onChange={handleChange}
                             round={round}
                         />
@@ -401,14 +402,24 @@ export default function Round({ round, fixtures, predictions, submission }) {
                         {auth.user.total_points ?? 0} PTS
                     </div>
                 </div>
-                <button
-                    onClick={submit}
-                    disabled={isLocked || isSubmitted}
-                    className="py-3 px-4 bg-pop-red text-white font-display text-[13px] border-[2.5px] border-ink disabled:opacity-50"
-                    style={{ boxShadow: '3px 3px 0 var(--c-ink)' }}
-                >
-                    {isLocked ? 'BLOQUEADO 🔒' : isSubmitted ? 'ENVIADO ✓' : 'GUARDAR MIS GOLES →'}
-                </button>
+                {isActivated ? (
+                    <button
+                        onClick={submit}
+                        disabled={isLocked || isSubmitted}
+                        className="py-3 px-4 bg-pop-red text-white font-display text-[13px] border-[2.5px] border-ink disabled:opacity-50"
+                        style={{ boxShadow: '3px 3px 0 var(--c-ink)' }}
+                    >
+                        {isLocked ? 'BLOQUEADO 🔒' : isSubmitted ? 'ENVIADO ✓' : 'GUARDAR MIS GOLES →'}
+                    </button>
+                ) : (
+                    <Link
+                        href={route('activation')}
+                        className="py-3 px-4 bg-ink text-cream font-display text-[13px] border-[2.5px] border-ink"
+                        style={{ boxShadow: '3px 3px 0 var(--c-yel)' }}
+                    >
+                        ACTIVAR CUENTA →
+                    </Link>
+                )}
             </div>
 
             <TabBar active="matches" />

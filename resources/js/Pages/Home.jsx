@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import TabBar from '@/Components/composed/TabBar';
 import PhaseOpenAlert from '@/Components/overlays/PhaseOpenAlert';
 import DeadlineAlert from '@/Components/overlays/DeadlineAlert';
@@ -93,6 +93,13 @@ export default function Home({ user, featured, stats, phase, nextBets, phaseAler
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
+                        <Link
+                            href={route('predictions.index')}
+                            className="h-9 px-2.5 border-[2.5px] border-ink bg-cream shadow-pop-sm font-display text-[11px] tracking-[.02em] flex items-center justify-center"
+                            aria-label="Mis fases"
+                        >
+                            FASES
+                        </Link>
                         <button
                             className="w-9 h-9 border-[2.5px] border-ink bg-cream shadow-pop-sm font-display text-[18px] flex items-center justify-center cursor-pointer"
                             aria-label="Cómo se juega y reglas"

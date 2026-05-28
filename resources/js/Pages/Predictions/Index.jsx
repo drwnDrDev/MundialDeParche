@@ -38,6 +38,9 @@ export default function Index({ rounds, submissions, phasePts }) {
 
             {/* Stack de phase cards */}
             <div className="px-[18px] py-4 flex flex-col gap-3">
+                {/* Bloque especiales */}
+                <SpecialsCard />
+
                 {rounds.map(round => (
                     <PhaseCard
                         key={round.id}
@@ -46,9 +49,6 @@ export default function Index({ rounds, submissions, phasePts }) {
                         phasePts={phasePts[round.id] ?? null}
                     />
                 ))}
-
-                {/* Bloque especiales */}
-                <SpecialsCard />
             </div>
 
             <div className="pb-6" />

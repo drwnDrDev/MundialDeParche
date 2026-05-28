@@ -20,9 +20,7 @@ use Inertia\Inertia;
 
 Route::get('/', function () {
     if (auth()->check()) {
-        return auth()->user()->is_activated
-            ? redirect()->route('dashboard')
-            : redirect()->route('activation');
+        return redirect()->route('dashboard');
     }
     return Inertia::render('Welcome');
 })->name('home');
@@ -30,7 +28,7 @@ Route::get('/', function () {
 Route::inertia('/how-to-play', 'HowTo')->name('how-to-play');
 Route::inertia('/rules', 'Rules')->name('rules');
 
-Route::get('/dashboard', [HomeController::class, 'index'])->middleware(['auth', 'verified', 'activated'])->name('dashboard');
+Route::get('/dashboard', [HomeController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -39,22 +37,28 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/activation', [ActivationController::class, 'show'])->name('activation');
 
-    Route::middleware('activated')->group(function () {
-        Route::get('/chat', [ChatController::class, 'index'])->name('chat');
-        Route::post('/chat/messages', [ChatController::class, 'store'])->name('chat.store');
-        Route::get('/ranking', [RankingController::class, 'index'])->name('ranking');
-        Route::get('/matches', [MatchesController::class, 'index'])->name('matches');
-    });
+    // Lectura libre para todos los usuarios autenticados
+    Route::get('/chat', [ChatController::class, 'index'])->name('chat');
+    Route::get('/ranking', [RankingController::class, 'index'])->name('ranking');
+    Route::get('/matches', [MatchesController::class, 'index'])->name('matches');
+
+    // Escritura solo para usuarios activados
+    Route::post('/chat/messages', [ChatController::class, 'store'])->middleware('activated')->name('chat.store');
 });
 
-Route::middleware(['auth', 'activated'])->prefix('predictions')->name('predictions.')->group(function () {
+Route::middleware('auth')->prefix('predictions')->name('predictions.')->group(function () {
+    // Lectura libre
     Route::get('/', [PredictionController::class, 'index'])->name('index');
     Route::get('/special', [SpecialPredictionController::class, 'show'])->name('special');
-    Route::post('/special', [SpecialPredictionController::class, 'save'])->name('special.save');
     Route::get('/{round}/receipt', [PredictionController::class, 'receipt'])->name('receipt');
     Route::get('/{round}', [PredictionController::class, 'show'])->name('show');
-    Route::post('/{round}/save', [PredictionController::class, 'save'])->name('save');
-    Route::post('/{round}/submit', [PredictionController::class, 'submit'])->name('submit');
+
+    // Escritura solo para usuarios activados
+    Route::middleware('activated')->group(function () {
+        Route::post('/special', [SpecialPredictionController::class, 'save'])->name('special.save');
+        Route::post('/{round}/save', [PredictionController::class, 'save'])->name('save');
+        Route::post('/{round}/submit', [PredictionController::class, 'submit'])->name('submit');
+    });
 });
 
 require __DIR__.'/auth.php';

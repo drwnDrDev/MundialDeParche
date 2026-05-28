@@ -90,6 +90,12 @@ export default function PhaseCard({ round, submission, phasePts }) {
                 >
                     CONTINUAR →
                 </Link>
+                <Link
+                    href={route('predictions.receipt', round.slug)}
+                    className="block w-full py-1.5 mt-1.5 text-ink/50 font-mono text-[10px] tracking-[.04em] text-center underline"
+                >
+                    ver borrador guardado →
+                </Link>
             </div>
         );
     }

@@ -1,4 +1,4 @@
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import TabBar from '@/Components/composed/TabBar';
 import ChatBubble from '@/Components/composed/ChatBubble';
@@ -112,29 +112,44 @@ export default function Chat({ messages: initialMessages, liveMatch }) {
                 </div>
 
                 {/* Input bar */}
-                <div className="flex-shrink-0 flex items-center gap-2 px-3 py-2.5 bg-cream border-t-[3px] border-ink">
-                    <button
-                        type="button"
-                        className="w-10 h-10 border-[2.5px] border-ink bg-pop-yel font-display text-[18px] shadow-pop-sm flex items-center justify-center flex-shrink-0"
-                    >
-                        +
-                    </button>
-                    <form onSubmit={send} className="flex-1 flex gap-2">
-                        <input
-                            value={data.content}
-                            onChange={e => setData('content', e.target.value)}
-                            placeholder="Escribí algo, parcero…"
-                            className="flex-1 border-[2.5px] border-ink bg-white px-3.5 py-2.5 font-body text-[13px] shadow-pop-sm focus:outline-none"
-                        />
+                {auth.user.is_activated ? (
+                    <div className="flex-shrink-0 flex items-center gap-2 px-3 py-2.5 bg-cream border-t-[3px] border-ink">
                         <button
-                            type="submit"
-                            disabled={processing}
-                            className="w-11 h-11 border-[2.5px] border-ink bg-pop-red text-white font-display text-[18px] shadow-pop-sm flex items-center justify-center flex-shrink-0 disabled:opacity-60"
+                            type="button"
+                            className="w-10 h-10 border-[2.5px] border-ink bg-pop-yel font-display text-[18px] shadow-pop-sm flex items-center justify-center flex-shrink-0"
                         >
-                            ▶
+                            +
                         </button>
-                    </form>
-                </div>
+                        <form onSubmit={send} className="flex-1 flex gap-2">
+                            <input
+                                value={data.content}
+                                onChange={e => setData('content', e.target.value)}
+                                placeholder="Escribe algo, parcero…"
+                                className="flex-1 border-[2.5px] border-ink bg-white px-3.5 py-2.5 font-body text-[13px] shadow-pop-sm focus:outline-none"
+                            />
+                            <button
+                                type="submit"
+                                disabled={processing}
+                                className="w-11 h-11 border-[2.5px] border-ink bg-pop-red text-white font-display text-[18px] shadow-pop-sm flex items-center justify-center flex-shrink-0 disabled:opacity-60"
+                            >
+                                ▶
+                            </button>
+                        </form>
+                    </div>
+                ) : (
+                    <div className="flex-shrink-0 flex items-center justify-between gap-3 px-4 py-3 bg-cream border-t-[3px] border-ink">
+                        <div className="font-mono text-[10px] opacity-60 leading-tight">
+                            Activa tu cuenta para<br />participar en el parche
+                        </div>
+                        <Link
+                            href={route('activation')}
+                            className="px-3 py-2 bg-ink text-cream font-display text-[11px] tracking-[.01em] border-[2px] border-ink flex-shrink-0"
+                            style={{ boxShadow: '2px 2px 0 var(--c-yel)' }}
+                        >
+                            ACTIVAR →
+                        </Link>
+                    </div>
+                )}
             </div>
             <TabBar active="chat" />
         </>

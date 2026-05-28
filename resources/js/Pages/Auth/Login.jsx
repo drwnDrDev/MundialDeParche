@@ -56,7 +56,6 @@ export default function Login({ status, canResetPassword }) {
                             >
                                 ←
                             </Link>
-                            <div className="font-pixel text-[18px]">PASO 1 / 2</div>
                         </div>
                         <div style={{ transform: 'rotate(8deg)' }}>
                             <Mark26 size={32} fill="var(--c-red)" accent="var(--c-yel)" />

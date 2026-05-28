@@ -141,16 +141,59 @@ function MatchPredRow({ fixture, homeScore, awayScore, onChangeHome, onChangeAwa
     );
 }
 
+// ── simulateStandings — tabla de posiciones basada en predicciones del usuario
+
+function simulateStandings(fixtures, scores) {
+    const table = {};
+
+    // Init all teams first so aparecen aunque no tengan partidos predichos
+    fixtures.forEach(f => {
+        if (f.home_team && !table[f.home_team.id]) {
+            table[f.home_team.id] = { team: f.home_team, pts: 0, gf: 0, ga: 0, played: 0 };
+        }
+        if (f.away_team && !table[f.away_team.id]) {
+            table[f.away_team.id] = { team: f.away_team, pts: 0, gf: 0, ga: 0, played: 0 };
+        }
+    });
+
+    // Acumular stats de los partidos ya predichos
+    fixtures.forEach(f => {
+        const s = scores[f.id];
+        if (!f.home_team || !f.away_team) return;
+        if (s == null || s.home == null || s.away == null) return;
+
+        const h = Number(s.home);
+        const a = Number(s.away);
+
+        table[f.home_team.id].gf += h;
+        table[f.home_team.id].ga += a;
+        table[f.home_team.id].played++;
+
+        table[f.away_team.id].gf += a;
+        table[f.away_team.id].ga += h;
+        table[f.away_team.id].played++;
+
+        if (h > a)      { table[f.home_team.id].pts += 3; }
+        else if (h < a) { table[f.away_team.id].pts += 3; }
+        else            { table[f.home_team.id].pts += 1; table[f.away_team.id].pts += 1; }
+    });
+
+    return Object.values(table).sort((a, b) => {
+        if (b.pts !== a.pts)         return b.pts - a.pts;
+        const gdDiff = (b.gf - b.ga) - (a.gf - a.ga);
+        if (gdDiff !== 0)            return gdDiff;
+        return b.gf - a.gf;
+    });
+}
+
 // ── GroupPanel ─────────────────────────────────────────────────────────────
 
 function GroupPanel({ groupKey, fixtures, scores, isLocked, onChange, round }) {
-    // Get unique teams for "TUS CLASIFICADOS"
-    const teamMap = {};
-    fixtures.forEach(f => {
-        if (f.home_team) teamMap[f.home_team.id] = f.home_team;
-        if (f.away_team) teamMap[f.away_team.id] = f.away_team;
+    const standings = simulateStandings(fixtures, scores);
+    const anyPredicted = fixtures.some(f => {
+        const s = scores[f.id];
+        return s && s.home !== null && s.away !== null;
     });
-    const teams = Object.values(teamMap).slice(0, 4);
     const filled = fixtures.filter(f => {
         const s = scores[f.id];
         return s && s.home !== null && s.home !== undefined
@@ -168,28 +211,35 @@ function GroupPanel({ groupKey, fixtures, scores, isLocked, onChange, round }) {
             </div>
 
             {/* TUS CLASIFICADOS */}
-            {teams.length > 0 && (
+            {standings.length > 0 && (
                 <div className="mt-10 px-2.5 pb-2 border-b-2 border-dashed border-ink">
                     <div className="flex justify-between items-baseline mb-1.5">
-                        <div className="font-mono text-[9px] font-bold tracking-[.08em] opacity-70">TUS CLASIFICADOS</div>
+                        <div className="font-mono text-[9px] font-bold tracking-[.08em] opacity-70">
+                            TUS CLASIFICADOS
+                            {!anyPredicted && <span className="opacity-50 ml-1">(meta tus goles)</span>}
+                        </div>
                         <div className="font-mono text-[8.5px] opacity-55">+{round.points_classifier} PTS C/U</div>
                     </div>
                     <div className="grid grid-cols-2 gap-1.5">
-                        {teams.map((t, i) => {
+                        {standings.map((row, i) => {
                             const advances = i < 2;
+                            const t = row.team;
                             return (
                                 <div
                                     key={t.id}
                                     className={[
                                         'flex items-center gap-1.5 px-1.5 py-1 border-[1.5px] border-ink',
-                                        advances ? 'bg-pop-yel' : 'bg-black/4',
+                                        advances && anyPredicted ? 'bg-pop-yel' : 'bg-black/4 opacity-60',
                                     ].join(' ')}
                                 >
                                     <span className="font-mono text-[9px] font-bold opacity-60 w-3.5">{i + 1}°</span>
                                     {t.flag_url && <img src={t.flag_url} alt="" className="h-3 w-4 object-cover" />}
                                     <span className="font-display text-[10px] flex-1 leading-none truncate">{t.name.toUpperCase()}</span>
-                                    {advances && (
+                                    {advances && anyPredicted && (
                                         <span className="font-mono text-[8px] font-bold text-pop-teal">→R32</span>
+                                    )}
+                                    {anyPredicted && (
+                                        <span className="font-mono text-[8px] opacity-50 ml-auto">{row.pts}p</span>
                                     )}
                                 </div>
                             );

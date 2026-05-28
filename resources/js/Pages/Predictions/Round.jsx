@@ -493,6 +493,11 @@ export default function Round({ round, fixtures, predictions, submission }) {
                 {/* Panel TUS 32 CLASIFICADOS — visible solo cuando todos los partidos están predichos */}
                 {isGroupStage && filledCount === totalFixtures && (() => {
                     const allClassifiers = simulateAllGroups(fixtures, scores);
+                    const teamById = {};
+                    fixtures.forEach(f => {
+                        if (f.home_team) teamById[f.home_team.id] = f.home_team;
+                        if (f.away_team) teamById[f.away_team.id] = f.away_team;
+                    });
                     const byGroup = {};
                     allClassifiers.forEach(c => {
                         if (!byGroup[c.group]) byGroup[c.group] = [];
@@ -518,10 +523,8 @@ export default function Round({ round, fixtures, predictions, submission }) {
                                         .map(([groupName, entries]) => {
                                             const first  = entries.find(e => e.position === 1);
                                             const second = entries.find(e => e.position === 2);
-                                            const t1 = first  ? fixtures.find(f => f.home_team?.id === first.team_id  || f.away_team?.id === first.team_id)  : null;
-                                            const t2 = second ? fixtures.find(f => f.home_team?.id === second.team_id || f.away_team?.id === second.team_id) : null;
-                                            const team1 = t1?.home_team?.id === first?.team_id  ? t1?.home_team  : t1?.away_team;
-                                            const team2 = t2?.home_team?.id === second?.team_id ? t2?.home_team  : t2?.away_team;
+                                            const team1 = first  ? teamById[first.team_id]  : null;
+                                            const team2 = second ? teamById[second.team_id] : null;
                                             return (
                                                 <div key={groupName} className="bg-white/10 px-2 py-1.5 border border-cream/20">
                                                     <div className="font-mono text-[8px] opacity-60 mb-1">GRUPO {groupName}</div>
@@ -544,8 +547,7 @@ export default function Round({ round, fixtures, predictions, submission }) {
                                         <div className="font-mono text-[8px] opacity-60 mb-1.5">8 MEJORES TERCEROS</div>
                                         <div className="flex flex-wrap gap-1">
                                             {bestThirds.map(c => {
-                                                const fix = fixtures.find(f => f.home_team?.id === c.team_id || f.away_team?.id === c.team_id);
-                                                const t   = fix?.home_team?.id === c.team_id ? fix?.home_team : fix?.away_team;
+                                                const t = teamById[c.team_id];
                                                 return t ? (
                                                     <div key={c.team_id} className="flex items-center gap-1 bg-white/10 px-1.5 py-0.5 border border-cream/20">
                                                         {t.flag_url && <img src={t.flag_url} alt="" className="h-2.5 w-3.5 object-cover" />}

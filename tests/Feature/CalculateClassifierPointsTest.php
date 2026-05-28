@@ -61,6 +61,39 @@ function createUserPredictions(User $user, iterable $fixtures, array $prediction
     }
 }
 
+it('uses saved predicted_classifiers when available instead of re-deriving', function () {
+    // Set up a round with points_classifier = 2
+    $round = Round::factory()->r1()->create(['is_open' => false, 'is_locked' => true]);
+
+    // 4-team group: T1 wins all, T2 second, T3 third, T4 last
+    // Real classifiers: T1 and T2 only
+    ['fixtures' => $fixtures, 'teams' => $teams] = makeGroup($round, 'A', 1);
+    [$t1, $t2, $t3, $t4] = $teams;
+
+    setActualScores($fixtures, [
+        [3, 0], [3, 0], [3, 0], // T1 beats T2, T3, T4
+        [1, 0], [1, 0],         // T2 beats T3, T4
+        [1, 0],                 // T3 beats T4
+    ]);
+
+    $user = User::factory()->create(['is_activated' => true]);
+
+    // User saved T3 and T4 as their predicted classifiers (both wrong)
+    $submission = PredictionSubmission::factory()->submitted()->create([
+        'user_id'  => $user->id,
+        'round_id' => $round->id,
+        'predicted_classifiers' => [
+            ['team_id' => $t3->id, 'group' => 'A', 'position' => 1],
+            ['team_id' => $t4->id, 'group' => 'A', 'position' => 2],
+        ],
+    ]);
+
+    event(new RoundFinalized($round));
+
+    // Real classifiers: T1, T2. User predicted: T3, T4 → 0 correct → 0 pts
+    expect($submission->fresh()->pts_classifier)->toBe(0);
+});
+
 it('awards classifier pts when user correctly predicts R1 top-2 classifiers', function () {
     $round = Round::factory()->r1()->create(['points_classifier' => 2]);
     $user  = User::factory()->create();
@@ -83,7 +116,7 @@ it('awards classifier pts when user correctly predicts R1 top-2 classifiers', fu
         [1,0],
     ]);
 
-    (new CalculateClassifierPoints)->handle(new RoundFinalized($round));
+    app(CalculateClassifierPoints::class)->handle(new RoundFinalized($round));
 
     $submission = PredictionSubmission::where('user_id', $user->id)->where('round_id', $round->id)->first();
     expect($submission->pts_classifier)->toBe(4); // 2 correct classifiers × 2 pts
@@ -111,7 +144,7 @@ it('awards zero pts when user predicts wrong R1 classifiers', function () {
         [1,0],
     ]);
 
-    (new CalculateClassifierPoints)->handle(new RoundFinalized($round));
+    app(CalculateClassifierPoints::class)->handle(new RoundFinalized($round));
 
     $submission = PredictionSubmission::where('user_id', $user->id)->where('round_id', $round->id)->first();
     expect($submission->pts_classifier)->toBe(0);
@@ -126,7 +159,7 @@ it('does not award classifier pts to draft submissions', function () {
     setActualScores($fixtures, [[3,0],[3,0],[3,0],[1,0],[1,0],[1,0]]);
     createUserPredictions($user, $fixtures, [[3,0],[3,0],[3,0],[1,0],[1,0],[1,0]]);
 
-    (new CalculateClassifierPoints)->handle(new RoundFinalized($round));
+    app(CalculateClassifierPoints::class)->handle(new RoundFinalized($round));
 
     $submission = PredictionSubmission::where('user_id', $user->id)->where('round_id', $round->id)->first();
     expect($submission->pts_classifier)->toBe(0);
@@ -141,7 +174,7 @@ it('updates user total_points after R1 classifier calculation', function () {
     setActualScores($fixtures, [[3,0],[3,0],[3,0],[1,0],[1,0],[1,0]]);
     createUserPredictions($user, $fixtures, [[3,0],[3,0],[3,0],[1,0],[1,0],[1,0]]);
 
-    (new CalculateClassifierPoints)->handle(new RoundFinalized($round));
+    app(CalculateClassifierPoints::class)->handle(new RoundFinalized($round));
 
     expect($user->fresh()->total_points)->toBe(4);
 });
@@ -180,7 +213,7 @@ it('awards classifier pts for correctly predicted 8-best-thirds across 9 groups'
         $allFixtures = $allFixtures->concat($fixtures);
     }
 
-    (new CalculateClassifierPoints)->handle(new RoundFinalized($round));
+    app(CalculateClassifierPoints::class)->handle(new RoundFinalized($round));
 
     $submission = PredictionSubmission::where('user_id', $user->id)->where('round_id', $round->id)->first();
     // 9 groups × 2 top classifiers = 18 correct + 8 out of 9 thirds correct = 26 correct × 2 = 52 pts
@@ -232,7 +265,7 @@ it('awards R2 classifier pts for correctly predicted R16 QF teams', function () 
         ]);
     }
 
-    (new CalculateClassifierPoints)->handle(new RoundFinalized($round));
+    app(CalculateClassifierPoints::class)->handle(new RoundFinalized($round));
 
     $submission = PredictionSubmission::where('user_id', $user->id)->where('round_id', $round->id)->first();
     expect($submission->pts_classifier)->toBe(32); // 8 correct × 4 pts
@@ -279,7 +312,7 @@ it('awards partial R2 classifier pts when only some QF teams predicted correctly
         ]);
     }
 
-    (new CalculateClassifierPoints)->handle(new RoundFinalized($round));
+    app(CalculateClassifierPoints::class)->handle(new RoundFinalized($round));
 
     $submission = PredictionSubmission::where('user_id', $user->id)->where('round_id', $round->id)->first();
     expect($submission->pts_classifier)->toBe(12); // 3 correct × 4 pts

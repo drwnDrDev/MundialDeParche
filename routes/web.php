@@ -20,7 +20,9 @@ use Inertia\Inertia;
 
 Route::get('/', function () {
     if (auth()->check()) {
-        return redirect()->route('dashboard');
+        return auth()->user()->is_activated
+            ? redirect()->route('dashboard')
+            : redirect()->route('activation');
     }
     return Inertia::render('Welcome');
 })->name('home');
@@ -28,7 +30,7 @@ Route::get('/', function () {
 Route::inertia('/how-to-play', 'HowTo')->name('how-to-play');
 Route::inertia('/rules', 'Rules')->name('rules');
 
-Route::get('/dashboard', [HomeController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [HomeController::class, 'index'])->middleware(['auth', 'verified', 'activated'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -36,13 +38,16 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::get('/activation', [ActivationController::class, 'show'])->name('activation');
-    Route::get('/chat', [ChatController::class, 'index'])->name('chat');
-    Route::post('/chat/messages', [ChatController::class, 'store'])->name('chat.store');
-    Route::get('/ranking', [RankingController::class, 'index'])->name('ranking');
-    Route::get('/matches', [MatchesController::class, 'index'])->name('matches');
+
+    Route::middleware('activated')->group(function () {
+        Route::get('/chat', [ChatController::class, 'index'])->name('chat');
+        Route::post('/chat/messages', [ChatController::class, 'store'])->name('chat.store');
+        Route::get('/ranking', [RankingController::class, 'index'])->name('ranking');
+        Route::get('/matches', [MatchesController::class, 'index'])->name('matches');
+    });
 });
 
-Route::middleware(['auth'])->prefix('predictions')->name('predictions.')->group(function () {
+Route::middleware(['auth', 'activated'])->prefix('predictions')->name('predictions.')->group(function () {
     Route::get('/', [PredictionController::class, 'index'])->name('index');
     Route::get('/special', [SpecialPredictionController::class, 'show'])->name('special');
     Route::post('/special', [SpecialPredictionController::class, 'save'])->name('special.save');

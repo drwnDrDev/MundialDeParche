@@ -31,7 +31,7 @@ class UserFactory extends Factory
             'remember_token' => Str::random(10),
             'role' => 'user',
             'is_active' => true,
-            'is_activated' => false,
+            'is_activated' => true,
             'coins_balance' => 0,
             'total_points' => 0,
             'avatar' => null,

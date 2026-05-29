@@ -25,7 +25,7 @@ it('inactive user cannot join presence-quinela', function () {
             'channel_name' => 'presence-quinela',
             'socket_id'    => '123.456',
         ])
-        ->assertForbidden();
+        ->assertUnauthorized();
 });
 
 it('user can authorize their own private channel', function () {

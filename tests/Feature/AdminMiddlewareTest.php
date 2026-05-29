@@ -18,7 +18,7 @@ it('blocks inactive admin users from admin routes', function () {
 
     $response = $this->withoutVite()->actingAs($admin)->get('/admin');
 
-    $response->assertStatus(403);
+    $response->assertRedirect(route('login'));
 });
 
 it('allows admin users to access admin routes', function () {

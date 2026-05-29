@@ -115,6 +115,23 @@ export default function Home({ user, featured, stats, phase, nextBets, phaseAler
                     <Ticker text="★ MUNDIAL 2026 EN VIVO · PREDICE TUS MARCADORES · ACUMULA PUNTOS · LLEVA EL RANKING · ¡PILAS! ★" />
                 </div>
 
+                {/* Activation banner */}
+                {!user.isActivated && (
+                    <div className="px-[18px] mt-3.5">
+                        <Link
+                            href={route('activation')}
+                            className="flex items-center justify-between px-3.5 py-2.5 bg-pop-yel border-[2.5px] border-ink"
+                            style={{ boxShadow: '3px 3px 0 var(--c-ink)' }}
+                        >
+                            <div>
+                                <div className="font-display text-[13px] leading-none">POZO PENDIENTE</div>
+                                <div className="font-mono text-[10px] opacity-70 mt-0.5">Todavía no estás en el parche</div>
+                            </div>
+                            <span className="font-display text-[13px]">ACTIVARME →</span>
+                        </Link>
+                    </div>
+                )}
+
                 {/* Featured match */}
                 <div className="px-5 mt-5">
                     <SectionHead

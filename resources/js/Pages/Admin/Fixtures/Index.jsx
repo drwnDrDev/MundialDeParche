@@ -11,7 +11,7 @@ export default function Index({ fixtures, rounds, selectedRoundId }) {
     const filterRound = (id) => router.get('/admin/fixtures', { round_id: id }, { preserveState: true });
 
     return (
-        <AdminLayout header={<h2 className="text-xl font-semibold text-gray-800">Partidos</h2>}>
+        <AdminLayout header="Partidos">
             <Head title="Admin — Partidos" />
 
             <div className="mb-4 flex items-center gap-4">

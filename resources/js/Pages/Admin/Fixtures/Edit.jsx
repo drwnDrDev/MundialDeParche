@@ -24,7 +24,7 @@ export default function Edit({ fixture, rounds, groups, teams }) {
     };
 
     return (
-        <AdminLayout header={<h2 className="text-xl font-semibold text-gray-800">Editar Partido #{fixture.match_number}</h2>}>
+        <AdminLayout header={`Editar Partido #${fixture.match_number}`}>
             <Head title={`Editar Partido #${fixture.match_number}`} />
 
             <div className="max-w-2xl rounded-lg bg-white p-6 shadow">

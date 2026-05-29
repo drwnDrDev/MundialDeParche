@@ -15,7 +15,7 @@ export default function Edit({ team, groups }) {
     };
 
     return (
-        <AdminLayout header={<h2 className="text-xl font-semibold text-gray-800">Editar Equipo</h2>}>
+        <AdminLayout header="Editar Equipo">
             <Head title={`Editar ${team.name}`} />
 
             <div className="max-w-xl rounded-lg bg-white p-6 shadow">

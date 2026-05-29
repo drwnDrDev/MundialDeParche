@@ -10,7 +10,7 @@ export default function Index({ teams }) {
     }, {});
 
     return (
-        <AdminLayout header={<h2 className="text-xl font-semibold text-gray-800">Equipos</h2>}>
+        <AdminLayout header="Equipos">
             <Head title="Admin — Equipos" />
 
             {Object.entries(byGroup).sort(([a], [b]) => a.localeCompare(b)).map(([group, groupTeams]) => (

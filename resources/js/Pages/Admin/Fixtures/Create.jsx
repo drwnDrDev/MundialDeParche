@@ -23,7 +23,7 @@ export default function Create({ rounds, groups, teams }) {
     const groupTeams    = data.group_id ? teams.filter(t => t.group_id === Number(data.group_id)) : teams;
 
     return (
-        <AdminLayout header={<h2 className="text-xl font-semibold text-gray-800">Nuevo Partido</h2>}>
+        <AdminLayout header="Nuevo Partido">
             <Head title="Admin — Nuevo Partido" />
 
             <div className="max-w-xl rounded-lg bg-white p-6 shadow">

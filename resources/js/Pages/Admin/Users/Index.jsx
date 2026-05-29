@@ -91,7 +91,7 @@ export default function Index({ users, rounds }) {
     const [reopenTarget, setReopenTarget] = useState(null);
 
     return (
-        <AdminLayout header={<h2 className="text-xl font-semibold text-gray-800">Usuarios</h2>}>
+        <AdminLayout header="Usuarios">
             <Head title="Admin — Usuarios" />
 
             <CreateUserForm />

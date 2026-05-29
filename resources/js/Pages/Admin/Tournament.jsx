@@ -1,4 +1,4 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, useForm } from '@inertiajs/react';
 
 export default function Tournament({ teams, players }) {
@@ -15,7 +15,7 @@ export default function Tournament({ teams, players }) {
     }
 
     return (
-        <AuthenticatedLayout header={<h2 className="text-xl font-semibold text-gray-800">Finalizar Torneo</h2>}>
+        <AdminLayout header="Torneo">
             <Head title="Finalizar Torneo" />
             <div className="py-12">
                 <div className="mx-auto max-w-xl px-4 sm:px-6 lg:px-8">
@@ -88,6 +88,6 @@ export default function Tournament({ teams, players }) {
                     </div>
                 </div>
             </div>
-        </AuthenticatedLayout>
+        </AdminLayout>
     );
 }

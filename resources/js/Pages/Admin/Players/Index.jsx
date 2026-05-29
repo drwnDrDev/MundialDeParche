@@ -63,7 +63,7 @@ export default function Index({ players, teams }) {
     };
 
     return (
-        <AdminLayout header={<h2 className="text-xl font-semibold text-gray-800">Jugadores</h2>}>
+        <AdminLayout header="Jugadores">
             <Head title="Admin — Jugadores" />
 
             <div className="mb-6 max-w-lg rounded-lg bg-white p-4 shadow">

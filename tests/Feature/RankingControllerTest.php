@@ -53,3 +53,18 @@ it('includes id, name, total_points, position, avatarColor, delta in each row', 
 it('guests cannot access ranking', function () {
     $this->get('/ranking')->assertRedirect('/login');
 });
+
+it('excludes admin users from the ranking', function () {
+    $user  = User::factory()->create(['role' => 'user',  'is_active' => true, 'total_points' => 100]);
+    $admin = User::factory()->create(['role' => 'admin', 'is_active' => true, 'total_points' => 999]);
+
+    $this->actingAs($user)
+        ->get(route('ranking'))
+        ->assertOk()
+        ->assertInertia(fn ($p) => $p
+            ->component('Ranking')
+            ->where('users', fn ($users) =>
+                collect($users)->every(fn ($u) => $u['id'] !== $admin->id)
+            )
+        );
+});

@@ -17,6 +17,7 @@ class RankingController extends Controller
         $counter  = 0;
 
         $users = User::where('is_active', true)
+            ->where('role', 'user')
             ->orderByDesc('total_points')
             ->select(['id', 'name', 'total_points'])
             ->get()
@@ -36,7 +37,7 @@ class RankingController extends Controller
                 ];
             });
 
-        $activated = User::where('is_activated', true)->count();
+        $activated = User::where('is_activated', true)->where('role', 'user')->count();
         $total     = $activated * 50000;
 
         $fmt = fn ($n) => number_format($n / 1000, 0, '.', '.') . 'K';

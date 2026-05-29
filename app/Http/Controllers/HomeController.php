@@ -19,9 +19,10 @@ class HomeController extends Controller
         $avatarColor = $colors[$user->id % 4];
 
         $position = User::where('is_active', true)
+            ->where('role', 'user')
             ->where('total_points', '>', $user->total_points)
             ->count() + 1;
-        $totalActive = User::where('is_active', true)->count();
+        $totalActive = User::where('is_active', true)->where('role', 'user')->count();
 
         // Featured match: live first, then next scheduled
         $featured = Fixture::where('status', 'in_progress')

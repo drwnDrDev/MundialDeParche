@@ -41,7 +41,7 @@ class ScoreEntryController extends Controller
 
     public function update(Request $request, Fixture $fixture): RedirectResponse
     {
-        if ($fixture->status === 'finished') {
+        if ($fixture->status === 'finished' || $fixture->round?->is_finalized) {
             return back()->with('status', 'Este partido ya está finalizado. Usa la vista de edición para corregir.');
         }
 

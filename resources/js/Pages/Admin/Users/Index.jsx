@@ -1,5 +1,5 @@
 import AdminLayout from '@/Layouts/AdminLayout';
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
 function CreateUserForm() {
@@ -147,6 +147,12 @@ export default function Index({ users, rounds }) {
                                             className="rounded bg-orange-500 px-2 py-1 text-xs text-white hover:bg-orange-600">
                                             Reabrir
                                         </button>
+                                        <Link
+                                            href={route('admin.users.predictions', user.id)}
+                                            className="rounded bg-indigo-500 px-2 py-1 text-xs text-white hover:bg-indigo-600"
+                                        >
+                                            Preds
+                                        </Link>
                                     </div>
                                 </td>
                             </tr>

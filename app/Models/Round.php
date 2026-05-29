@@ -16,6 +16,7 @@ class Round extends Model
         'order',
         'is_open',
         'is_locked',
+        'is_finalized',
         'closes_at',
         'points_exact',
         'points_result',
@@ -25,9 +26,10 @@ class Round extends Model
     protected function casts(): array
     {
         return [
-            'is_open'    => 'boolean',
-            'is_locked'  => 'boolean',
-            'closes_at'  => 'datetime',
+            'is_open'       => 'boolean',
+            'is_locked'     => 'boolean',
+            'is_finalized'  => 'boolean',
+            'closes_at'     => 'datetime',
         ];
     }
 

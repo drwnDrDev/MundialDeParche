@@ -45,15 +45,16 @@ class PredictionController extends Controller
             ]);
         }
 
-        $hasUnassigned = $round->fixtures()
-            ->where(function ($q) {
-                $q->whereNull('home_team_id')->orWhereNull('away_team_id');
-            })
+        // Block the phase only if EVERY fixture is TBD (admin hasn't set up teams yet).
+        // Phases like F3 legitimately have some TBD fixtures (cuartos depend on octavos results).
+        $hasAnyRealFixture = $round->fixtures()
+            ->whereNotNull('home_team_id')
+            ->whereNotNull('away_team_id')
             ->exists();
 
-        if ($hasUnassigned) {
+        if (! $hasAnyRealFixture) {
             return redirect()->route('predictions.index')
-                ->with('status', 'Esta ronda aún tiene partidos sin equipos asignados.');
+                ->with('status', 'Esta fase aún no tiene partidos asignados. Vuelve más tarde.');
         }
 
         $fixtures = $round->fixtures()
@@ -61,8 +62,28 @@ class PredictionController extends Controller
             ->orderBy('match_number')
             ->get();
 
+        // Build reverse bracket map: for each fixture, which match feeds its home/away slot?
+        $fixtureIds  = $fixtures->pluck('id');
+        $feeders     = Fixture::whereIn('winner_feeds_match_id', $fixtureIds)
+            ->select(['id', 'match_number', 'winner_feeds_match_id', 'winner_feeds_slot'])
+            ->get();
+
+        // bracketMap[target_fixture_id][slot] = source_match_number
+        $bracketMap = [];
+        foreach ($feeders as $feeder) {
+            $bracketMap[$feeder->winner_feeds_match_id][$feeder->winner_feeds_slot] = $feeder->match_number;
+        }
+
+        // Annotate each fixture with its bracket feed info
+        $fixturesData = $fixtures->map(function ($f) use ($bracketMap) {
+            return array_merge($f->toArray(), [
+                'home_fed_by_match_number' => $bracketMap[$f->id]['home'] ?? null,
+                'away_fed_by_match_number' => $bracketMap[$f->id]['away'] ?? null,
+            ]);
+        });
+
         $predictions = Prediction::where('user_id', Auth::id())
-            ->whereIn('match_id', $fixtures->pluck('id'))
+            ->whereIn('match_id', $fixtureIds)
             ->get()
             ->keyBy('match_id');
 
@@ -72,7 +93,7 @@ class PredictionController extends Controller
 
         return Inertia::render('Predictions/Round', [
             'round'       => $round,
-            'fixtures'    => $fixtures,
+            'fixtures'    => $fixturesData,
             'predictions' => $predictions,
             'submission'  => $submission,
         ]);

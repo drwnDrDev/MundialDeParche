@@ -30,7 +30,7 @@ it('blocks non-admin from score entry', function () {
 });
 
 it('updates fixture score and dispatches MatchScoreUpdated', function () {
-    Event::fake([MatchScoreUpdated::class]);
+    Event::fake([MatchScoreUpdated::class, LiveScoreUpdated::class]);
 
     $admin   = User::factory()->create(['role' => 'admin']);
     $round   = Round::factory()->f1()->create(['is_open' => true]);

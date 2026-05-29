@@ -21,7 +21,7 @@ class FixtureController extends Controller
         $roundId  = $request->query('round_id');
         $fixtures = Fixture::with(['round', 'group', 'homeTeam', 'awayTeam', 'winnerTeam'])
             ->when($roundId, fn ($q) => $q->where('round_id', $roundId))
-            ->orderBy('match_number')
+            ->orderBy('match_date')
             ->get();
 
         return Inertia::render('Admin/Fixtures/Index', [

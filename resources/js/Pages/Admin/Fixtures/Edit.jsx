@@ -28,6 +28,11 @@ export default function Edit({ fixture, rounds, groups, teams }) {
             <Head title={`Editar Partido #${fixture.match_number}`} />
 
             <div className="max-w-2xl rounded-lg bg-white p-6 shadow">
+                {fixture.status === 'finished' && (
+                    <div className="mb-4 rounded-md bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
+                        <strong>Partido finalizado.</strong> Estás editando un resultado ya registrado. Los cambios recalcularán los puntos automáticamente.
+                    </div>
+                )}
                 <form onSubmit={submit} className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                         <div>

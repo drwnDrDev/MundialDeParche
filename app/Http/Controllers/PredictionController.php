@@ -249,7 +249,7 @@ class PredictionController extends Controller
 
         $fixtures = $round->fixtures()
             ->with(['homeTeam', 'awayTeam', 'group'])
-            ->orderBy('match_number')
+            ->orderBy('match_date')
             ->get();
 
         $predictions = Prediction::where('user_id', $userId)

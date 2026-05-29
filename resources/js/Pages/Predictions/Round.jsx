@@ -92,13 +92,20 @@ function GroupChip({ groupKey, active, done, teams, onClick }) {
 
 // ── MatchPredRow ──────────────────────────────────────────────────────────
 
-function MatchPredRow({ fixture, homeScore, awayScore, onChangeHome, onChangeAway, disabled, last }) {
+function MatchPredRow({ fixture, homeScore, awayScore, onChangeHome, onChangeAway, disabled, last,
+                        simulatedHome, simulatedAway }) {
     const filled = homeScore !== null && homeScore !== undefined
                 && awayScore !== null && awayScore !== undefined;
-    const home = teamName(fixture.home_team, fixture.home_placeholder);
-    const away = teamName(fixture.away_team, fixture.away_placeholder);
-    const flagHome = fixture.home_team?.flag_url;
-    const flagAway = fixture.away_team?.flag_url;
+
+    const resolvedHome = fixture.home_team ?? simulatedHome;
+    const resolvedAway = fixture.away_team ?? simulatedAway;
+
+    const home     = resolvedHome ? (resolvedHome.fifa_code ?? resolvedHome.name) : (fixture.home_placeholder ?? 'TBD');
+    const away     = resolvedAway ? (resolvedAway.fifa_code ?? resolvedAway.name) : (fixture.away_placeholder ?? 'TBD');
+    const flagHome = resolvedHome?.flag_url ?? null;
+    const flagAway = resolvedAway?.flag_url ?? null;
+    const homeSimulated = !fixture.home_team && !!simulatedHome;
+    const awaySimulated = !fixture.away_team && !!simulatedAway;
 
     return (
         <div className={['px-2.5 py-2 relative', !last ? 'border-b border-dashed border-black/20' : ''].join(' ')}>
@@ -113,7 +120,9 @@ function MatchPredRow({ fixture, homeScore, awayScore, onChangeHome, onChangeAwa
             </div>
             <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
                 <div className="flex items-center justify-end gap-1.5">
-                    <span className="font-display text-8">{home}</span>
+                    <span className={['font-display text-8', homeSimulated ? 'opacity-50 italic' : ''].join(' ')}>
+                        {home}
+                    </span>
                     {flagHome && <img src={flagHome} alt={home} className="h-8 w-12 object-cover border border-ink" />}
                 </div>
                 <div className="flex items-center gap-0.5">
@@ -123,9 +132,16 @@ function MatchPredRow({ fixture, homeScore, awayScore, onChangeHome, onChangeAwa
                 </div>
                 <div className="flex items-center gap-1.5">
                     {flagAway && <img src={flagAway} alt={away} className="h-8 w-12 object-cover border border-ink" />}
-                    <span className="font-display text-8">{away}</span>
+                    <span className={['font-display text-8', awaySimulated ? 'opacity-50 italic' : ''].join(' ')}>
+                        {away}
+                    </span>
                 </div>
             </div>
+            {(homeSimulated || awaySimulated) && (
+                <div className="text-center font-mono text-[7.5px] opacity-40 mt-0.5 tracking-[.06em]">
+                    rival simulado de tus predicciones
+                </div>
+            )}
             <div className="flex justify-center mt-2">
                 {filled ? (
                     <span className="inline-flex items-center gap-1 font-mono text-[8.5px] font-bold tracking-[.08em] bg-pop-teal text-white px-1.5 py-0.5 border-[1.5px] border-ink">
@@ -225,6 +241,41 @@ function simulateAllGroups(fixtures, scores) {
     });
 
     return classifiers; // 32 entradas: {team_id, group, position}
+}
+
+// ── Bracket simulation ────────────────────────────────────────────────────────
+function simulateBracketWinner(matchNumber, fixturesByMatchNumber, scores) {
+    const fixture = fixturesByMatchNumber[matchNumber];
+    if (!fixture) return null;
+
+    const homeTeam = fixture.home_team
+        ?? (fixture.home_fed_by_match_number
+            ? simulateBracketWinner(fixture.home_fed_by_match_number, fixturesByMatchNumber, scores)
+            : null);
+
+    const awayTeam = fixture.away_team
+        ?? (fixture.away_fed_by_match_number
+            ? simulateBracketWinner(fixture.away_fed_by_match_number, fixturesByMatchNumber, scores)
+            : null);
+
+    if (!homeTeam || !awayTeam) return null;
+
+    const s = scores[fixture.id];
+    if (s?.home == null || s?.away == null) return null;
+
+    return Number(s.home) > Number(s.away) ? homeTeam : awayTeam;
+}
+
+function getBracketTeam(fixture, slot, fixturesByMatchNumber, scores) {
+    const realTeam = slot === 'home' ? fixture.home_team : fixture.away_team;
+    if (realTeam) return { team: realTeam, isSimulated: false };
+
+    const fedBy = slot === 'home'
+        ? fixture.home_fed_by_match_number
+        : fixture.away_fed_by_match_number;
+    if (!fedBy) return { team: null, isSimulated: false };
+
+    return { team: simulateBracketWinner(fedBy, fixturesByMatchNumber, scores), isSimulated: true };
 }
 
 // ── GroupPanel ─────────────────────────────────────────────────────────────
@@ -328,6 +379,13 @@ export default function Round({ round, fixtures, predictions, submission }) {
     });
 
     const [scores, setScores] = useState(initialScores);
+
+    // Build lookup map for bracket simulation
+    const fixturesByMatchNumber = Object.fromEntries(fixtures.map(f => [f.match_number, f]));
+
+    const isBracketPhase = fixtures.some(
+        f => f.home_fed_by_match_number !== null || f.away_fed_by_match_number !== null
+    );
 
     const grouped    = groupFixtures(fixtures);
     const groupKeys  = Object.keys(grouped).sort();
@@ -471,24 +529,55 @@ export default function Round({ round, fixtures, predictions, submission }) {
                     </div>
                 )}
 
-                {/* GroupPanel */}
-                <div className="px-[14px] pt-3">
-                    {activeGroup && (
-                        <GroupPanel
-                            groupKey={activeGroup}
-                            fixtures={activeFixtures}
-                            scores={scores}
-                            isLocked={isLocked || isSubmitted || !isActivated}
-                            onChange={handleChange}
-                            round={round}
-                        />
-                    )}
-                    {!isGroupStage && !activeGroup && (
-                        <div className="text-center font-mono text-[11px] opacity-50 py-4">
-                            Pasá los chips para ver otros grupos ↑
+                {/* GroupPanel — only for group stage */}
+                {isGroupStage && (
+                    <div className="px-[14px] pt-3">
+                        {activeGroup && (
+                            <GroupPanel
+                                groupKey={activeGroup}
+                                fixtures={activeFixtures}
+                                scores={scores}
+                                isLocked={isLocked || isSubmitted || !isActivated}
+                                onChange={handleChange}
+                                round={round}
+                            />
+                        )}
+                    </div>
+                )}
+
+                {/* Bracket Phase — knockout fixtures with simulated opponents */}
+                {!isGroupStage && (
+                    <div className="px-[14px] pt-3">
+                        <div className="border-[3px] border-ink bg-white relative overflow-hidden" style={{ boxShadow: '5px 5px 0 var(--c-ink)' }}>
+                            <div className="absolute top-0 left-0 bg-pop-red text-white px-3 py-1.5 font-display text-[14px] border-r-[3px] border-b-[3px] border-ink">
+                                {round.name.toUpperCase()}
+                            </div>
+                            <div className="absolute top-1.5 right-2.5 font-mono text-[10px] opacity-70">
+                                {filledCount} / {totalFixtures} GOLES METIDOS
+                            </div>
+                            <div className="mt-10">
+                                {fixtures.map((f, i) => {
+                                    const simHome = isBracketPhase ? getBracketTeam(f, 'home', fixturesByMatchNumber, scores) : { team: null, isSimulated: false };
+                                    const simAway = isBracketPhase ? getBracketTeam(f, 'away', fixturesByMatchNumber, scores) : { team: null, isSimulated: false };
+                                    return (
+                                        <MatchPredRow
+                                            key={f.id}
+                                            fixture={f}
+                                            homeScore={scores[f.id]?.home ?? null}
+                                            awayScore={scores[f.id]?.away ?? null}
+                                            onChangeHome={v => handleChange(f.id, 'home', v)}
+                                            onChangeAway={v => handleChange(f.id, 'away', v)}
+                                            disabled={isLocked || isSubmitted || !isActivated}
+                                            last={i === fixtures.length - 1}
+                                            simulatedHome={simHome.isSimulated ? simHome.team : null}
+                                            simulatedAway={simAway.isSimulated ? simAway.team : null}
+                                        />
+                                    );
+                                })}
+                            </div>
                         </div>
-                    )}
-                </div>
+                    </div>
+                )}
 
                 {/* Panel TUS 32 CLASIFICADOS — visible solo cuando todos los partidos están predichos */}
                 {isGroupStage && filledCount === totalFixtures && (() => {

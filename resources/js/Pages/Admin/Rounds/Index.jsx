@@ -26,15 +26,17 @@ export default function Index({ rounds }) {
                                 <td className="px-4 py-3 text-sm text-gray-600">{round.points_result}</td>
                                 <td className="px-4 py-3 text-sm text-gray-600">{round.points_classifier}</td>
                                 <td className="px-4 py-3 text-sm">
-                                    {round.is_locked
-                                        ? <span className="rounded bg-red-100 px-2 py-1 text-xs text-red-700">Bloqueada</span>
-                                        : round.is_open
-                                            ? <span className="rounded bg-green-100 px-2 py-1 text-xs text-green-700">Abierta</span>
-                                            : <span className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-600">Cerrada</span>
+                                    {round.is_finalized
+                                        ? <span className="rounded bg-indigo-100 px-2 py-1 text-xs text-indigo-700">Finalizada</span>
+                                        : round.is_locked
+                                            ? <span className="rounded bg-red-100 px-2 py-1 text-xs text-red-700">Bloqueada</span>
+                                            : round.is_open
+                                                ? <span className="rounded bg-green-100 px-2 py-1 text-xs text-green-700">Abierta</span>
+                                                : <span className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-600">Cerrada</span>
                                     }
                                 </td>
                                 <td className="flex flex-wrap gap-1 px-4 py-3">
-                                    {!round.is_open && !round.is_locked && (
+                                    {!round.is_open && !round.is_locked && !round.is_finalized && (
                                         <button onClick={() => post(route('admin.rounds.open', round.slug))}
                                             className="rounded bg-green-600 px-3 py-1 text-xs text-white hover:bg-green-700">
                                             Abrir
@@ -46,7 +48,7 @@ export default function Index({ rounds }) {
                                             Bloquear
                                         </button>
                                     )}
-                                    {round.is_locked && (
+                                    {round.is_locked && !round.is_finalized && (
                                         <button
                                             onClick={() => {
                                                 if (confirm(`¿Finalizar "${round.name}"? Se calcularán los puntos de clasificados.`)) {
@@ -56,6 +58,9 @@ export default function Index({ rounds }) {
                                             className="rounded bg-red-600 px-3 py-1 text-xs text-white hover:bg-red-700">
                                             Finalizar
                                         </button>
+                                    )}
+                                    {round.is_finalized && (
+                                        <span className="text-xs text-gray-400">✓ Completada</span>
                                     )}
                                 </td>
                             </tr>

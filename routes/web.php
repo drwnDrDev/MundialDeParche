@@ -98,6 +98,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('users/{user}/activate-pot', [UserController::class, 'activatePot'])->name('users.activate-pot');
     Route::post('users/{user}/deactivate-pot', [UserController::class, 'deactivatePot'])->name('users.deactivate-pot');
     Route::post('users/{user}/reopen-predictions', [UserController::class, 'reopenPredictions'])->name('users.reopen-predictions');
+    Route::get('users/{user}/predictions', [UserController::class, 'predictions'])->name('users.predictions');
 
     // Tournament
     Route::get('tournament', [TournamentController::class, 'show'])->name('tournament');

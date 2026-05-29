@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\CoinTransaction;
+use App\Models\Fixture;
+use App\Models\Prediction;
 use App\Models\PredictionSubmission;
 use App\Models\Round;
 use App\Models\User;
@@ -104,5 +106,32 @@ class UserController extends Controller
             ->update(['status' => 'draft', 'submitted_at' => null]);
 
         return back()->with('status', "Predicciones de '{$user->name}' reabiertas.");
+    }
+
+    public function predictions(User $user): Response
+    {
+        $rounds = Round::orderBy('order')->get();
+
+        $fixturesByRound = Fixture::with(['homeTeam', 'awayTeam', 'group'])
+            ->whereIn('round_id', $rounds->pluck('id'))
+            ->orderBy('match_number')
+            ->get()
+            ->groupBy('round_id');
+
+        $predictions = Prediction::where('user_id', $user->id)
+            ->get()
+            ->keyBy('match_id');
+
+        $submissions = PredictionSubmission::where('user_id', $user->id)
+            ->get()
+            ->keyBy('round_id');
+
+        return Inertia::render('Admin/Users/Predictions', [
+            'targetUser'  => $user->only(['id', 'name', 'email', 'total_points', 'coins_balance', 'is_activated']),
+            'rounds'      => $rounds,
+            'fixtures'    => $fixturesByRound,
+            'predictions' => $predictions,
+            'submissions' => $submissions,
+        ]);
     }
 }

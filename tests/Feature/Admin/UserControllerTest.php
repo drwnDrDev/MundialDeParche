@@ -98,7 +98,7 @@ it('deactivates a user from the pot and records coin transaction', function () {
 
 it('reopens predictions for a user and round', function () {
     $user  = User::factory()->create(['role' => 'user']);
-    $round = Round::factory()->r1()->create();
+    $round = Round::factory()->f1()->create();
 
     PredictionSubmission::create([
         'user_id'      => $user->id,

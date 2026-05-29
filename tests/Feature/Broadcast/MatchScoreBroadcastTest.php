@@ -39,7 +39,7 @@ it('dispatches LiveScoreUpdated after match points calculation', function () {
     // Fake only the broadcast events (not MatchScoreUpdated itself)
     Event::fake([LiveScoreUpdated::class, PointsUpdated::class, ExactScoreAlert::class]);
 
-    $round   = Round::factory()->r1()->create();
+    $round   = Round::factory()->f1()->create();
     $user    = User::factory()->create();
     $fixture = makeGroupFixtureWithScore($round, 2, 1);
     PredictionSubmission::factory()->submitted()->create(['user_id' => $user->id, 'round_id' => $round->id]);
@@ -61,7 +61,7 @@ it('dispatches LiveScoreUpdated after match points calculation', function () {
 it('dispatches PointsUpdated for each affected user after calculation', function () {
     Event::fake([LiveScoreUpdated::class, PointsUpdated::class, ExactScoreAlert::class]);
 
-    $round   = Round::factory()->r1()->create();
+    $round   = Round::factory()->f1()->create();
     $userA   = User::factory()->create();
     $userB   = User::factory()->create();
     $fixture = makeGroupFixtureWithScore($round, 2, 1);
@@ -86,7 +86,7 @@ it('dispatches PointsUpdated for each affected user after calculation', function
 it('dispatches ExactScoreAlert when a user gets pts_exact', function () {
     Event::fake([LiveScoreUpdated::class, PointsUpdated::class, ExactScoreAlert::class]);
 
-    $round   = Round::factory()->r1()->create();
+    $round   = Round::factory()->f1()->create();
     $user    = User::factory()->create(['name' => 'Ana']);
     $fixture = makeGroupFixtureWithScore($round, 3, 1);
 
@@ -109,7 +109,7 @@ it('dispatches ExactScoreAlert when a user gets pts_exact', function () {
 it('does not dispatch ExactScoreAlert when no user gets pts_exact', function () {
     Event::fake([LiveScoreUpdated::class, PointsUpdated::class, ExactScoreAlert::class]);
 
-    $round   = Round::factory()->r1()->create();
+    $round   = Round::factory()->f1()->create();
     $user    = User::factory()->create();
     $fixture = makeGroupFixtureWithScore($round, 3, 1);
 
@@ -127,7 +127,7 @@ it('does not dispatch ExactScoreAlert when no user gets pts_exact', function () 
 it('dispatches ExactScoreAlert for each user who gets pts_exact', function () {
     Event::fake([LiveScoreUpdated::class, PointsUpdated::class, ExactScoreAlert::class]);
 
-    $round   = Round::factory()->r1()->create();
+    $round   = Round::factory()->f1()->create();
     $userA   = User::factory()->create(['name' => 'Ana']);
     $userB   = User::factory()->create(['name' => 'Bob']);
     $fixture = makeGroupFixtureWithScore($round, 2, 0, matchNum: 1);
@@ -154,7 +154,7 @@ it('dispatches ExactScoreAlert for each user who gets pts_exact', function () {
 it('dispatches LiveScoreUpdated with isLive=true when match is in_progress', function () {
     Event::fake([LiveScoreUpdated::class, PointsUpdated::class, ExactScoreAlert::class]);
 
-    $round   = Round::factory()->r1()->create();
+    $round   = Round::factory()->f1()->create();
     $group   = Group::factory()->create();
     $home    = Team::factory()->create(['group_id' => $group->id]);
     $away    = Team::factory()->create(['group_id' => $group->id]);

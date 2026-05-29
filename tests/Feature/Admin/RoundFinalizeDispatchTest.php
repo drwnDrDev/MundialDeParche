@@ -14,7 +14,7 @@ beforeEach(function () {
 
 it('dispatches RoundFinalized when admin finalizes a round', function () {
     Event::fake();
-    $round = Round::factory()->r1()->create(['is_open' => true, 'is_locked' => false]);
+    $round = Round::factory()->f1()->create(['is_open' => true, 'is_locked' => false]);
 
     $this->actingAs($this->admin)->post("/admin/rounds/{$round->slug}/finalize");
 

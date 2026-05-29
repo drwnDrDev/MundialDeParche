@@ -62,7 +62,7 @@ function createUserPredictions(User $user, iterable $fixtures, array $prediction
 }
 
 it('uses saved predicted_classifiers when available instead of re-deriving', function () {
-    $round = Round::factory()->r1()->create(['is_open' => false, 'is_locked' => true]);
+    $round = Round::factory()->f1()->create(['is_open' => false, 'is_locked' => true]);
 
     // Create 8 groups, each with 2 teams and 1 fixture so thirds pool >= 8
     $teams = [];
@@ -122,7 +122,7 @@ it('uses saved predicted_classifiers when available instead of re-deriving', fun
 });
 
 it('awards classifier pts when user correctly predicts R1 top-2 classifiers', function () {
-    $round = Round::factory()->r1()->create(['points_classifier' => 2]);
+    $round = Round::factory()->f1()->create(['points_classifier' => 2]);
     $user  = User::factory()->create();
     PredictionSubmission::factory()->submitted()->create(['user_id' => $user->id, 'round_id' => $round->id]);
 
@@ -150,7 +150,7 @@ it('awards classifier pts when user correctly predicts R1 top-2 classifiers', fu
 });
 
 it('awards zero pts when user predicts wrong R1 classifiers', function () {
-    $round = Round::factory()->r1()->create(['points_classifier' => 2]);
+    $round = Round::factory()->f1()->create(['points_classifier' => 2]);
     $user  = User::factory()->create();
     PredictionSubmission::factory()->submitted()->create(['user_id' => $user->id, 'round_id' => $round->id]);
 
@@ -180,7 +180,7 @@ it('awards zero pts when user predicts wrong R1 classifiers', function () {
 });
 
 it('does not award classifier pts to draft submissions', function () {
-    $round = Round::factory()->r1()->create(['points_classifier' => 2]);
+    $round = Round::factory()->f1()->create(['points_classifier' => 2]);
     $user  = User::factory()->create();
     PredictionSubmission::factory()->create(['user_id' => $user->id, 'round_id' => $round->id, 'status' => 'draft']);
 
@@ -195,7 +195,7 @@ it('does not award classifier pts to draft submissions', function () {
 });
 
 it('updates user total_points after R1 classifier calculation', function () {
-    $round = Round::factory()->r1()->create(['points_classifier' => 2]);
+    $round = Round::factory()->f1()->create(['points_classifier' => 2]);
     $user  = User::factory()->create(['total_points' => 0]);
     PredictionSubmission::factory()->submitted()->create(['user_id' => $user->id, 'round_id' => $round->id]);
 
@@ -209,7 +209,7 @@ it('updates user total_points after R1 classifier calculation', function () {
 });
 
 it('awards classifier pts for correctly predicted 8-best-thirds across 9 groups', function () {
-    $round = Round::factory()->r1()->create(['points_classifier' => 2]);
+    $round = Round::factory()->f1()->create(['points_classifier' => 2]);
     $user  = User::factory()->create();
     PredictionSubmission::factory()->submitted()->create(['user_id' => $user->id, 'round_id' => $round->id]);
 
@@ -250,7 +250,7 @@ it('awards classifier pts for correctly predicted 8-best-thirds across 9 groups'
 });
 
 it('awards R2 classifier pts for correctly predicted R16 QF teams', function () {
-    $round = Round::factory()->r2()->create(['points_classifier' => 4]);
+    $round = Round::factory()->f2()->create(['points_classifier' => 4]);
     $user  = User::factory()->create();
     PredictionSubmission::factory()->submitted()->create(['user_id' => $user->id, 'round_id' => $round->id]);
 
@@ -301,7 +301,7 @@ it('awards R2 classifier pts for correctly predicted R16 QF teams', function () 
 });
 
 it('awards partial R2 classifier pts when only some QF teams predicted correctly', function () {
-    $round = Round::factory()->r2()->create(['points_classifier' => 4]);
+    $round = Round::factory()->f2()->create(['points_classifier' => 4]);
     $user  = User::factory()->create();
     PredictionSubmission::factory()->submitted()->create(['user_id' => $user->id, 'round_id' => $round->id]);
 

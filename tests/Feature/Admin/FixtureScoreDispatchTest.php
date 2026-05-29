@@ -17,7 +17,7 @@ beforeEach(function () {
 
 it('dispatches MatchScoreUpdated when fixture is updated with a score', function () {
     Event::fake();
-    $round   = Round::factory()->r1()->create();
+    $round   = Round::factory()->f1()->create();
     $group   = Group::factory()->create();
     $home    = Team::factory()->create(['group_id' => $group->id]);
     $away    = Team::factory()->create(['group_id' => $group->id]);
@@ -52,7 +52,7 @@ it('dispatches MatchScoreUpdated when fixture is updated with a score', function
 
 it('does not dispatch MatchScoreUpdated when score is still null', function () {
     Event::fake();
-    $round   = Round::factory()->r1()->create();
+    $round   = Round::factory()->f1()->create();
     $group   = Group::factory()->create();
     $fixture = Fixture::factory()->create([
         'round_id' => $round->id, 'group_id' => $group->id, 'match_number' => 1,
@@ -79,7 +79,7 @@ it('does not dispatch MatchScoreUpdated when score is still null', function () {
 
 it('does not dispatch MatchScoreUpdated when score is cleared to null', function () {
     Event::fake();
-    $round   = Round::factory()->r1()->create();
+    $round   = Round::factory()->f1()->create();
     $group   = Group::factory()->create();
     $home    = Team::factory()->create(['group_id' => $group->id]);
     $away    = Team::factory()->create(['group_id' => $group->id]);

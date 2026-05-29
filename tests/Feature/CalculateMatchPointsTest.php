@@ -46,7 +46,7 @@ function groupFixtureWithScore(Round $round, int $homeScore, int $awayScore): ar
 }
 
 it('awards pts_exact and pts_result for exact group stage score', function () {
-    $round = Round::factory()->r1()->create();
+    $round = Round::factory()->f1()->create();
     $user  = User::factory()->create();
     ['fixture' => $fixture] = groupFixtureWithScore($round, 2, 1);
 
@@ -66,7 +66,7 @@ it('awards pts_exact and pts_result for exact group stage score', function () {
 });
 
 it('awards only pts_result for correct group stage result (not exact)', function () {
-    $round = Round::factory()->r1()->create();
+    $round = Round::factory()->f1()->create();
     $user  = User::factory()->create();
     ['fixture' => $fixture] = groupFixtureWithScore($round, 2, 1);
 
@@ -84,7 +84,7 @@ it('awards only pts_result for correct group stage result (not exact)', function
 });
 
 it('awards pts_result for a group stage draw', function () {
-    $round = Round::factory()->r1()->create();
+    $round = Round::factory()->f1()->create();
     $user  = User::factory()->create();
     ['fixture' => $fixture] = groupFixtureWithScore($round, 1, 1);
 
@@ -102,7 +102,7 @@ it('awards pts_result for a group stage draw', function () {
 });
 
 it('awards zero points for wrong group stage prediction', function () {
-    $round = Round::factory()->r1()->create();
+    $round = Round::factory()->f1()->create();
     $user  = User::factory()->create();
     ['fixture' => $fixture] = groupFixtureWithScore($round, 2, 0);
 
@@ -121,7 +121,7 @@ it('awards zero points for wrong group stage prediction', function () {
 });
 
 it('awards pts_result for correct knockout winner (via winner_team_id)', function () {
-    $round = Round::factory()->r2()->create();
+    $round = Round::factory()->f2()->create();
     $group = Group::factory()->create();
     $home  = Team::factory()->create(['group_id' => $group->id]);
     $away  = Team::factory()->create(['group_id' => $group->id]);
@@ -151,7 +151,7 @@ it('awards pts_result for correct knockout winner (via winner_team_id)', functio
 });
 
 it('awards pts_exact for exact 90-min score in knockout, even if winner differs via ET', function () {
-    $round = Round::factory()->r2()->create();
+    $round = Round::factory()->f2()->create();
     $group = Group::factory()->create();
     $home  = Team::factory()->create(['group_id' => $group->id]);
     $away  = Team::factory()->create(['group_id' => $group->id]);
@@ -182,7 +182,7 @@ it('awards pts_exact for exact 90-min score in knockout, even if winner differs 
 });
 
 it('does not calculate points for draft predictions', function () {
-    $round = Round::factory()->r1()->create();
+    $round = Round::factory()->f1()->create();
     $user  = User::factory()->create();
     ['fixture' => $fixture] = groupFixtureWithScore($round, 2, 1);
 
@@ -200,7 +200,7 @@ it('does not calculate points for draft predictions', function () {
 });
 
 it('skips calculation when score is null', function () {
-    $round = Round::factory()->r1()->create();
+    $round = Round::factory()->f1()->create();
     $user  = User::factory()->create();
     $group = Group::factory()->create();
     $fixture = Fixture::factory()->create([
@@ -221,7 +221,7 @@ it('skips calculation when score is null', function () {
 });
 
 it('updates user total_points after match calculation', function () {
-    $round = Round::factory()->r1()->create(['points_exact' => 3, 'points_result' => 1]);
+    $round = Round::factory()->f1()->create(['points_exact' => 3, 'points_result' => 1]);
     $user  = User::factory()->create(['total_points' => 0]);
     ['fixture' => $fixture] = groupFixtureWithScore($round, 2, 1);
 
@@ -237,7 +237,7 @@ it('updates user total_points after match calculation', function () {
 });
 
 it('awards zero pts_result for predicted draw in knockout even if away team wins', function () {
-    $round = Round::factory()->r2()->create();
+    $round = Round::factory()->f2()->create();
     $group = Group::factory()->create();
     $home  = Team::factory()->create(['group_id' => $group->id]);
     $away  = Team::factory()->create(['group_id' => $group->id]);

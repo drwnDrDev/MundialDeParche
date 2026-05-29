@@ -11,8 +11,8 @@ beforeEach(function () {
 });
 
 it('lists rounds with user submission status', function () {
-    $open   = Round::factory()->r1()->create(['is_open' => true]);
-    $closed = Round::factory()->r2()->create(['is_open' => false, 'order' => 2]);
+    $open   = Round::factory()->f1()->create(['is_open' => true]);
+    $closed = Round::factory()->f2()->create(['is_open' => false, 'order' => 2]);
 
     $response = $this->withoutVite()->actingAs($this->user)->get('/predictions');
 
@@ -29,7 +29,7 @@ it('blocks guests from predictions index', function () {
 });
 
 it('shows a round prediction page when round is open with teams assigned', function () {
-    $round   = Round::factory()->r1()->create(['is_open' => true]);
+    $round   = Round::factory()->f1()->create(['is_open' => true]);
     $group   = \App\Models\Group::factory()->create(['name' => 'A']);
     $home    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
     $away    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
@@ -53,7 +53,7 @@ it('shows a round prediction page when round is open with teams assigned', funct
 });
 
 it('redirects from round show when fixtures have unassigned teams', function () {
-    $round = Round::factory()->r2()->create(['is_open' => true]);
+    $round = Round::factory()->f2()->create(['is_open' => true]);
     \App\Models\Fixture::factory()->create([
         'round_id'     => $round->id,
         'home_team_id' => null,
@@ -65,7 +65,7 @@ it('redirects from round show when fixtures have unassigned teams', function () 
 });
 
 it('shows locked page when round is closed', function () {
-    $round   = Round::factory()->r1()->create(['is_open' => false, 'is_locked' => true]);
+    $round   = Round::factory()->f1()->create(['is_open' => false, 'is_locked' => true]);
     $group   = \App\Models\Group::factory()->create(['name' => 'A']);
     $home    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
     $away    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
@@ -83,7 +83,7 @@ it('shows locked page when round is closed', function () {
 });
 
 it('saves predictions as draft', function () {
-    $round   = Round::factory()->r1()->create(['is_open' => true]);
+    $round   = Round::factory()->f1()->create(['is_open' => true]);
     $group   = \App\Models\Group::factory()->create(['name' => 'A']);
     $home    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
     $away    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
@@ -106,7 +106,7 @@ it('saves predictions as draft', function () {
 });
 
 it('auto-promotes to submitted with classifiers when all R1 fixtures are covered', function () {
-    $round = Round::factory()->r1()->create(['is_open' => true]);
+    $round = Round::factory()->f1()->create(['is_open' => true]);
     $group = \App\Models\Group::factory()->create(['name' => 'A']);
     $home  = \App\Models\Team::factory()->create(['group_id' => $group->id]);
     $away  = \App\Models\Team::factory()->create(['group_id' => $group->id]);
@@ -131,7 +131,7 @@ it('auto-promotes to submitted with classifiers when all R1 fixtures are covered
 });
 
 it('stays draft when predicted_classifiers is missing even if all fixtures covered', function () {
-    $round = Round::factory()->r1()->create(['is_open' => true]);
+    $round = Round::factory()->f1()->create(['is_open' => true]);
     $group = \App\Models\Group::factory()->create(['name' => 'A']);
     $home  = \App\Models\Team::factory()->create(['group_id' => $group->id]);
     $away  = \App\Models\Team::factory()->create(['group_id' => $group->id]);
@@ -152,7 +152,7 @@ it('stays draft when predicted_classifiers is missing even if all fixtures cover
 });
 
 it('stays draft for non-group rounds regardless of classifiers payload', function () {
-    $round = Round::factory()->r2()->create(['is_open' => true]);
+    $round = Round::factory()->f2()->create(['is_open' => true]);
     $home  = \App\Models\Team::factory()->create();
     $away  = \App\Models\Team::factory()->create();
     $f1    = \App\Models\Fixture::factory()->create([
@@ -171,7 +171,7 @@ it('stays draft for non-group rounds regardless of classifiers payload', functio
 });
 
 it('updates existing prediction on save', function () {
-    $round   = Round::factory()->r1()->create(['is_open' => true]);
+    $round   = Round::factory()->f1()->create(['is_open' => true]);
     $group   = \App\Models\Group::factory()->create(['name' => 'A']);
     $home    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
     $away    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
@@ -195,7 +195,7 @@ it('updates existing prediction on save', function () {
 });
 
 it('rejects save when round is not open', function () {
-    $round   = Round::factory()->r1()->create(['is_open' => false]);
+    $round   = Round::factory()->f1()->create(['is_open' => false]);
     $group   = \App\Models\Group::factory()->create();
     $fixture = \App\Models\Fixture::factory()->create([
         'round_id' => $round->id, 'group_id' => $group->id,
@@ -209,7 +209,7 @@ it('rejects save when round is not open', function () {
 });
 
 it('rejects save when submission is locked', function () {
-    $round   = Round::factory()->r1()->create(['is_open' => true, 'is_locked' => true]);
+    $round   = Round::factory()->f1()->create(['is_open' => true, 'is_locked' => true]);
     $group   = \App\Models\Group::factory()->create(['name' => 'A']);
     $home    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
     $away    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
@@ -229,7 +229,7 @@ it('rejects save when submission is locked', function () {
 });
 
 it('submits predictions when all fixtures are covered', function () {
-    $round   = Round::factory()->r1()->create(['is_open' => true]);
+    $round   = Round::factory()->f1()->create(['is_open' => true]);
     $group   = \App\Models\Group::factory()->create(['name' => 'A']);
     $home    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
     $away    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
@@ -253,7 +253,7 @@ it('submits predictions when all fixtures are covered', function () {
 });
 
 it('rejects submit when not all fixtures covered', function () {
-    $round   = Round::factory()->r1()->create(['is_open' => true]);
+    $round   = Round::factory()->f1()->create(['is_open' => true]);
     $group   = \App\Models\Group::factory()->create(['name' => 'A']);
     $home    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
     $away    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
@@ -271,7 +271,7 @@ it('rejects submit when not all fixtures covered', function () {
 });
 
 it('rejects submit with tie in knockout round', function () {
-    $round   = Round::factory()->r2()->create(['is_open' => true]);
+    $round   = Round::factory()->f2()->create(['is_open' => true]);
     $group   = \App\Models\Group::factory()->create(['name' => 'A']);
     $home    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
     $away    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
@@ -290,7 +290,7 @@ it('rejects submit with tie in knockout round', function () {
 });
 
 it('allows ties in group stage (R1) submit', function () {
-    $round   = Round::factory()->r1()->create(['is_open' => true]);
+    $round   = Round::factory()->f1()->create(['is_open' => true]);
     $group   = \App\Models\Group::factory()->create(['name' => 'A']);
     $home    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
     $away    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
@@ -309,7 +309,7 @@ it('allows ties in group stage (R1) submit', function () {
 });
 
 it('rejects save (draft) with tie in knockout round', function () {
-    $round   = Round::factory()->r2()->create(['is_open' => true]);
+    $round   = Round::factory()->f2()->create(['is_open' => true]);
     $group   = \App\Models\Group::factory()->create(['name' => 'A']);
     $home    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
     $away    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
@@ -328,7 +328,7 @@ it('rejects save (draft) with tie in knockout round', function () {
 });
 
 it('allows ties in group stage (R1) save', function () {
-    $round   = Round::factory()->r1()->create(['is_open' => true]);
+    $round   = Round::factory()->f1()->create(['is_open' => true]);
     $group   = \App\Models\Group::factory()->create(['name' => 'A']);
     $home    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
     $away    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
@@ -350,7 +350,7 @@ it('allows ties in group stage (R1) save', function () {
 // ── phasePts en index ─────────────────────────────────────────────────────
 
 it('index includes phasePts with zeros for rounds with no predictions', function () {
-    $round = Round::factory()->r1()->create();
+    $round = Round::factory()->f1()->create();
 
     $this->actingAs($this->user)
         ->get(route('predictions.index'))
@@ -366,7 +366,7 @@ it('index includes phasePts with zeros for rounds with no predictions', function
 });
 
 it('index phasePts sums pts_exact and pts_result from predictions', function () {
-    $round   = Round::factory()->r1()->create(['points_classifier' => 2]);
+    $round   = Round::factory()->f1()->create(['points_classifier' => 2]);
     $group   = \App\Models\Group::factory()->create();
     $fixture = \App\Models\Fixture::factory()->create([
         'round_id' => $round->id, 'group_id' => $group->id,
@@ -398,7 +398,7 @@ it('index phasePts sums pts_exact and pts_result from predictions', function () 
 });
 
 it('index includes fixtures_count on each round', function () {
-    $round = Round::factory()->r1()->create();
+    $round = Round::factory()->f1()->create();
     $group = \App\Models\Group::factory()->create();
     \App\Models\Fixture::factory(3)->create(['round_id' => $round->id, 'group_id' => $group->id]);
 
@@ -412,7 +412,7 @@ it('index includes fixtures_count on each round', function () {
 // ── receipt ───────────────────────────────────────────────────────────────
 
 it('receipt renders when submission exists', function () {
-    $round = Round::factory()->r1()->create(['is_open' => true]);
+    $round = Round::factory()->f1()->create(['is_open' => true]);
     \App\Models\PredictionSubmission::factory()->submitted()->create([
         'user_id' => $this->user->id, 'round_id' => $round->id,
     ]);
@@ -423,7 +423,7 @@ it('receipt renders when submission exists', function () {
 });
 
 it('receipt redirects to index when no submission exists', function () {
-    $round = Round::factory()->r1()->create();
+    $round = Round::factory()->f1()->create();
 
     $this->actingAs($this->user)
         ->get(route('predictions.receipt', $round->slug))
@@ -431,7 +431,7 @@ it('receipt redirects to index when no submission exists', function () {
 });
 
 it('receipt sets isFinalized true when round is locked', function () {
-    $round = Round::factory()->r1()->create(['is_locked' => true, 'is_open' => false]);
+    $round = Round::factory()->f1()->create(['is_locked' => true, 'is_open' => false]);
     \App\Models\PredictionSubmission::factory()->locked()->create([
         'user_id' => $this->user->id, 'round_id' => $round->id,
     ]);
@@ -442,7 +442,7 @@ it('receipt sets isFinalized true when round is locked', function () {
 });
 
 it('receipt sets isFinalized false when round is not locked', function () {
-    $round = Round::factory()->r1()->create(['is_open' => true, 'is_locked' => false]);
+    $round = Round::factory()->f1()->create(['is_open' => true, 'is_locked' => false]);
     \App\Models\PredictionSubmission::factory()->submitted()->create([
         'user_id' => $this->user->id, 'round_id' => $round->id,
     ]);
@@ -453,7 +453,7 @@ it('receipt sets isFinalized false when round is not locked', function () {
 });
 
 it('receipt includes fixtures and user predictions keyed by match_id', function () {
-    $round   = Round::factory()->r1()->create(['is_open' => true]);
+    $round   = Round::factory()->f1()->create(['is_open' => true]);
     $group   = \App\Models\Group::factory()->create();
     $fixture = \App\Models\Fixture::factory()->create([
         'round_id' => $round->id, 'group_id' => $group->id,
@@ -481,7 +481,7 @@ it('receipt includes fixtures and user predictions keyed by match_id', function 
 });
 
 it('receipt includes predicted_classifiers enriched with team data for R1', function () {
-    $round = Round::factory()->r1()->create(['is_open' => false, 'is_locked' => false]);
+    $round = Round::factory()->f1()->create(['is_open' => false, 'is_locked' => false]);
     $group = \App\Models\Group::factory()->create(['name' => 'A']);
     $home  = \App\Models\Team::factory()->create(['group_id' => $group->id, 'name' => 'Colombia', 'flag_url' => '/flags/col.png']);
     $away  = \App\Models\Team::factory()->create(['group_id' => $group->id, 'name' => 'Brasil']);
@@ -509,7 +509,7 @@ it('receipt includes predicted_classifiers enriched with team data for R1', func
 });
 
 it('receipt includes realClassifierIds when round is finalized', function () {
-    $round = Round::factory()->r1()->create(['is_open' => false, 'is_locked' => true]);
+    $round = Round::factory()->f1()->create(['is_open' => false, 'is_locked' => true]);
     $group = \App\Models\Group::factory()->create(['name' => 'A']);
     $home  = \App\Models\Team::factory()->create(['group_id' => $group->id]);
     $away  = \App\Models\Team::factory()->create(['group_id' => $group->id]);

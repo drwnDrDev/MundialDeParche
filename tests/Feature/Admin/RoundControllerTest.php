@@ -11,7 +11,7 @@ beforeEach(function () {
 });
 
 it('lists rounds', function () {
-    Round::factory()->r1()->create();
+    Round::factory()->f1()->create();
 
     $response = $this->withoutVite()->actingAs($this->admin)->get('/admin/rounds');
 
@@ -23,7 +23,7 @@ it('lists rounds', function () {
 });
 
 it('opens a round', function () {
-    $round = Round::factory()->r1()->create(['is_open' => false]);
+    $round = Round::factory()->f1()->create(['is_open' => false]);
 
     $this->actingAs($this->admin)->post("/admin/rounds/{$round->slug}/open");
 
@@ -31,7 +31,7 @@ it('opens a round', function () {
 });
 
 it('locks a round', function () {
-    $round = Round::factory()->r1()->create(['is_open' => true, 'is_locked' => false]);
+    $round = Round::factory()->f1()->create(['is_open' => true, 'is_locked' => false]);
 
     $this->actingAs($this->admin)->post("/admin/rounds/{$round->slug}/lock");
 
@@ -40,7 +40,7 @@ it('locks a round', function () {
 });
 
 it('finalizes a round', function () {
-    $round = Round::factory()->r1()->create(['is_open' => true, 'is_locked' => false]);
+    $round = Round::factory()->f1()->create(['is_open' => true, 'is_locked' => false]);
 
     $this->actingAs($this->admin)->post("/admin/rounds/{$round->slug}/finalize");
 
@@ -49,7 +49,7 @@ it('finalizes a round', function () {
 });
 
 it('does not reopen a locked round', function () {
-    $round = Round::factory()->r1()->create(['is_open' => false, 'is_locked' => true]);
+    $round = Round::factory()->f1()->create(['is_open' => false, 'is_locked' => true]);
 
     $this->actingAs($this->admin)->post("/admin/rounds/{$round->slug}/open")->assertRedirect();
 

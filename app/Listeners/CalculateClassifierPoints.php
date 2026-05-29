@@ -20,7 +20,7 @@ class CalculateClassifierPoints
 
         if ($round->slug === 'grupos') {
             $this->calculateR1($round);
-        } elseif ($round->slug === 'r32-r16') {
+        } elseif ($round->slug === 'r32') {
             $this->calculateR2($round);
         }
     }

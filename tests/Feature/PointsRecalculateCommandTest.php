@@ -13,7 +13,7 @@ uses(RefreshDatabase::class);
 
 it('dispatches MatchScoreUpdated for a specific match with --match option', function () {
     Event::fake();
-    $round   = Round::factory()->r1()->create();
+    $round   = Round::factory()->f1()->create();
     $group   = Group::factory()->create();
     $home    = Team::factory()->create(['group_id' => $group->id]);
     $away    = Team::factory()->create(['group_id' => $group->id]);
@@ -32,7 +32,7 @@ it('dispatches MatchScoreUpdated for a specific match with --match option', func
 
 it('does not dispatch MatchScoreUpdated for match without score', function () {
     Event::fake();
-    $round   = Round::factory()->r1()->create();
+    $round   = Round::factory()->f1()->create();
     $group   = Group::factory()->create();
     $fixture = Fixture::factory()->create([
         'round_id' => $round->id, 'group_id' => $group->id,
@@ -47,7 +47,7 @@ it('does not dispatch MatchScoreUpdated for match without score', function () {
 
 it('dispatches MatchScoreUpdated for every scored fixture in round with --round option', function () {
     Event::fake();
-    $round = Round::factory()->r1()->create(['is_locked' => true]);
+    $round = Round::factory()->f1()->create(['is_locked' => true]);
     $group = Group::factory()->create();
     $home  = Team::factory()->create(['group_id' => $group->id]);
     $away  = Team::factory()->create(['group_id' => $group->id]);
@@ -72,7 +72,7 @@ it('dispatches MatchScoreUpdated for every scored fixture in round with --round 
 
 it('does not dispatch RoundFinalized when round is not locked', function () {
     Event::fake();
-    $round = Round::factory()->r1()->create(['is_locked' => false]);
+    $round = Round::factory()->f1()->create(['is_locked' => false]);
     $group = Group::factory()->create();
     $fixture = Fixture::factory()->create([
         'round_id' => $round->id, 'group_id' => $group->id,

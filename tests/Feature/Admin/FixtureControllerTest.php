@@ -19,7 +19,7 @@ beforeEach(function () {
 });
 
 it('lists fixtures filtered by round', function () {
-    $round   = Round::factory()->r1()->create();
+    $round   = Round::factory()->f1()->create();
     $group   = Group::factory()->create(['name' => 'A']);
     $home    = Team::factory()->create(['group_id' => $group->id]);
     $away    = Team::factory()->create(['group_id' => $group->id]);
@@ -43,7 +43,7 @@ it('lists fixtures filtered by round', function () {
 });
 
 it('shows the create fixture form', function () {
-    Round::factory()->r1()->create();
+    Round::factory()->f1()->create();
 
     $response = $this->withoutVite()->actingAs($this->admin)->get('/admin/fixtures/create');
 
@@ -57,7 +57,7 @@ it('shows the create fixture form', function () {
 });
 
 it('creates a group stage fixture', function () {
-    $round = Round::factory()->r1()->create();
+    $round = Round::factory()->f1()->create();
     $group = Group::factory()->create(['name' => 'A']);
     $home  = Team::factory()->create(['group_id' => $group->id]);
     $away  = Team::factory()->create(['group_id' => $group->id]);
@@ -76,7 +76,7 @@ it('creates a group stage fixture', function () {
 });
 
 it('creates a knockout fixture with placeholders', function () {
-    $round = Round::factory()->r2()->create();
+    $round = Round::factory()->f2()->create();
 
     $this->actingAs($this->admin)->post('/admin/fixtures', [
         'round_id'         => $round->id,
@@ -97,7 +97,7 @@ it('requires round_id, match_number and match_date to create a fixture', functio
 });
 
 it('shows the edit form for a fixture', function () {
-    $round   = Round::factory()->r1()->create();
+    $round   = Round::factory()->f1()->create();
     $group   = Group::factory()->create(['name' => 'A']);
     $home    = Team::factory()->create(['group_id' => $group->id]);
     $away    = Team::factory()->create(['group_id' => $group->id]);
@@ -120,7 +120,7 @@ it('shows the edit form for a fixture', function () {
 });
 
 it('updates a fixture score and status', function () {
-    $round   = Round::factory()->r1()->create();
+    $round   = Round::factory()->f1()->create();
     $group   = Group::factory()->create(['name' => 'A']);
     $home    = Team::factory()->create(['group_id' => $group->id]);
     $away    = Team::factory()->create(['group_id' => $group->id]);
@@ -152,7 +152,7 @@ it('updates a fixture score and status', function () {
 });
 
 it('assigns real teams to a knockout fixture', function () {
-    $round   = Round::factory()->r2()->create();
+    $round   = Round::factory()->f2()->create();
     $groupA  = Group::factory()->create(['name' => 'A']);
     $groupB  = Group::factory()->create(['name' => 'B']);
     $teamA   = Team::factory()->create(['group_id' => $groupA->id]);
@@ -180,7 +180,7 @@ it('assigns real teams to a knockout fixture', function () {
 });
 
 it('deletes a fixture', function () {
-    $round   = Round::factory()->r1()->create();
+    $round   = Round::factory()->f1()->create();
     $group   = Group::factory()->create(['name' => 'A']);
     $fixture = Fixture::factory()->create(['round_id' => $round->id, 'group_id' => $group->id]);
 

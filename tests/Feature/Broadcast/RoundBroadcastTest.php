@@ -16,7 +16,7 @@ beforeEach(function () {
 
 it('dispatches RoundOpened when admin opens a round', function () {
     Event::fake([RoundOpened::class]);
-    $round = Round::factory()->r1()->create(['is_open' => false, 'is_locked' => false]);
+    $round = Round::factory()->f1()->create(['is_open' => false, 'is_locked' => false]);
 
     $this->actingAs($this->admin)->post("/admin/rounds/{$round->slug}/open");
 
@@ -25,7 +25,7 @@ it('dispatches RoundOpened when admin opens a round', function () {
 
 it('does not dispatch RoundOpened when round is already locked', function () {
     Event::fake([RoundOpened::class]);
-    $round = Round::factory()->r1()->create(['is_open' => false, 'is_locked' => true]);
+    $round = Round::factory()->f1()->create(['is_open' => false, 'is_locked' => true]);
 
     $this->actingAs($this->admin)->post("/admin/rounds/{$round->slug}/open");
 
@@ -34,7 +34,7 @@ it('does not dispatch RoundOpened when round is already locked', function () {
 
 it('dispatches RoundLocked when admin locks a round', function () {
     Event::fake([RoundLocked::class]);
-    $round = Round::factory()->r1()->create(['is_open' => true, 'is_locked' => false]);
+    $round = Round::factory()->f1()->create(['is_open' => true, 'is_locked' => false]);
 
     $this->actingAs($this->admin)->post("/admin/rounds/{$round->slug}/lock");
 
@@ -43,7 +43,7 @@ it('dispatches RoundLocked when admin locks a round', function () {
 
 it('dispatches RoundLocked and RoundFinalized when admin finalizes a round', function () {
     Event::fake([RoundLocked::class, RoundFinalized::class]);
-    $round = Round::factory()->r1()->create(['is_open' => true, 'is_locked' => false]);
+    $round = Round::factory()->f1()->create(['is_open' => true, 'is_locked' => false]);
 
     $this->actingAs($this->admin)->post("/admin/rounds/{$round->slug}/finalize");
 

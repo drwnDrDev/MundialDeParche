@@ -249,100 +249,128 @@ it('awards classifier pts for correctly predicted 8-best-thirds across 9 groups'
     expect($submission->pts_classifier)->toBe(52);
 });
 
-it('awards R2 classifier pts for correctly predicted R16 QF teams', function () {
-    $round = Round::factory()->f2()->create(['points_classifier' => 4]);
-    $user  = User::factory()->create();
-    PredictionSubmission::factory()->submitted()->create(['user_id' => $user->id, 'round_id' => $round->id]);
+// ─── F2 (R32) CLASSIFIERS ────────────────────────────────────────────────────
 
-    // R32: match_numbers 73–88 (real FIFA numbers), R16: 89–96
-    $group = Group::factory()->create();
-    $r32Teams = Team::factory(32)->create(['group_id' => $group->id]);
+it('awards F2 classifier points for correctly predicted R32 winners', function () {
+    $f2 = Round::factory()->f2()->create(['points_classifier' => 3]);
 
-    for ($i = 0; $i < 16; $i++) {
-        Fixture::factory()->create([
-            'round_id'     => $round->id,
-            'group_id'     => null,
-            'home_team_id' => $r32Teams[$i * 2]->id,
-            'away_team_id' => $r32Teams[$i * 2 + 1]->id,
-            'match_number' => 73 + $i,
-        ]);
-    }
+    $teamA = Team::factory()->create(['fifa_code' => 'AAA']);
+    $teamB = Team::factory()->create(['fifa_code' => 'BBB']);
+    $teamC = Team::factory()->create(['fifa_code' => 'CCC']);
+    $teamD = Team::factory()->create(['fifa_code' => 'DDD']);
 
-    // R16 fixtures (M89–M96): 8 matches, real winner_team_id set
-    $r16Teams = Team::factory(16)->create(['group_id' => $group->id]);
-    $r16Fixtures = collect();
-    for ($i = 0; $i < 8; $i++) {
-        $home = $r16Teams[$i * 2];
-        $away = $r16Teams[$i * 2 + 1];
-        $r16Fixtures->push(Fixture::factory()->create([
-            'round_id'       => $round->id,
-            'group_id'       => null,
-            'home_team_id'   => $home->id,
-            'away_team_id'   => $away->id,
-            'winner_team_id' => $home->id, // home wins R16
-            'match_number'   => 89 + $i,
-        ]));
-    }
+    // M73: teamA beats teamB (user predicts correctly)
+    $m73 = Fixture::factory()->create([
+        'round_id'       => $f2->id,
+        'match_number'   => 73,
+        'home_team_id'   => $teamA->id,
+        'away_team_id'   => $teamB->id,
+        'home_score'     => 2,
+        'away_score'     => 0,
+        'winner_team_id' => $teamA->id,
+        'status'         => 'finished',
+    ]);
 
-    // User correctly predicts all 8 R16 home teams to win
-    foreach ($r16Fixtures as $fixture) {
-        Prediction::factory()->create([
-            'user_id'        => $user->id,
-            'match_id'       => $fixture->id,
-            'predicted_home' => 2,
-            'predicted_away' => 0, // home wins
-        ]);
-    }
+    // M74: teamC beats teamD — user predicts wrong
+    $m74 = Fixture::factory()->create([
+        'round_id'       => $f2->id,
+        'match_number'   => 74,
+        'home_team_id'   => $teamC->id,
+        'away_team_id'   => $teamD->id,
+        'home_score'     => 0,
+        'away_score'     => 1,
+        'winner_team_id' => $teamD->id,
+        'status'         => 'finished',
+    ]);
 
-    app(CalculateClassifierPoints::class)->handle(new RoundFinalized($round));
+    $user = User::factory()->create();
 
-    $submission = PredictionSubmission::where('user_id', $user->id)->where('round_id', $round->id)->first();
-    expect($submission->pts_classifier)->toBe(32); // 8 correct × 4 pts
+    $submission = PredictionSubmission::factory()->create([
+        'user_id'  => $user->id,
+        'round_id' => $f2->id,
+        'status'   => 'submitted',
+    ]);
+
+    // User predicts teamA wins M73 (correct)
+    Prediction::factory()->create([
+        'user_id'        => $user->id,
+        'match_id'       => $m73->id,
+        'predicted_home' => 2,
+        'predicted_away' => 0,
+    ]);
+
+    // User predicts teamC wins M74 (wrong — real winner is teamD)
+    Prediction::factory()->create([
+        'user_id'        => $user->id,
+        'match_id'       => $m74->id,
+        'predicted_home' => 1,
+        'predicted_away' => 0,
+    ]);
+
+    RoundFinalized::dispatch($f2);
+
+    expect($submission->fresh()->pts_classifier)->toBe(3); // 1 correct × 3 pts
 });
 
-it('awards partial R2 classifier pts when only some QF teams predicted correctly', function () {
-    $round = Round::factory()->f2()->create(['points_classifier' => 4]);
-    $user  = User::factory()->create();
-    PredictionSubmission::factory()->submitted()->create(['user_id' => $user->id, 'round_id' => $round->id]);
+// ─── F3 (OCTAVOS + CUARTOS) CLASSIFIERS ────────────────────────────────────
 
-    // R32: M73–M88, R16: M89–M96 (real FIFA match numbers)
-    $group = Group::factory()->create();
-    $r32Teams = Team::factory(32)->create(['group_id' => $group->id]);
-    for ($i = 0; $i < 16; $i++) {
-        Fixture::factory()->create([
-            'round_id' => $round->id, 'group_id' => null,
-            'home_team_id' => $r32Teams[$i * 2]->id,
-            'away_team_id' => $r32Teams[$i * 2 + 1]->id,
-            'match_number' => 73 + $i,
-        ]);
-    }
+it('awards F3 classifier points for correctly predicted cuartos winners (semifinalists)', function () {
+    $f3 = Round::factory()->f3()->create(['points_classifier' => 5]);
 
-    $r16Teams = Team::factory(16)->create(['group_id' => $group->id]);
-    $r16Fixtures = collect();
-    for ($i = 0; $i < 8; $i++) {
-        $home = $r16Teams[$i * 2];
-        $away = $r16Teams[$i * 2 + 1];
-        $r16Fixtures->push(Fixture::factory()->create([
-            'round_id'       => $round->id, 'group_id' => null,
-            'home_team_id'   => $home->id,
-            'away_team_id'   => $away->id,
-            'winner_team_id' => $home->id, // home always wins
-            'match_number'   => 89 + $i,
-        ]));
-    }
+    $teamA = Team::factory()->create(['fifa_code' => 'GGG']);
+    $teamB = Team::factory()->create(['fifa_code' => 'HHH']);
+    $teamC = Team::factory()->create(['fifa_code' => 'III']);
+    $teamD = Team::factory()->create(['fifa_code' => 'JJJ']);
 
-    // User correctly predicts only first 3 home teams, predicts away for the rest
-    foreach ($r16Fixtures as $i => $fixture) {
-        Prediction::factory()->create([
-            'user_id'  => $user->id,
-            'match_id' => $fixture->id,
-            'predicted_home' => $i < 3 ? 2 : 0,
-            'predicted_away' => $i < 3 ? 0 : 2,
-        ]);
-    }
+    // M97 (cuarto 1): teamA beats teamB — user predicts correctly
+    $m97 = Fixture::factory()->create([
+        'round_id'       => $f3->id,
+        'match_number'   => 97,
+        'home_team_id'   => $teamA->id,
+        'away_team_id'   => $teamB->id,
+        'home_score'     => 1,
+        'away_score'     => 0,
+        'winner_team_id' => $teamA->id,
+        'status'         => 'finished',
+    ]);
 
-    app(CalculateClassifierPoints::class)->handle(new RoundFinalized($round));
+    // M98 (cuarto 2): teamC beats teamD — user predicts wrong
+    $m98 = Fixture::factory()->create([
+        'round_id'       => $f3->id,
+        'match_number'   => 98,
+        'home_team_id'   => $teamC->id,
+        'away_team_id'   => $teamD->id,
+        'home_score'     => 0,
+        'away_score'     => 2,
+        'winner_team_id' => $teamD->id,
+        'status'         => 'finished',
+    ]);
 
-    $submission = PredictionSubmission::where('user_id', $user->id)->where('round_id', $round->id)->first();
-    expect($submission->pts_classifier)->toBe(12); // 3 correct × 4 pts
+    $user = User::factory()->create();
+
+    $submission = PredictionSubmission::factory()->create([
+        'user_id'  => $user->id,
+        'round_id' => $f3->id,
+        'status'   => 'submitted',
+    ]);
+
+    // User predicts teamA wins M97 (correct)
+    Prediction::factory()->create([
+        'user_id'        => $user->id,
+        'match_id'       => $m97->id,
+        'predicted_home' => 1,
+        'predicted_away' => 0,
+    ]);
+
+    // User predicts teamC wins M98 (wrong)
+    Prediction::factory()->create([
+        'user_id'        => $user->id,
+        'match_id'       => $m98->id,
+        'predicted_home' => 1,
+        'predicted_away' => 0,
+    ]);
+
+    RoundFinalized::dispatch($f3);
+
+    expect($submission->fresh()->pts_classifier)->toBe(5); // 1 correct × 5 pts
 });

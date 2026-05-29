@@ -8,7 +8,6 @@ use App\Models\Prediction;
 use App\Models\PredictionSubmission;
 use App\Models\User;
 use App\Services\GroupStageClassifierService;
-use Illuminate\Support\Collection;
 
 class CalculateClassifierPoints
 {
@@ -18,14 +17,17 @@ class CalculateClassifierPoints
     {
         $round = $event->round;
 
-        if ($round->slug === 'grupos') {
-            $this->calculateR1($round);
-        } elseif ($round->slug === 'r32') {
-            $this->calculateR2($round);
-        }
+        match ($round->slug) {
+            'grupos' => $this->calculateF1($round),
+            'r32'    => $this->calculateF2($round),
+            'f3'     => $this->calculateF3($round),
+            default  => null,
+        };
     }
 
-    private function calculateR1(\App\Models\Round $round): void
+    // ── F1: Fase de Grupos ────────────────────────────────────────────────────
+    // Uses GroupStageClassifierService (complex group standings + best-thirds).
+    private function calculateF1(\App\Models\Round $round): void
     {
         $fixtures = Fixture::where('round_id', $round->id)
             ->whereNotNull('group_id')
@@ -42,7 +44,6 @@ class CalculateClassifierPoints
             ->get();
 
         foreach ($submissions as $submission) {
-            // Use saved classifiers if available; fallback to derivation for old submissions
             if (! empty($submission->predicted_classifiers)) {
                 $predictedClassifiers = collect($submission->predicted_classifiers)
                     ->pluck('team_id')
@@ -70,17 +71,36 @@ class CalculateClassifierPoints
         }
     }
 
-    private function calculateR2(\App\Models\Round $round): void
+    // ── F2: Round of 32 (M73–M88) ────────────────────────────────────────────
+    // Classifiers = the 16 teams that win each R32 match.
+    // Derived from user's predicted score for each M73–M88 match.
+    private function calculateF2(\App\Models\Round $round): void
     {
-        // R16 matches are M89–M96 (the final 8 matches of the R32+R16 round).
-        // We filter by match_number instead of slicing by position so the query
-        // is resilient to any extra fixtures the admin might create in this round.
-        $r16Fixtures = Fixture::where('round_id', $round->id)
-            ->whereBetween('match_number', [89, 96])
+        $fixtures = Fixture::where('round_id', $round->id)
+            ->whereBetween('match_number', [73, 88])
             ->orderBy('match_number')
             ->get();
 
-        $realClassifiers = $r16Fixtures
+        $this->calculateKnockoutClassifiers($round, $fixtures);
+    }
+
+    // ── F3: Octavos + Cuartos (M97–M100 cuartos winners = semifinalists) ─────
+    // Classifiers = the 4 teams that win each cuartos match (semifinalists).
+    // Octavos (M89–M96) do NOT count for classifier pts — only cuartos winners do.
+    private function calculateF3(\App\Models\Round $round): void
+    {
+        $fixtures = Fixture::where('round_id', $round->id)
+            ->whereBetween('match_number', [97, 100])
+            ->orderBy('match_number')
+            ->get();
+
+        $this->calculateKnockoutClassifiers($round, $fixtures);
+    }
+
+    // ── Shared: derive classifier points from match winner predictions ────────
+    private function calculateKnockoutClassifiers(\App\Models\Round $round, $fixtures): void
+    {
+        $realClassifiers = $fixtures
             ->pluck('winner_team_id')
             ->filter()
             ->values()
@@ -90,18 +110,20 @@ class CalculateClassifierPoints
             ->whereIn('status', ['submitted', 'locked'])
             ->get();
 
-        $r16FixtureIds = $r16Fixtures->pluck('id');
+        $fixtureIds = $fixtures->pluck('id');
 
         foreach ($submissions as $submission) {
-            $userR16Predictions = Prediction::where('user_id', $submission->user_id)
-                ->whereIn('match_id', $r16FixtureIds)
+            $userPredictions = Prediction::where('user_id', $submission->user_id)
+                ->whereIn('match_id', $fixtureIds)
                 ->get()
                 ->keyBy('match_id');
 
             $predictedClassifiers = [];
-            foreach ($r16Fixtures as $fixture) {
-                $pred = $userR16Predictions->get($fixture->id);
-                if (!$pred || !$fixture->home_team_id || !$fixture->away_team_id) continue;
+            foreach ($fixtures as $fixture) {
+                $pred = $userPredictions->get($fixture->id);
+                if (! $pred || ! $fixture->home_team_id || ! $fixture->away_team_id) {
+                    continue;
+                }
 
                 $predictedClassifiers[] = $pred->predicted_home > $pred->predicted_away
                     ? $fixture->home_team_id

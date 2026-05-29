@@ -25,6 +25,8 @@ class Fixture extends Model
         'home_score',
         'away_score',
         'winner_team_id',
+        'winner_feeds_match_id',
+        'winner_feeds_slot',
         'went_to_extra_time',
         'status',
         'venue',
@@ -38,6 +40,7 @@ class Fixture extends Model
             'home_score' => 'integer',
             'away_score' => 'integer',
             'winner_team_id' => 'integer',
+            'winner_feeds_match_id' => 'integer',
             'home_team_id' => 'integer',
             'away_team_id' => 'integer',
         ];
@@ -66,6 +69,11 @@ class Fixture extends Model
     public function winnerTeam(): BelongsTo
     {
         return $this->belongsTo(Team::class, 'winner_team_id');
+    }
+
+    public function winnerFeedsMatch(): BelongsTo
+    {
+        return $this->belongsTo(Fixture::class, 'winner_feeds_match_id');
     }
 
     public function predictions(): HasMany

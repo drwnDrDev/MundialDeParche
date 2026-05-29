@@ -1,8 +1,11 @@
 <?php
 
+use App\Events\RoundFinalized;
+use App\Events\RoundLocked;
 use App\Models\Round;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
 
 uses(RefreshDatabase::class);
 
@@ -54,4 +57,17 @@ it('does not reopen a locked round', function () {
     $this->actingAs($this->admin)->post("/admin/rounds/{$round->slug}/open")->assertRedirect();
 
     expect($round->fresh()->is_open)->toBeFalse();
+});
+
+it('finalizes a locked round and dispatches RoundFinalized', function () {
+    Event::fake([RoundFinalized::class, RoundLocked::class]);
+
+    $admin = User::factory()->create(['role' => 'admin']);
+    $round = Round::factory()->f1()->create(['is_open' => false, 'is_locked' => true]);
+
+    $this->actingAs($admin)
+        ->post(route('admin.rounds.finalize', $round->slug))
+        ->assertRedirect(route('admin.rounds.index'));
+
+    Event::assertDispatched(RoundFinalized::class);
 });

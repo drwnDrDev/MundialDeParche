@@ -2,25 +2,25 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, router } from '@inertiajs/react';
 
 export default function Index({ rounds }) {
-    const action = (url) => router.post(url);
+    const post = (url) => router.post(url);
 
     return (
-        <AdminLayout header={<h2 className="text-xl font-semibold text-gray-800">Rondas</h2>}>
+        <AdminLayout header="Rondas">
             <Head title="Admin — Rondas" />
 
             <div className="overflow-hidden rounded-lg bg-white shadow">
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
-                            {['#', 'Ronda', 'Pts Exacto', 'Pts Resultado', 'Pts Clasificado', 'Estado', 'Acciones'].map(h => (
+                            {['#', 'Ronda', 'Exacto', 'Resultado', 'Clasificado', 'Estado', 'Acciones'].map(h => (
                                 <th key={h} className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{h}</th>
                             ))}
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 bg-white">
-                        {rounds.map((round) => (
+                        {rounds.map(round => (
                             <tr key={round.id}>
-                                <td className="px-4 py-3 text-sm text-gray-900">{round.order}</td>
+                                <td className="px-4 py-3 text-sm text-gray-500">{round.order}</td>
                                 <td className="px-4 py-3 text-sm font-medium text-gray-900">{round.name}</td>
                                 <td className="px-4 py-3 text-sm text-gray-600">{round.points_exact}</td>
                                 <td className="px-4 py-3 text-sm text-gray-600">{round.points_result}</td>
@@ -33,21 +33,26 @@ export default function Index({ rounds }) {
                                             : <span className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-600">Cerrada</span>
                                     }
                                 </td>
-                                <td className="flex gap-2 px-4 py-3">
+                                <td className="flex flex-wrap gap-1 px-4 py-3">
                                     {!round.is_open && !round.is_locked && (
-                                        <button onClick={() => action(route('admin.rounds.open', round.slug))}
+                                        <button onClick={() => post(route('admin.rounds.open', round.slug))}
                                             className="rounded bg-green-600 px-3 py-1 text-xs text-white hover:bg-green-700">
                                             Abrir
                                         </button>
                                     )}
                                     {round.is_open && !round.is_locked && (
-                                        <button onClick={() => action(route('admin.rounds.lock', round.slug))}
+                                        <button onClick={() => post(route('admin.rounds.lock', round.slug))}
                                             className="rounded bg-yellow-600 px-3 py-1 text-xs text-white hover:bg-yellow-700">
                                             Bloquear
                                         </button>
                                     )}
                                     {round.is_locked && (
-                                        <button onClick={() => action(route('admin.rounds.finalize', round.slug))}
+                                        <button
+                                            onClick={() => {
+                                                if (confirm(`¿Finalizar "${round.name}"? Se calcularán los puntos de clasificados.`)) {
+                                                    post(route('admin.rounds.finalize', round.slug));
+                                                }
+                                            }}
                                             className="rounded bg-red-600 px-3 py-1 text-xs text-white hover:bg-red-700">
                                             Finalizar
                                         </button>

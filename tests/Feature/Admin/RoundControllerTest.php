@@ -43,9 +43,14 @@ it('locks a round', function () {
 });
 
 it('finalizes a round', function () {
+    Event::fake([RoundFinalized::class, RoundLocked::class]);
+
     $round = Round::factory()->f1()->create(['is_open' => true, 'is_locked' => false]);
 
     $this->actingAs($this->admin)->post("/admin/rounds/{$round->slug}/finalize");
+
+    Event::assertDispatched(RoundLocked::class);
+    Event::assertDispatched(RoundFinalized::class);
 
     expect($round->fresh()->is_locked)->toBeTrue();
     expect($round->fresh()->is_open)->toBeFalse();

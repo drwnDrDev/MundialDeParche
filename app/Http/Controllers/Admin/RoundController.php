@@ -44,12 +44,18 @@ class RoundController extends Controller
 
     public function finalize(Round $round): RedirectResponse
     {
+        if ($round->is_finalized) {
+            return back()->with('status', "La ronda '{$round->name}' ya fue finalizada.");
+        }
+
         if (! $round->is_locked) {
             $round->update(['is_open' => false, 'is_locked' => true]);
             RoundLocked::dispatch($round->name);
         }
 
         RoundFinalized::dispatch($round);
+
+        $round->update(['is_finalized' => true]);
 
         return redirect()->route('admin.rounds.index')
             ->with('status', "Ronda '{$round->name}' finalizada. Puntos de clasificados calculados.");

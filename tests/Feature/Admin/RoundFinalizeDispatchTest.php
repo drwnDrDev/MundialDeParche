@@ -22,3 +22,18 @@ it('dispatches RoundFinalized when admin finalizes a round', function () {
         return $event->round->id === $round->id;
     });
 });
+
+it('does not dispatch RoundFinalized a second time when round is already finalized', function () {
+    Event::fake();
+    $round = Round::factory()->f1()->create([
+        'is_open'       => false,
+        'is_locked'     => true,
+        'is_finalized'  => true,
+    ]);
+
+    $this->actingAs($this->admin)
+        ->post("/admin/rounds/{$round->slug}/finalize")
+        ->assertRedirect();
+
+    Event::assertNotDispatched(RoundFinalized::class);
+});

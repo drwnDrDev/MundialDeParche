@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Events\LiveScoreUpdated;
 use App\Events\MatchScoreUpdated;
 use App\Http\Controllers\Controller;
 use App\Models\Fixture;
@@ -24,7 +25,8 @@ class ScoreEntryController extends Controller
 
         $fixtures = Fixture::with(['homeTeam', 'awayTeam'])
             ->where('round_id', $selectedRoundId)
-            ->orderBy('match_number')
+            ->orderByRaw("FIELD(status, 'in_progress', 'scheduled', 'finished')")
+            ->orderBy('match_date')
             ->get();
 
         $activeRound = $rounds->firstWhere('id', $selectedRoundId);
@@ -39,6 +41,10 @@ class ScoreEntryController extends Controller
 
     public function update(Request $request, Fixture $fixture): RedirectResponse
     {
+        if ($fixture->status === 'finished') {
+            return back()->with('status', 'Este partido ya está finalizado. Usa la vista de edición para corregir.');
+        }
+
         $data = $request->validate([
             'home_score'     => ['required', 'integer', 'min:0', 'max:30'],
             'away_score'     => ['required', 'integer', 'min:0', 'max:30'],
@@ -59,7 +65,18 @@ class ScoreEntryController extends Controller
         }
 
         $fixture->update($data);
-        MatchScoreUpdated::dispatch($fixture->fresh());
+        $fresh = $fixture->fresh();
+
+        MatchScoreUpdated::dispatch($fresh);
+
+        if (in_array($data['status'], ['in_progress', 'finished'])) {
+            LiveScoreUpdated::dispatch(
+                $fresh->id,
+                $fresh->home_score,
+                $fresh->away_score,
+                $fresh->isLive(),
+            );
+        }
 
         return redirect()->route('admin.score-entry', ['round_id' => $fixture->round_id])
             ->with('status', "Partido #{$fixture->match_number} actualizado.");

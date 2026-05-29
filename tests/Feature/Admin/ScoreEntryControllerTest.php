@@ -1,5 +1,6 @@
 <?php
 
+use App\Events\LiveScoreUpdated;
 use App\Events\MatchScoreUpdated;
 use App\Models\Fixture;
 use App\Models\Round;
@@ -78,4 +79,55 @@ it('rejects score update with invalid winner_team_id', function () {
             'status'         => 'finished',
         ])
         ->assertSessionHasErrors('winner_team_id');
+});
+
+it('blocks updating a finished fixture via score entry', function () {
+    $admin   = User::factory()->create(['role' => 'admin']);
+    $round   = Round::factory()->f1()->create(['is_open' => true]);
+    $home    = Team::factory()->create(['fifa_code' => 'ARG']);
+    $away    = Team::factory()->create(['fifa_code' => 'CHI']);
+    $fixture = Fixture::factory()->create([
+        'round_id'     => $round->id,
+        'home_team_id' => $home->id,
+        'away_team_id' => $away->id,
+        'home_score'   => 2,
+        'away_score'   => 1,
+        'status'       => 'finished',
+    ]);
+
+    $this->actingAs($admin)
+        ->patch(route('admin.score-entry.update', $fixture->id), [
+            'home_score' => 3,
+            'away_score' => 0,
+            'status'     => 'finished',
+        ])
+        ->assertRedirect();
+
+    expect($fixture->fresh()->home_score)->toBe(2);
+});
+
+it('dispatches LiveScoreUpdated when fixture is set to in_progress', function () {
+    Event::fake([LiveScoreUpdated::class, MatchScoreUpdated::class]);
+
+    $admin   = User::factory()->create(['role' => 'admin']);
+    $round   = Round::factory()->f1()->create(['is_open' => true]);
+    $home    = Team::factory()->create(['fifa_code' => 'ECU']);
+    $away    = Team::factory()->create(['fifa_code' => 'URU']);
+    $fixture = Fixture::factory()->create([
+        'round_id'     => $round->id,
+        'home_team_id' => $home->id,
+        'away_team_id' => $away->id,
+        'status'       => 'scheduled',
+    ]);
+
+    $this->actingAs($admin)
+        ->patch(route('admin.score-entry.update', $fixture->id), [
+            'home_score' => 1,
+            'away_score' => 0,
+            'status'     => 'in_progress',
+        ]);
+
+    Event::assertDispatched(LiveScoreUpdated::class, function ($e) use ($fixture) {
+        return $e->matchId === $fixture->id && $e->isLive === true;
+    });
 });

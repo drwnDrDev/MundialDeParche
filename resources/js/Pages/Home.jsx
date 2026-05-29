@@ -135,7 +135,7 @@ export default function Home({ user, featured, stats, phase, nextBets, phaseAler
                 {/* Invite banner */}
                 <div className="px-[18px] mt-3.5">
                     <a
-                        href={`https://wa.me/?text=${encodeURIComponent('🏆 ¡Entra al Mundial de Parche! La quiniela del parche para el Mundial FIFA 2026. Predice marcadores, clasificados y campeón. ' + window.location.origin)}`}
+                        href={`https://wa.me/?text=${encodeURIComponent('🏆 ¡Entra al Mundial de Parche! La quiniela del parche para el Mundial FIFA 2026. Predice marcadores, clasificados y campeón. ' + route('home'))}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center justify-between px-3.5 py-2.5 bg-ink text-cream border-[2.5px] border-ink"

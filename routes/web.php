@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\FixtureController;
 use App\Http\Controllers\Admin\PlayerController;
 use App\Http\Controllers\Admin\RoundController;
 use App\Http\Controllers\Admin\TeamController;
+use App\Http\Controllers\Admin\ScoreEntryController;
 use App\Http\Controllers\Admin\TournamentController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ActivationController;
@@ -101,4 +102,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Tournament
     Route::get('tournament', [TournamentController::class, 'show'])->name('tournament');
     Route::post('tournament/finalize', [TournamentController::class, 'finalize'])->name('tournament.finalize');
+
+    // Score Entry
+    Route::get('score-entry', [ScoreEntryController::class, 'index'])->name('score-entry');
+    Route::patch('score-entry/{fixture}', [ScoreEntryController::class, 'update'])->name('score-entry.update');
 });

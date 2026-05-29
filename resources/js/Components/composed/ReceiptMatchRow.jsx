@@ -1,10 +1,10 @@
 import PtsChip from '@/Components/ui/PtsChip';
 
 export default function ReceiptMatchRow({ fixture, prediction, isFinalized }) {
-    const homeCode = fixture.homeTeam?.fifa_code ?? fixture.home_placeholder ?? 'TBD';
-    const awayCode = fixture.awayTeam?.fifa_code ?? fixture.away_placeholder ?? 'TBD';
-    const homeFlag = fixture.homeTeam?.flag_url;
-    const awayFlag = fixture.awayTeam?.flag_url;
+    const homeCode = fixture.home_team?.fifa_code ?? fixture.home_placeholder ?? 'TBD';
+    const awayCode = fixture.away_team?.fifa_code ?? fixture.away_placeholder ?? 'TBD';
+    const homeFlag = fixture.home_team?.flag_url;
+    const awayFlag = fixture.away_team?.flag_url;
 
     const realScore = fixture.home_score !== null && fixture.away_score !== null
         ? `${fixture.home_score}–${fixture.away_score}`

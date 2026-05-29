@@ -9,8 +9,6 @@ export default function Receipt({ round, fixtures, predictions, submission, isFi
     const ptsClassifier = submission.pts_classifier ?? 0;
     const totalPts      = ptsExact + ptsResult + ptsClassifier;
 
-    const isGroupsOrR2 = round.slug === 'grupos' || round.slug === 'r32-r16';
-
     return (
         <MobileShell>
             <Head title={`Comprobante · ${round.name}`} />

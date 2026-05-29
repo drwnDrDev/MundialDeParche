@@ -1,8 +1,8 @@
 const SLUG_LABELS = {
-    'grupos':  'GRUPOS',
-    'r32-r16': 'R32+R16',
-    'qf-sf':   '8VOS+4TOS',
-    'final':   'FINAL',
+    'grupos': 'GRUPOS',
+    'r32':    'R32',
+    'f3':     '8VOS+4TOS',
+    'f4':     'SEMIS+FINAL',
 };
 
 function nodeState(round, submission) {

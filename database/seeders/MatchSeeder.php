@@ -44,9 +44,9 @@ class MatchSeeder extends Seeder
         $groups = Group::all()->keyBy('name');
 
         $r1 = $rounds['grupos'];
-        $r2 = $rounds['r32-r16'];
-        $r3 = $rounds['qf-sf'];
-        $r4 = $rounds['final'];
+        $r2 = $rounds['r32'];
+        $r3 = $rounds['f3'];
+        $r4 = $rounds['f4'];
 
         $v = self::VENUES;
 
@@ -153,10 +153,8 @@ class MatchSeeder extends Seeder
             );
         }
 
-        // --- ROUND OF 32 + ROUND OF 16 (M73–M96) ---
-        // [match_number, date, home_placeholder, away_placeholder, venue_id]
-        $r2Matches = [
-            // Round of 32
+        // --- F2: ROUND OF 32 (M73–M88) ---
+        $f2Matches = [
             [73, '2026-06-28 15:00:00', 'Subcampeón A',          'Subcampeón B',          9],
             [74, '2026-06-29 16:30:00', 'Ganador E',             '3° mejor A/B/C/D/F',    12],
             [75, '2026-06-29 21:00:00', 'Ganador F',             'Subcampeón C',          2],
@@ -173,18 +171,9 @@ class MatchSeeder extends Seeder
             [86, '2026-07-03 13:00:00', 'Ganador J',             'Subcampeón H',          10],
             [87, '2026-07-03 17:00:00', 'Ganador K',             '3° mejor D/E/I/J/L',   7],
             [88, '2026-07-03 21:00:00', 'Subcampeón D',          'Subcampeón G',          8],
-            // Round of 16
-            [89, '2026-07-04 12:00:00', 'Ganador M73',           'Ganador M75',           4],
-            [90, '2026-07-04 16:00:00', 'Ganador M74',           'Ganador M77',           6],
-            [91, '2026-07-04 20:00:00', 'Ganador M76',           'Ganador M78',           11],
-            [92, '2026-07-05 12:00:00', 'Ganador M79',           'Ganador M80',           7],
-            [93, '2026-07-05 16:00:00', 'Ganador M83',           'Ganador M84',           5],
-            [94, '2026-07-05 20:00:00', 'Ganador M81',           'Ganador M82',           10],
-            [95, '2026-07-06 12:00:00', 'Ganador M85',           'Ganador M86',           3],
-            [96, '2026-07-06 16:00:00', 'Ganador M87',           'Ganador M88',           8],
         ];
 
-        foreach ($r2Matches as [$num, $date, $homePlaceholder, $awayPlaceholder, $venueId]) {
+        foreach ($f2Matches as [$num, $date, $homePlaceholder, $awayPlaceholder, $venueId]) {
             Fixture::firstOrCreate(
                 ['match_number' => $num, 'round_id' => $r2->id],
                 [
@@ -200,20 +189,25 @@ class MatchSeeder extends Seeder
             );
         }
 
-        // --- CUARTOS + SEMIS (M97–M102) ---
-        // [match_number, date, home_placeholder, away_placeholder, venue_id]
-        $r3Matches = [
+        // --- F3: OCTAVOS (M89–M96) + CUARTOS (M97–M100) ---
+        $f3Matches = [
+            // Octavos de final
+            [89,  '2026-07-04 12:00:00', 'Ganador M73', 'Ganador M75', 4],
+            [90,  '2026-07-04 16:00:00', 'Ganador M74', 'Ganador M77', 6],
+            [91,  '2026-07-04 20:00:00', 'Ganador M76', 'Ganador M78', 11],
+            [92,  '2026-07-05 12:00:00', 'Ganador M79', 'Ganador M80', 7],
+            [93,  '2026-07-05 16:00:00', 'Ganador M83', 'Ganador M84', 5],
+            [94,  '2026-07-05 20:00:00', 'Ganador M81', 'Ganador M82', 10],
+            [95,  '2026-07-06 12:00:00', 'Ganador M85', 'Ganador M86', 3],
+            [96,  '2026-07-06 16:00:00', 'Ganador M87', 'Ganador M88', 8],
             // Cuartos de final
             [97,  '2026-07-08 12:00:00', 'Ganador M89', 'Ganador M90', 4],
             [98,  '2026-07-08 16:00:00', 'Ganador M91', 'Ganador M92', 7],
             [99,  '2026-07-09 12:00:00', 'Ganador M93', 'Ganador M94', 6],
             [100, '2026-07-09 16:00:00', 'Ganador M95', 'Ganador M96', 8],
-            // Semifinales
-            [101, '2026-07-12 16:00:00', 'Ganador M97', 'Ganador M98', 8],
-            [102, '2026-07-13 16:00:00', 'Ganador M99', 'Ganador M100', 7],
         ];
 
-        foreach ($r3Matches as [$num, $date, $homePlaceholder, $awayPlaceholder, $venueId]) {
+        foreach ($f3Matches as [$num, $date, $homePlaceholder, $awayPlaceholder, $venueId]) {
             Fixture::firstOrCreate(
                 ['match_number' => $num, 'round_id' => $r3->id],
                 [
@@ -229,13 +223,15 @@ class MatchSeeder extends Seeder
             );
         }
 
-        // --- TERCER PUESTO + FINAL (M103–M104) ---
-        $r4Matches = [
-            [103, '2026-07-18 15:00:00', 'Perdedor M101', 'Perdedor M102', 6],
-            [104, '2026-07-19 15:00:00', 'Ganador M101',  'Ganador M102',  4],
+        // --- F4: SEMIS (M101–M102) + FINAL (M104) ---
+        // M103 (3er puesto) is intentionally excluded from this quiniela.
+        $f4Matches = [
+            [101, '2026-07-12 16:00:00', 'Ganador M97',  'Ganador M98',  8],
+            [102, '2026-07-13 16:00:00', 'Ganador M99',  'Ganador M100', 7],
+            [104, '2026-07-19 15:00:00', 'Ganador M101', 'Ganador M102', 4],
         ];
 
-        foreach ($r4Matches as [$num, $date, $homePlaceholder, $awayPlaceholder, $venueId]) {
+        foreach ($f4Matches as [$num, $date, $homePlaceholder, $awayPlaceholder, $venueId]) {
             Fixture::firstOrCreate(
                 ['match_number' => $num, 'round_id' => $r4->id],
                 [
@@ -249,6 +245,61 @@ class MatchSeeder extends Seeder
                     'status'           => 'scheduled',
                 ]
             );
+        }
+
+        // --- BRACKET LINKS ---
+        // winner_feeds_match_id + winner_feeds_slot encodes the bracket tree.
+        // Keyed by source match_number => [target match_number, slot]
+        $allKnockout = Fixture::whereIn('match_number', array_merge(
+            range(73, 102), [104]
+        ))->get()->keyBy('match_number');
+
+        $bracketLinks = [
+            // R32 → Octavos
+            73  => [89,  'home'],
+            75  => [89,  'away'],
+            74  => [90,  'home'],
+            77  => [90,  'away'],
+            76  => [91,  'home'],
+            78  => [91,  'away'],
+            79  => [92,  'home'],
+            80  => [92,  'away'],
+            83  => [93,  'home'],
+            84  => [93,  'away'],
+            81  => [94,  'home'],
+            82  => [94,  'away'],
+            85  => [95,  'home'],
+            86  => [95,  'away'],
+            87  => [96,  'home'],
+            88  => [96,  'away'],
+            // Octavos → Cuartos
+            89  => [97,  'home'],
+            90  => [97,  'away'],
+            91  => [98,  'home'],
+            92  => [98,  'away'],
+            93  => [99,  'home'],
+            94  => [99,  'away'],
+            95  => [100, 'home'],
+            96  => [100, 'away'],
+            // Cuartos → Semis
+            97  => [101, 'home'],
+            98  => [101, 'away'],
+            99  => [102, 'home'],
+            100 => [102, 'away'],
+            // Semis → Final
+            101 => [104, 'home'],
+            102 => [104, 'away'],
+        ];
+
+        foreach ($bracketLinks as $fromNum => [$toNum, $slot]) {
+            $source = $allKnockout[$fromNum] ?? null;
+            $target = $allKnockout[$toNum] ?? null;
+            if ($source && $target) {
+                $source->update([
+                    'winner_feeds_match_id' => $target->id,
+                    'winner_feeds_slot'     => $slot,
+                ]);
+            }
         }
     }
 }

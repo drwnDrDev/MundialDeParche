@@ -14,8 +14,11 @@ it('shows admin dashboard with stats', function () {
     $response->assertInertia(fn ($page) => $page
         ->component('Admin/Dashboard')
         ->has('stats', fn ($s) => $s
-            ->has('teams')->has('fixtures')->has('rounds')->has('users')->has('pot')
+            ->has('teams')->has('fixtures')->has('users')->has('pot')->has('notActivated')
         )
+        ->has('activeRound')
+        ->has('pendingFixtures')
+        ->has('recentlyUpdated')
     );
 });
 

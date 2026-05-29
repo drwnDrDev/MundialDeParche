@@ -9,6 +9,7 @@ const NAV_LINKS = [
     { label: 'Equipos',     href: () => route('admin.teams.index') },
     { label: 'Jugadores',   href: () => route('admin.players.index') },
     { label: 'Usuarios',    href: () => route('admin.users.index') },
+    { label: 'Chat',        href: () => route('chat.index') },
 ];
 
 export default function AdminLayout({ header, children }) {

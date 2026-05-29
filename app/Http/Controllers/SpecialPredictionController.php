@@ -13,8 +13,12 @@ use Inertia\Response;
 
 class SpecialPredictionController extends Controller
 {
-    public function show(): Response
+    public function show(): Response|RedirectResponse
     {
+        if (auth()->user()->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        }
+
         $special = SpecialPrediction::with(['champion', 'runnerUp', 'topScorer.team'])
             ->where('user_id', Auth::id())
             ->first();
@@ -29,6 +33,10 @@ class SpecialPredictionController extends Controller
 
     public function save(Request $request): RedirectResponse
     {
+        if (auth()->user()->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        }
+
         $special = SpecialPrediction::where('user_id', Auth::id())->first();
 
         if ($special && $special->is_locked) {

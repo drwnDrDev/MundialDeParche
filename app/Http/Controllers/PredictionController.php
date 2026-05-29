@@ -17,8 +17,10 @@ use Inertia\Response;
 
 class PredictionController extends Controller
 {
-    public function index(): Response
+    public function index(): Response|RedirectResponse
     {
+        if ($guard = $this->adminGuard()) return $guard;
+
         $userId  = Auth::id();
         $rounds  = Round::orderBy('order')->withCount('fixtures')->get();
 
@@ -36,6 +38,8 @@ class PredictionController extends Controller
 
     public function show(Round $round): Response|RedirectResponse
     {
+        if ($guard = $this->adminGuard()) return $guard;
+
         if (!$round->is_open) {
             return Inertia::render('Predictions/Locked', [
                 'roundName'  => $round->name,
@@ -101,6 +105,8 @@ class PredictionController extends Controller
 
     public function save(Request $request, Round $round): RedirectResponse
     {
+        if ($guard = $this->adminGuard()) return $guard;
+
         if (! $round->is_open) {
             return back()->with('status', 'Esta ronda no está abierta para predicciones.');
         }
@@ -177,6 +183,8 @@ class PredictionController extends Controller
      */
     public function submit(Request $request, Round $round): RedirectResponse
     {
+        if ($guard = $this->adminGuard()) return $guard;
+
         if (! $round->is_open) {
             return back()->with('status', 'Esta ronda no está abierta.');
         }
@@ -237,6 +245,8 @@ class PredictionController extends Controller
 
     public function receipt(Round $round): Response|RedirectResponse
     {
+        if ($guard = $this->adminGuard()) return $guard;
+
         $userId = Auth::id();
 
         $submission = PredictionSubmission::where('user_id', $userId)
@@ -299,6 +309,14 @@ class PredictionController extends Controller
         }
 
         return Inertia::render('Predictions/Receipt', $props);
+    }
+
+    private function adminGuard(): ?\Illuminate\Http\RedirectResponse
+    {
+        if (auth()->user()->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        }
+        return null;
     }
 
     private function buildPhasePts(Collection $rounds, int $userId, \Illuminate\Support\Collection $submissions): array

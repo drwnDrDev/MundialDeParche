@@ -508,6 +508,26 @@ it('receipt includes predicted_classifiers enriched with team data for R1', func
     );
 });
 
+// ── admin guard ───────────────────────────────────────────────────────────
+
+it('redirects admin to admin dashboard when accessing predictions index', function () {
+    $admin = User::factory()->create(['role' => 'admin', 'is_active' => true]);
+    Round::factory()->f1()->create(['is_open' => true]);
+
+    $this->actingAs($admin)
+        ->get(route('predictions.index'))
+        ->assertRedirect(route('admin.dashboard'));
+});
+
+it('redirects admin to admin dashboard when accessing a prediction round', function () {
+    $admin = User::factory()->create(['role' => 'admin', 'is_active' => true]);
+    $round = Round::factory()->f1()->create(['is_open' => true]);
+
+    $this->actingAs($admin)
+        ->get(route('predictions.show', $round->slug))
+        ->assertRedirect(route('admin.dashboard'));
+});
+
 it('receipt includes realClassifierIds when round is finalized', function () {
     $round = Round::factory()->f1()->create(['is_open' => false, 'is_locked' => true]);
     $group = \App\Models\Group::factory()->create(['name' => 'A']);

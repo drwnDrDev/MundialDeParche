@@ -15,5 +15,9 @@ class DatabaseSeeder extends Seeder
             TopScorerSeeder::class,
             DevelopmentUserSeeder::class,
         ]);
+
+        if (app()->environment('local', 'testing')) {
+            $this->call(SimulationSeeder::class);
+        }
     }
 }

@@ -243,13 +243,23 @@ class PredictionController extends Controller
         });
     }
 
-    public function receipt(Round $round): Response|RedirectResponse
+    public function receipt(Request $request, Round $round): Response|RedirectResponse
     {
         if ($guard = $this->adminGuard()) return $guard;
 
-        $userId = Auth::id();
+        // Determinar qué usuario mostrar
+        $viewedUserId = Auth::id();
+        if ($round->is_locked && $request->filled('user_id')) {
+            $requestedId = (int) $request->query('user_id');
+            $exists = PredictionSubmission::where('user_id', $requestedId)
+                ->where('round_id', $round->id)
+                ->exists();
+            if ($exists) {
+                $viewedUserId = $requestedId;
+            }
+        }
 
-        $submission = PredictionSubmission::where('user_id', $userId)
+        $submission = PredictionSubmission::where('user_id', $viewedUserId)
             ->where('round_id', $round->id)
             ->first();
 
@@ -262,7 +272,7 @@ class PredictionController extends Controller
             ->orderBy('match_date')
             ->get();
 
-        $predictions = Prediction::where('user_id', $userId)
+        $predictions = Prediction::where('user_id', $viewedUserId)
             ->whereIn('match_id', $fixtures->pluck('id'))
             ->get()
             ->keyBy('match_id');
@@ -282,11 +292,8 @@ class PredictionController extends Controller
             })->values()->all();
         }
 
-        // Cuando la ronda está finalizada, calcular los clasificados reales para comparación
+        // Clasificados reales para comparación (solo ronda finalizada)
         $realClassifierIds = null;
-        // Nota: si la ronda fue bloqueada antes de que todos los fixtures tuvieran marcador,
-        // getClassifierIds puede devolver menos de 32 equipos. En ese caso, el frontend
-        // simplemente mostrará menos acertados — sin excepción.
         if ($round->is_locked && $round->slug === 'grupos') {
             $service           = app(GroupStageClassifierService::class);
             $realClassifierIds = $service->getClassifierIds(
@@ -295,13 +302,37 @@ class PredictionController extends Controller
             );
         }
 
+        // Predicciones especiales (solo ronda grupos)
+        $specialPrediction = null;
+        if ($round->slug === 'grupos') {
+            $specialPrediction = \App\Models\SpecialPrediction::with(['champion', 'runnerUp', 'topScorer.team'])
+                ->where('user_id', $viewedUserId)
+                ->first();
+        }
+
+        // Lista de usuarios con submission (solo cuando bloqueada, para el selector)
+        $usersWithSubmission = null;
+        if ($round->is_locked) {
+            $submittedUserIds = PredictionSubmission::where('round_id', $round->id)
+                ->pluck('user_id');
+            $usersWithSubmission = \App\Models\User::whereIn('id', $submittedUserIds)
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->select(['id', 'name'])
+                ->get();
+        }
+
         $props = [
-            'round'       => $round,
-            'fixtures'    => $fixtures,
-            'predictions' => $predictions,
-            'submission'  => $submission,
-            'isFinalized' => $round->is_locked,
-            'classifiers' => $classifiers,
+            'round'               => $round,
+            'fixtures'            => $fixtures,
+            'predictions'         => $predictions,
+            'submission'          => $submission,
+            'isFinalized'         => $round->is_locked,
+            'classifiers'         => $classifiers,
+            'viewedUserId'        => $viewedUserId,
+            'authUserId'          => Auth::id(),
+            'usersWithSubmission' => $usersWithSubmission,
+            'specialPrediction'   => $specialPrediction,
         ];
 
         if ($realClassifierIds !== null) {

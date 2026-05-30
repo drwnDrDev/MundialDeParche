@@ -29,7 +29,9 @@ function makeSimUsers(): array
     $user1 = User::factory()->create(['role' => 'user', 'is_active' => true, 'is_activated' => true]);
     $user2 = User::factory()->create(['role' => 'user', 'is_active' => true, 'is_activated' => true]);
     $user3 = User::factory()->create(['role' => 'user', 'is_active' => true, 'is_activated' => true]);
-    return compact('admin', 'user1', 'user2', 'user3');
+    $user4 = User::factory()->create(['role' => 'user', 'is_active' => true, 'is_activated' => true]);
+    $user5 = User::factory()->create(['role' => 'user', 'is_active' => true, 'is_activated' => true]);
+    return compact('admin', 'user1', 'user2', 'user3', 'user4', 'user5');
 }
 
 function makeR1WithFixtures(int $count = 2): array
@@ -291,4 +293,81 @@ it('two consecutive rounds each score independently', function () {
     expect($predR1->pts_exact)->toBe(3);
     expect($predR2->pts_exact)->toBe(5);
     expect($user1->fresh()->total_points)->toBe(11);
+});
+
+// ── Usuario sin predicciones tiene 0 puntos ───────────────────────────────────
+
+it('user without predictions in R1 has zero total_points', function () {
+    Event::fake([LiveScoreUpdated::class, PointsUpdated::class, ExactScoreAlert::class]);
+    ['admin' => $admin, 'user1' => $user1, 'user3' => $user3] = makeSimUsers();
+    ['round' => $round, 'fixtures' => $fixtures] = makeR1WithFixtures(1);
+    $fixture = $fixtures[0];
+
+    $this->actingAs($admin)->post("/admin/rounds/{$round->slug}/open");
+
+    // user1 predice, user3 no predice
+    $this->actingAs($user1)->post(route('predictions.save', $round), [
+        'predictions' => [$fixture->id => ['predicted_home' => 2, 'predicted_away' => 1]],
+    ]);
+    PredictionSubmission::updateOrCreate(
+        ['user_id' => $user1->id, 'round_id' => $round->id],
+        ['status' => 'submitted']
+    );
+
+    $this->actingAs($admin)->post("/admin/rounds/{$round->slug}/lock");
+    $this->actingAs($admin)->patch(route('admin.score-entry.update', $fixture), [
+        'home_score'     => 2,
+        'away_score'     => 1,
+        'status'         => 'finished',
+        'winner_team_id' => $fixture->home_team_id,
+    ]);
+
+    expect($user1->fresh()->total_points)->toBeGreaterThan(0);
+    expect($user3->fresh()->total_points)->toBe(0);
+});
+
+// ── Ranking refleja orden correcto ────────────────────────────────────────────
+
+it('final ranking reflects correct point order', function () {
+    Event::fake([LiveScoreUpdated::class, PointsUpdated::class, ExactScoreAlert::class]);
+    ['admin' => $admin, 'user1' => $user1, 'user2' => $user2] = makeSimUsers();
+    ['round' => $round, 'fixtures' => $fixtures] = makeR1WithFixtures(1);
+    $fixture = $fixtures[0];
+
+    $this->actingAs($admin)->post("/admin/rounds/{$round->slug}/open");
+
+    // user1 predice exacto (2-1), user2 predice resultado correcto (3-1)
+    $this->actingAs($user1)->post(route('predictions.save', $round), [
+        'predictions' => [$fixture->id => ['predicted_home' => 2, 'predicted_away' => 1]],
+    ]);
+    PredictionSubmission::updateOrCreate(
+        ['user_id' => $user1->id, 'round_id' => $round->id],
+        ['status' => 'submitted']
+    );
+
+    $this->actingAs($user2)->post(route('predictions.save', $round), [
+        'predictions' => [$fixture->id => ['predicted_home' => 3, 'predicted_away' => 1]],
+    ]);
+    PredictionSubmission::updateOrCreate(
+        ['user_id' => $user2->id, 'round_id' => $round->id],
+        ['status' => 'submitted']
+    );
+
+    $this->actingAs($admin)->post("/admin/rounds/{$round->slug}/lock");
+    $this->actingAs($admin)->patch(route('admin.score-entry.update', $fixture), [
+        'home_score'     => 2,
+        'away_score'     => 1,
+        'status'         => 'finished',
+        'winner_team_id' => $fixture->home_team_id,
+    ]);
+
+    // user1 (exacto): pts_exact=3 + pts_result=1 = 4
+    // user2 (resultado): pts_exact=0 + pts_result=1 = 1
+    $ranked = \App\Models\User::whereIn('id', [$user1->id, $user2->id])
+        ->orderBy('total_points', 'desc')
+        ->pluck('id')
+        ->toArray();
+
+    expect($ranked[0])->toBe($user1->id);
+    expect($ranked[1])->toBe($user2->id);
 });

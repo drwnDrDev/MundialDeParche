@@ -167,6 +167,14 @@ class PredictionController extends Controller
                 return back()->with('status', '¡Fase de grupos confirmada con tus 32 clasificados!');
             }
 
+            if (! $isGroupStage && $allCovered) {
+                PredictionSubmission::updateOrCreate(
+                    ['user_id' => Auth::id(), 'round_id' => $round->id],
+                    ['status' => 'submitted', 'submitted_at' => now()]
+                );
+                return back()->with('status', '¡Predicciones confirmadas!');
+            }
+
             if (! $submission || $submission->status === 'draft') {
                 PredictionSubmission::updateOrCreate(
                     ['user_id' => Auth::id(), 'round_id' => $round->id],

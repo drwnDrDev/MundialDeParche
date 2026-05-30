@@ -151,7 +151,7 @@ it('stays draft when predicted_classifiers is missing even if all fixtures cover
     expect(\App\Models\PredictionSubmission::first()->predicted_classifiers)->toBeNull();
 });
 
-it('stays draft for non-group rounds regardless of classifiers payload', function () {
+it('auto-promotes non-group round to submitted when all fixtures covered', function () {
     $round = Round::factory()->f2()->create(['is_open' => true]);
     $home  = \App\Models\Team::factory()->create();
     $away  = \App\Models\Team::factory()->create();
@@ -167,7 +167,7 @@ it('stays draft for non-group rounds regardless of classifiers payload', functio
         ],
     ])->assertRedirect();
 
-    expect(\App\Models\PredictionSubmission::first()->status)->toBe('draft');
+    expect(\App\Models\PredictionSubmission::first()->status)->toBe('submitted');
 });
 
 it('updates existing prediction on save', function () {
@@ -303,6 +303,70 @@ it('allows ties in group stage (R1) submit', function () {
         'predictions' => [
             (string) $fixture->id => ['predicted_home' => 1, 'predicted_away' => 1],
         ],
+    ])->assertRedirect();
+
+    expect(\App\Models\PredictionSubmission::first()->status)->toBe('draft');
+});
+
+it('auto-promotes knockout round to submitted when all fixtures covered', function () {
+    $round   = Round::factory()->f2()->create(['is_open' => true]);
+    $group   = \App\Models\Group::factory()->create(['name' => 'A']);
+    $home    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
+    $away    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
+    $fixture = \App\Models\Fixture::factory()->create([
+        'round_id'     => $round->id,
+        'home_team_id' => $home->id,
+        'away_team_id' => $away->id,
+    ]);
+
+    $this->actingAs($this->user)->post("/predictions/{$round->slug}/save", [
+        'predictions' => [
+            (string) $fixture->id => ['predicted_home' => 2, 'predicted_away' => 0],
+        ],
+    ])->assertRedirect();
+
+    $submission = \App\Models\PredictionSubmission::first();
+    expect($submission->status)->toBe('submitted');
+    expect($submission->submitted_at)->not->toBeNull();
+});
+
+it('keeps knockout round as draft when not all fixtures covered', function () {
+    $round   = Round::factory()->f2()->create(['is_open' => true]);
+    $group   = \App\Models\Group::factory()->create(['name' => 'A']);
+    $home    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
+    $away    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
+    $f1 = \App\Models\Fixture::factory()->create([
+        'round_id' => $round->id, 'home_team_id' => $home->id, 'away_team_id' => $away->id,
+    ]);
+    \App\Models\Fixture::factory()->create([
+        'round_id' => $round->id, 'home_team_id' => $away->id, 'away_team_id' => $home->id,
+    ]);
+
+    // Solo cubre 1 de 2 fixtures
+    $this->actingAs($this->user)->post("/predictions/{$round->slug}/save", [
+        'predictions' => [
+            (string) $f1->id => ['predicted_home' => 1, 'predicted_away' => 0],
+        ],
+    ])->assertRedirect();
+
+    expect(\App\Models\PredictionSubmission::first()->status)->toBe('draft');
+});
+
+it('grupos without classifiers stays draft even when all fixtures covered', function () {
+    $round   = Round::factory()->f1()->create(['is_open' => true]);
+    $group   = \App\Models\Group::factory()->create(['name' => 'A']);
+    $home    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
+    $away    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
+    $fixture = \App\Models\Fixture::factory()->create([
+        'round_id' => $round->id, 'group_id' => $group->id,
+        'home_team_id' => $home->id, 'away_team_id' => $away->id,
+    ]);
+
+    $this->actingAs($this->user)->post("/predictions/{$round->slug}/save", [
+        'predictions' => [
+            (string) $fixture->id => ['predicted_home' => 1, 'predicted_away' => 0],
+        ],
+        // sin predicted_classifiers
     ])->assertRedirect();
 
     expect(\App\Models\PredictionSubmission::first()->status)->toBe('draft');

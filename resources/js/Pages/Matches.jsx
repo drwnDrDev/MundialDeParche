@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import MobileShell from '@/Components/MobileShell';
 import TabBar from '@/Components/composed/TabBar';
 import MatchCard from '@/Components/composed/MatchCard';
@@ -57,14 +57,37 @@ function DayBlock({ day }) {
     );
 }
 
-export default function Matches({ matchDays, groups, currentRound }) {
+export default function Matches({ matchDays: initialMatchDays, groups, currentRound }) {
     const today = new Date().toISOString().split('T')[0];
+
+    const [matchDays, setMatchDays] = useState(initialMatchDays);
+
     const defaultDate = matchDays.find(d => d.dateKey === today)?.dateKey
         ?? matchDays[0]?.dateKey
         ?? null;
 
-    const [view, setView]               = useState('calendar');
+    const [view, setView]                 = useState('calendar');
     const [selectedDate, setSelectedDate] = useState(defaultDate);
+
+    useEffect(() => {
+        const channel = window.Echo.join('quinela');
+        channel.listen('.LiveScoreUpdated', (event) => {
+            setMatchDays(prev => prev.map(day => ({
+                ...day,
+                matches: day.matches.map(m =>
+                    m.id === event.match_id
+                        ? {
+                            ...m,
+                            home_score: event.home_score,
+                            away_score: event.away_score,
+                            status: event.is_live ? 'in_progress' : m.status,
+                          }
+                        : m
+                ),
+            })));
+        });
+        return () => { window.Echo.leave('quinela'); };
+    }, []);
 
     const visibleDays = selectedDate
         ? matchDays.filter(d => d.dateKey === selectedDate)

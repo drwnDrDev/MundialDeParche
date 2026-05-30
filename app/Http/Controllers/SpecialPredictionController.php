@@ -37,6 +37,12 @@ class SpecialPredictionController extends Controller
             return redirect()->route('admin.dashboard');
         }
 
+        // Guard: si la ronda de grupos está bloqueada, rechazar aunque no exista registro previo
+        $gruposRound = \App\Models\Round::where('slug', 'grupos')->first();
+        if ($gruposRound?->is_locked) {
+            return back()->with('status', 'Las predicciones especiales están bloqueadas.');
+        }
+
         $special = SpecialPrediction::where('user_id', Auth::id())->first();
 
         if ($special && $special->is_locked) {

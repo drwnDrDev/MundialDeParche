@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Events\LiveScoreUpdated;
 use App\Events\MatchScoreUpdated;
 use App\Http\Controllers\Controller;
 use App\Models\Fixture;
@@ -88,9 +89,19 @@ class FixtureController extends Controller
         ]);
 
         $fixture->update($data);
+        $fresh = $fixture->fresh();
 
-        if ($fixture->home_score !== null && $fixture->away_score !== null) {
-            MatchScoreUpdated::dispatch($fixture->fresh());
+        if ($fresh->home_score !== null && $fresh->away_score !== null) {
+            MatchScoreUpdated::dispatch($fresh);
+
+            if (in_array($fresh->status, ['in_progress', 'finished'])) {
+                LiveScoreUpdated::dispatch(
+                    $fresh->id,
+                    $fresh->home_score,
+                    $fresh->away_score,
+                    $fresh->isLive(),
+                );
+            }
         }
 
         return redirect()->route('admin.fixtures.index', ['round_id' => $data['round_id']])

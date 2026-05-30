@@ -189,3 +189,64 @@ it('deletes a fixture', function () {
 
     expect(Fixture::count())->toBe(0);
 });
+
+it('dispatches LiveScoreUpdated when fixture updated to in_progress with scores', function () {
+    $round   = Round::factory()->f1()->create(['is_open' => true]);
+    $group   = Group::factory()->create(['name' => 'A']);
+    $home    = Team::factory()->create(['group_id' => $group->id]);
+    $away    = Team::factory()->create(['group_id' => $group->id]);
+    $fixture = Fixture::factory()->create([
+        'round_id'     => $round->id,
+        'group_id'     => $group->id,
+        'home_team_id' => $home->id,
+        'away_team_id' => $away->id,
+        'status'       => 'scheduled',
+        'match_number' => 1,
+    ]);
+
+    $this->actingAs($this->admin)
+        ->patch("/admin/fixtures/{$fixture->id}", [
+            'round_id'           => $round->id,
+            'match_number'       => 1,
+            'match_date'         => '2026-06-11 12:00:00',
+            'home_team_id'       => $home->id,
+            'away_team_id'       => $away->id,
+            'home_score'         => 2,
+            'away_score'         => 1,
+            'status'             => 'in_progress',
+            'went_to_extra_time' => false,
+        ]);
+
+    Event::assertDispatched(LiveScoreUpdated::class, fn ($e) =>
+        $e->matchId === $fixture->id &&
+        $e->homeScore === 2 &&
+        $e->awayScore === 1
+    );
+});
+
+it('does not dispatch LiveScoreUpdated when fixture status is scheduled', function () {
+    $round   = Round::factory()->f1()->create(['is_open' => true]);
+    $group   = Group::factory()->create(['name' => 'B']);
+    $home    = Team::factory()->create(['group_id' => $group->id]);
+    $away    = Team::factory()->create(['group_id' => $group->id]);
+    $fixture = Fixture::factory()->create([
+        'round_id'     => $round->id,
+        'group_id'     => $group->id,
+        'home_team_id' => $home->id,
+        'away_team_id' => $away->id,
+        'match_number' => 2,
+    ]);
+
+    $this->actingAs($this->admin)
+        ->patch("/admin/fixtures/{$fixture->id}", [
+            'round_id'           => $round->id,
+            'match_number'       => 2,
+            'match_date'         => '2026-06-12 15:00:00',
+            'home_team_id'       => $home->id,
+            'away_team_id'       => $away->id,
+            'status'             => 'scheduled',
+            'went_to_extra_time' => false,
+        ]);
+
+    Event::assertNotDispatched(LiveScoreUpdated::class);
+});

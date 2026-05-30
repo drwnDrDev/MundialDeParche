@@ -1,0 +1,7 @@
+---
+deployment:
+  tasks:
+    - /usr/local/bin/composer install --no-dev --optimize-autoloader --no-interaction
+    - /usr/local/bin/php artisan migrate --force
+    - /usr/local/bin/php artisan optimize
+    - /usr/local/bin/php artisan storage:link

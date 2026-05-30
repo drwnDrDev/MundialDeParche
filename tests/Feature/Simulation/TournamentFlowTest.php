@@ -34,7 +34,7 @@ function makeSimUsers(): array
     return compact('admin', 'user1', 'user2', 'user3', 'user4', 'user5');
 }
 
-function makeR1WithFixtures(int $count = 2): array
+function makeGruposRoundWithFixtures(int $count = 2): array
 {
     $round = Round::factory()->f1()->create(['is_open' => false, 'is_locked' => false]);
     $group = Group::factory()->create(['name' => 'A']);
@@ -58,7 +58,7 @@ function makeR1WithFixtures(int $count = 2): array
 
 it('users cannot predict before round is open', function () {
     ['admin' => $admin, 'user1' => $user1] = makeSimUsers();
-    ['round' => $round, 'fixtures' => $fixtures] = makeR1WithFixtures(1);
+    ['round' => $round, 'fixtures' => $fixtures] = makeGruposRoundWithFixtures(1);
 
     $this->actingAs($user1)
         ->post(route('predictions.save', $round), [
@@ -72,7 +72,7 @@ it('users cannot predict before round is open', function () {
 it('admin can open a round and users can then predict', function () {
     Event::fake([RoundOpened::class]);
     ['admin' => $admin, 'user1' => $user1] = makeSimUsers();
-    ['round' => $round, 'fixtures' => $fixtures] = makeR1WithFixtures(1);
+    ['round' => $round, 'fixtures' => $fixtures] = makeGruposRoundWithFixtures(1);
 
     // Admin abre la ronda
     $this->actingAs($admin)->post("/admin/rounds/{$round->slug}/open");
@@ -93,7 +93,7 @@ it('admin can open a round and users can then predict', function () {
 it('admin can lock round and users cannot predict after lock', function () {
     Event::fake([RoundLocked::class]);
     ['admin' => $admin, 'user1' => $user1, 'user2' => $user2] = makeSimUsers();
-    ['round' => $round, 'fixtures' => $fixtures] = makeR1WithFixtures(1);
+    ['round' => $round, 'fixtures' => $fixtures] = makeGruposRoundWithFixtures(1);
 
     // Abrir y predecir
     $this->actingAs($admin)->post("/admin/rounds/{$round->slug}/open");
@@ -118,7 +118,7 @@ it('admin can lock round and users cannot predict after lock', function () {
 
 it('locking grupos round also locks all special predictions', function () {
     ['admin' => $admin, 'user1' => $user1, 'user2' => $user2] = makeSimUsers();
-    ['round' => $round] = makeR1WithFixtures(1);
+    ['round' => $round] = makeGruposRoundWithFixtures(1);
 
     SpecialPrediction::factory()->create(['user_id' => $user1->id, 'is_locked' => false]);
     SpecialPrediction::factory()->create(['user_id' => $user2->id, 'is_locked' => false]);
@@ -134,7 +134,7 @@ it('locking grupos round also locks all special predictions', function () {
 it('points are calculated after admin enters scores via score entry', function () {
     Event::fake([LiveScoreUpdated::class, PointsUpdated::class, ExactScoreAlert::class]);
     ['admin' => $admin, 'user1' => $user1, 'user2' => $user2] = makeSimUsers();
-    ['round' => $round, 'fixtures' => $fixtures] = makeR1WithFixtures(1);
+    ['round' => $round, 'fixtures' => $fixtures] = makeGruposRoundWithFixtures(1);
     $fixture = $fixtures[0];
 
     // Flujo: abrir → predecir → bloquear
@@ -181,7 +181,7 @@ it('points are calculated after admin enters scores via score entry', function (
 it('user total_points reflects predictions after score entry', function () {
     Event::fake([LiveScoreUpdated::class, PointsUpdated::class, ExactScoreAlert::class]);
     ['admin' => $admin, 'user1' => $user1] = makeSimUsers();
-    ['round' => $round, 'fixtures' => $fixtures] = makeR1WithFixtures(1);
+    ['round' => $round, 'fixtures' => $fixtures] = makeGruposRoundWithFixtures(1);
     $fixture = $fixtures[0];
 
     $this->actingAs($admin)->post("/admin/rounds/{$round->slug}/open");
@@ -208,7 +208,7 @@ it('user total_points reflects predictions after score entry', function () {
 it('admin can finalize round after locking', function () {
     Event::fake([RoundFinalized::class, RoundLocked::class]);
     ['admin' => $admin] = makeSimUsers();
-    ['round' => $round] = makeR1WithFixtures(1);
+    ['round' => $round] = makeGruposRoundWithFixtures(1);
 
     $this->actingAs($admin)->post("/admin/rounds/{$round->slug}/open");
     $this->actingAs($admin)->post("/admin/rounds/{$round->slug}/lock");
@@ -220,9 +220,10 @@ it('admin can finalize round after locking', function () {
 
 it('admin cannot finalize an already finalized round', function () {
     ['admin' => $admin] = makeSimUsers();
-    ['round' => $round] = makeR1WithFixtures(1);
+    ['round' => $round] = makeGruposRoundWithFixtures(1);
 
     $this->actingAs($admin)->post("/admin/rounds/{$round->slug}/open");
+    $this->actingAs($admin)->post("/admin/rounds/{$round->slug}/lock");
     $this->actingAs($admin)->post("/admin/rounds/{$round->slug}/finalize");
     $this->actingAs($admin)->post("/admin/rounds/{$round->slug}/finalize")
         ->assertSessionHas('status');
@@ -300,7 +301,7 @@ it('two consecutive rounds each score independently', function () {
 it('user without predictions in R1 has zero total_points', function () {
     Event::fake([LiveScoreUpdated::class, PointsUpdated::class, ExactScoreAlert::class]);
     ['admin' => $admin, 'user1' => $user1, 'user3' => $user3] = makeSimUsers();
-    ['round' => $round, 'fixtures' => $fixtures] = makeR1WithFixtures(1);
+    ['round' => $round, 'fixtures' => $fixtures] = makeGruposRoundWithFixtures(1);
     $fixture = $fixtures[0];
 
     $this->actingAs($admin)->post("/admin/rounds/{$round->slug}/open");
@@ -331,7 +332,7 @@ it('user without predictions in R1 has zero total_points', function () {
 it('final ranking reflects correct point order', function () {
     Event::fake([LiveScoreUpdated::class, PointsUpdated::class, ExactScoreAlert::class]);
     ['admin' => $admin, 'user1' => $user1, 'user2' => $user2] = makeSimUsers();
-    ['round' => $round, 'fixtures' => $fixtures] = makeR1WithFixtures(1);
+    ['round' => $round, 'fixtures' => $fixtures] = makeGruposRoundWithFixtures(1);
     $fixture = $fixtures[0];
 
     $this->actingAs($admin)->post("/admin/rounds/{$round->slug}/open");

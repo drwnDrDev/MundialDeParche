@@ -66,9 +66,9 @@ The orchestrator is a Claude Code agent that spawns sub-agents in chronological 
 ```
 [T+0]  admin-agent:          opens R1
 [T+0]  user-1, user-2, user-3: predict R1 (run in parallel)
+[T+0]  user-1-agent:         submits special predictions (must happen BEFORE R1 lock)
 [T+1]  admin-agent:          locks R1
 [T+1]  user-1-agent:         attempts to edit a R1 prediction → must fail (verify 403 or redirect)
-[T+1]  user-1-agent:         submits special predictions
 [T+2]  admin-agent:          loads 3 R1 match scores (triggers CalculateMatchPoints)
 [T+2]  observer-agent:       verifies points and ranking via GET /ranking
 [T+3]  admin-agent:          finalizes R1 (triggers CalculateClassifierPoints)
@@ -140,6 +140,19 @@ curl -s -b /tmp/cookies-alice.txt -c /tmp/cookies-alice.txt \
 
 Each agent should use its own cookie file (e.g., `/tmp/cookies-admin.txt`, `/tmp/cookies-alice.txt`, etc.).
 
+### Step 4 — Refresh XSRF-TOKEN before each POST/PATCH
+
+Laravel rotates the XSRF-TOKEN after each state-changing request. Before every POST or PATCH, hit `/sanctum/csrf-cookie` to get a fresh token:
+
+```bash
+curl -s -b /tmp/cookies-alice.txt -c /tmp/cookies-alice.txt \
+  http://localhost/sanctum/csrf-cookie -o /dev/null
+
+XSRF=$(grep XSRF-TOKEN /tmp/cookies-alice.txt | awk '{print $NF}' | python3 -c "import sys, urllib.parse; print(urllib.parse.unquote(sys.stdin.read().strip()))")
+```
+
+Then use `$XSRF` as `X-XSRF-TOKEN` header in the next request. Skipping this step causes 419 (CSRF token mismatch) errors.
+
 ---
 
 ## Running the Orchestrator
@@ -164,9 +177,9 @@ Credentials (all use password: simpassword):
 Chronological flow:
 [T+0]  admin opens R1 (POST /admin/rounds/{id}/open)
 [T+0]  alice, bob, carlos each predict their R1 matches (in parallel if possible)
+[T+0]  alice submits special predictions (POST /predictions/especiales/save — MUST be before R1 lock)
 [T+1]  admin locks R1 (POST /admin/rounds/{id}/lock)
 [T+1]  alice attempts to edit a R1 prediction → verify it fails (403 or redirect)
-[T+1]  alice submits special predictions
 [T+2]  admin loads 3 R1 match scores (POST /admin/fixtures/{id}/score for each)
 [T+2]  diana (observer) checks GET /ranking and reports points for each user
 [T+3]  admin finalizes R1 (POST /admin/rounds/{id}/finalize)

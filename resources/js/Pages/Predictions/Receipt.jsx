@@ -1,13 +1,34 @@
-import { Head } from '@inertiajs/react';
-import { router } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import MobileShell from '@/Components/MobileShell';
 import ReceiptMatchRow from '@/Components/composed/ReceiptMatchRow';
+import PtsChip from '@/Components/ui/PtsChip';
 
-export default function Receipt({ round, fixtures, predictions, submission, isFinalized, classifiers, realClassifierIds }) {
+export default function Receipt({
+    round,
+    fixtures,
+    predictions,
+    submission,
+    isFinalized,
+    classifiers,
+    realClassifierIds,
+    viewedUserId,
+    authUserId,
+    usersWithSubmission,
+    specialPrediction,
+}) {
     const ptsExact      = Object.values(predictions).reduce((s, p) => s + (p.pts_exact  ?? 0), 0);
     const ptsResult     = Object.values(predictions).reduce((s, p) => s + (p.pts_result ?? 0), 0);
     const ptsClassifier = submission.pts_classifier ?? 0;
     const totalPts      = ptsExact + ptsResult + ptsClassifier;
+
+    const isViewingOther = viewedUserId !== authUserId;
+
+    function handleUserChange(e) {
+        router.visit(route('predictions.receipt', { round: round.slug }), {
+            data: { user_id: e.target.value },
+            preserveScroll: false,
+        });
+    }
 
     return (
         <MobileShell>
@@ -31,10 +52,43 @@ export default function Receipt({ round, fixtures, predictions, submission, isFi
                         className="flex-shrink-0 bg-pop-teal text-ink border-[2px] border-ink px-2 py-0.5 font-mono text-[8px] font-bold tracking-[.06em]"
                         style={{ boxShadow: '2px 2px 0 var(--c-ink)' }}
                     >
-                        FINALIZADA
+                        BLOQUEADA
                     </span>
                 )}
             </div>
+
+            {/* Selector de usuario — solo cuando la fase está bloqueada */}
+            {usersWithSubmission && usersWithSubmission.length > 1 && (
+                <div className="px-[18px] py-2.5 border-b-[2px] border-ink bg-white flex items-center gap-2.5">
+                    <span className="font-mono text-[9px] opacity-50 flex-shrink-0 tracking-[.06em]">VER:</span>
+                    <div className="relative flex-1">
+                        <select
+                            value={viewedUserId}
+                            onChange={handleUserChange}
+                            className="w-full border-[2px] border-ink bg-cream font-mono text-[11px] px-2.5 py-1.5 appearance-none pr-8"
+                            style={{ boxShadow: '2px 2px 0 var(--c-ink)' }}
+                        >
+                            {usersWithSubmission.map(u => (
+                                <option key={u.id} value={u.id}>
+                                    {u.id === authUserId ? `${u.name} (tú)` : u.name}
+                                </option>
+                            ))}
+                        </select>
+                        <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 font-display text-[10px]">▼</div>
+                    </div>
+                    {isViewingOther && (
+                        <button
+                            onClick={() => router.visit(route('predictions.receipt', { round: round.slug }), {
+                                data: { user_id: authUserId },
+                                preserveScroll: false,
+                            })}
+                            className="flex-shrink-0 font-mono text-[9px] underline opacity-60"
+                        >
+                            mis goles
+                        </button>
+                    )}
+                </div>
+            )}
 
             {/* Banner de puntos o aviso */}
             {isFinalized ? (
@@ -72,11 +126,10 @@ export default function Receipt({ round, fixtures, predictions, submission, isFi
                     />
                 ))}
 
-                {/* Bloque de clasificados — predicted classifiers with hit/miss marks */}
+                {/* Bloque de clasificados */}
                 {classifiers && classifiers.length > 0 && (() => {
                     const realIds = new Set(realClassifierIds ?? []);
 
-                    // Agrupar por grupo (solo posiciones 1 y 2)
                     const byGroup = {};
                     classifiers.forEach(c => {
                         if (!byGroup[c.group]) byGroup[c.group] = [];
@@ -91,7 +144,6 @@ export default function Receipt({ round, fixtures, predictions, submission, isFi
                     return (
                         <div className="mx-[18px] my-3 border-[2.5px] border-ink overflow-hidden"
                              style={{ boxShadow: '3px 3px 0 var(--c-ink)' }}>
-                            {/* Header */}
                             <div className="bg-navy text-cream px-3.5 py-2.5 flex items-center justify-between">
                                 <div>
                                     <div className="font-mono text-[8px] tracking-[.1em] opacity-70">FASE DE GRUPOS</div>
@@ -104,8 +156,6 @@ export default function Receipt({ round, fixtures, predictions, submission, isFi
                                     </div>
                                 )}
                             </div>
-
-                            {/* Grid por grupo — 1° y 2° */}
                             <div className="bg-white px-3 pt-2 pb-1">
                                 <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 mb-2">
                                     {Object.entries(byGroup)
@@ -136,8 +186,6 @@ export default function Receipt({ round, fixtures, predictions, submission, isFi
                                         )
                                     }
                                 </div>
-
-                                {/* 8 mejores terceros */}
                                 {bestThirds.length > 0 && (
                                     <div className="border-t-[2px] border-dashed border-ink/20 pt-2 pb-2">
                                         <div className="font-mono text-[8px] opacity-50 mb-1.5 tracking-[.06em]">8 MEJORES TERCEROS</div>
@@ -169,6 +217,70 @@ export default function Receipt({ round, fixtures, predictions, submission, isFi
                         </div>
                     );
                 })()}
+
+                {/* Sección de predicciones especiales — solo en R1 */}
+                {specialPrediction && (
+                    <div className="mx-[18px] my-3 border-[2.5px] border-ink overflow-hidden"
+                         style={{ boxShadow: '3px 3px 0 var(--c-ink)' }}>
+                        <div className="bg-navy text-cream px-3.5 py-2.5">
+                            <div className="font-mono text-[8px] tracking-[.1em] opacity-70">ANTES DEL TORNEO</div>
+                            <div className="font-display text-[15px] leading-none mt-0.5">PREDICCIONES ESPECIALES</div>
+                        </div>
+                        <div className="bg-white divide-y divide-dashed divide-ink/10">
+                            {/* Campeón */}
+                            <div className="flex items-center justify-between px-3.5 py-2.5">
+                                <div className="flex items-center gap-2">
+                                    {specialPrediction.champion?.flag_url && (
+                                        <img src={specialPrediction.champion.flag_url} alt="" className="h-4 w-6 object-cover border border-ink/20" />
+                                    )}
+                                    <div>
+                                        <div className="font-mono text-[8px] opacity-50 tracking-[.06em]">CAMPEÓN</div>
+                                        <div className="font-display text-[13px] leading-tight">
+                                            {specialPrediction.champion?.name ?? '—'}
+                                        </div>
+                                    </div>
+                                </div>
+                                {isFinalized && specialPrediction.pts_champion !== null && (
+                                    <PtsChip pts={specialPrediction.pts_champion} type="exact" />
+                                )}
+                            </div>
+                            {/* Sub-campeón */}
+                            <div className="flex items-center justify-between px-3.5 py-2.5">
+                                <div className="flex items-center gap-2">
+                                    {specialPrediction.runner_up?.flag_url && (
+                                        <img src={specialPrediction.runner_up.flag_url} alt="" className="h-4 w-6 object-cover border border-ink/20" />
+                                    )}
+                                    <div>
+                                        <div className="font-mono text-[8px] opacity-50 tracking-[.06em]">SUB-CAMPEÓN</div>
+                                        <div className="font-display text-[13px] leading-tight">
+                                            {specialPrediction.runner_up?.name ?? '—'}
+                                        </div>
+                                    </div>
+                                </div>
+                                {isFinalized && specialPrediction.pts_runner_up !== null && (
+                                    <PtsChip pts={specialPrediction.pts_runner_up} type="result" />
+                                )}
+                            </div>
+                            {/* Goleador */}
+                            <div className="flex items-center justify-between px-3.5 py-2.5">
+                                <div>
+                                    <div className="font-mono text-[8px] opacity-50 tracking-[.06em]">GOLEADOR</div>
+                                    <div className="font-display text-[13px] leading-tight">
+                                        {specialPrediction.top_scorer?.name ?? '—'}
+                                    </div>
+                                    {specialPrediction.top_scorer?.team?.name && (
+                                        <div className="font-mono text-[9px] opacity-50">
+                                            {specialPrediction.top_scorer.team.name}
+                                        </div>
+                                    )}
+                                </div>
+                                {isFinalized && specialPrediction.pts_top_scorer !== null && (
+                                    <PtsChip pts={specialPrediction.pts_top_scorer} type="classifier" />
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 <div className="pb-10" />
             </div>

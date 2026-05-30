@@ -29,7 +29,7 @@ export default function PozoCard({ total, players, amountPerPlayer, prize1, priz
             </div>
             <div className="grid grid-cols-2 gap-1.5 mt-2.5 relative">
                 <PrizeSlot place="1°" pct="70%" amount={prize1} color="var(--c-yel)" />
-                <PrizeSlot place="2°" pct="30%" amount={prize2} color="var(--c-cream)" />
+                <PrizeSlot place="2°" pct="20%" amount={prize2} color="var(--c-cream)" />
             </div>
         </Cromo>
     );

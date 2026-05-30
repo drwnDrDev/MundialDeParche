@@ -132,10 +132,11 @@ export default function Rules() {
                         El pozo se forma con los 50K de cada parche que entra. Se reparte así al final:
                         <RuleList items={[
                             '1° lugar · 70% del pozo',
-                            '2° lugar · 30% del pozo',
+                            '2° lugar · 20% del pozo',
                         ]} />
                         <span className="inline-block mt-1.5 font-mono text-[10px] opacity-70 leading-[1.5]">
-                            El admin coordina el pago dentro de los 7 días siguientes a la final. Cero comisión.
+                            El 10% restante cubre los costos de operación de la plataforma.
+                            El admin coordina el pago dentro de los 7 días siguientes a la final.
                         </span>
                     </Rule>
 

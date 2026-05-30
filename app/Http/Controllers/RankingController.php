@@ -45,10 +45,11 @@ class RankingController extends Controller
         return Inertia::render('Ranking', [
             'users' => $users,
             'pozo'  => [
-                'total'   => $fmt($total) ?: '0K',
-                'players' => $activated,
-                'prize1'  => $fmt((int) ($total * 0.70)),
-                'prize2'  => $fmt((int) ($total * 0.30)),
+                'total'           => $fmt($total) ?: '0K',
+                'players'         => $activated,
+                'amountPerPlayer' => $fmt(50000),
+                'prize1'          => $fmt((int) ($total * 0.70)),
+                'prize2'          => $fmt((int) ($total * 0.20)),
             ],
         ]);
     }

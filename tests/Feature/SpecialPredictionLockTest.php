@@ -55,6 +55,19 @@ it('cannot save special predictions when grupos round is locked and no record ex
     expect(SpecialPrediction::where('user_id', $user->id)->count())->toBe(0);
 });
 
+it('finalizing grupos round without prior lock also locks special predictions', function () {
+    $admin = User::factory()->create(['role' => 'admin']);
+    $user  = User::factory()->create(['role' => 'user']);
+    $round = Round::factory()->f1()->create(['is_open' => true, 'is_locked' => false, 'is_finalized' => false]);
+
+    SpecialPrediction::factory()->create(['user_id' => $user->id, 'is_locked' => false]);
+
+    // Call finalize directly, skipping lock()
+    $this->actingAs($admin)->post("/admin/rounds/{$round->slug}/finalize");
+
+    expect(SpecialPrediction::where('is_locked', true)->count())->toBe(1);
+});
+
 it('can save special predictions when grupos round is open', function () {
     Round::factory()->f1()->create(['is_open' => true, 'is_locked' => false]);
     $user   = User::factory()->create(['role' => 'user', 'is_active' => true, 'is_activated' => true]);

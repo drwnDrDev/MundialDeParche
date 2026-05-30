@@ -54,6 +54,11 @@ class RoundController extends Controller
 
         if (! $round->is_locked) {
             $round->update(['is_open' => false, 'is_locked' => true]);
+
+            if ($round->slug === 'grupos') {
+                \App\Models\SpecialPrediction::query()->update(['is_locked' => true]);
+            }
+
             RoundLocked::dispatch($round->name);
         }
 

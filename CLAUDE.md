@@ -47,7 +47,7 @@ Docker Desktop debe estar corriendo antes de usar cualquier comando Sail.
 Framework de tests: **Pest v3** (no PHPUnit directamente).
 Los tests de Feature que renderizan Inertia/React necesitan `$this->withoutVite()`.
 
-### JavaScript / Frontend
+### JavaScript / Frontend ...
 
 ```bash
 ./vendor/bin/sail pnpm install     # Instalar dependencias

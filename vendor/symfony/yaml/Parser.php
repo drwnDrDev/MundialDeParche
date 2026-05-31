@@ -122,7 +122,7 @@ class Parser
 
     private function getState(): ParserState
     {
-        return $this->state ?? $this->state = new ParserState();
+        return $this->state ??= new ParserState();
     }
 
     private function doParse(string $value, int $flags): mixed
@@ -329,7 +329,7 @@ class Parser
                         // But overwriting is allowed when a merge node is used in current block.
                         if ($allowOverwrite || !isset($data[$key])) {
                             if (!$allowOverwrite && \array_key_exists($key, $data)) {
-                                throw new ParseException(\sprintf('Duplicate key "%s" detected.', $key), $this->getRealCurrentLineNb() + 1, $this->currentLine);
+                                trigger_deprecation('symfony/yaml', '7.2', 'Duplicate key "%s" detected on line %d whilst parsing YAML. Silent handling of duplicate mapping keys in YAML is deprecated and will throw a ParseException in 8.0.', $key, $this->getRealCurrentLineNb() + 1);
                             }
 
                             if (null !== $subTag) {
@@ -354,7 +354,7 @@ class Parser
                             $data += $value;
                         } elseif ($allowOverwrite || !isset($data[$key])) {
                             if (!$allowOverwrite && \array_key_exists($key, $data)) {
-                                throw new ParseException(\sprintf('Duplicate key "%s" detected.', $key), $this->getRealCurrentLineNb() + 1, $this->currentLine);
+                                trigger_deprecation('symfony/yaml', '7.2', 'Duplicate key "%s" detected on line %d whilst parsing YAML. Silent handling of duplicate mapping keys in YAML is deprecated and will throw a ParseException in 8.0.', $key, $this->getRealCurrentLineNb() + 1);
                             }
 
                             // Spec: Keys MUST be unique; first one wins.
@@ -374,7 +374,7 @@ class Parser
                     // But overwriting is allowed when a merge node is used in current block.
                     if ($allowOverwrite || !isset($data[$key])) {
                         if (!$allowOverwrite && \array_key_exists($key, $data)) {
-                            throw new ParseException(\sprintf('Duplicate key "%s" detected.', $key), $this->getRealCurrentLineNb() + 1, $this->currentLine);
+                            trigger_deprecation('symfony/yaml', '7.2', 'Duplicate key "%s" detected on line %d whilst parsing YAML. Silent handling of duplicate mapping keys in YAML is deprecated and will throw a ParseException in 8.0.', $key, $this->getRealCurrentLineNb() + 1);
                         }
 
                         $data[$key] = $value;
@@ -1047,7 +1047,7 @@ class Parser
             $value = $trimmedValue;
 
             // remove end of the document marker (...)
-            $value = preg_replace('#\.\.\.[ \t]*+$#', '', $value);
+            $value = preg_replace('#\.\.\.\s*+$#', '', $value);
         }
 
         return $value;

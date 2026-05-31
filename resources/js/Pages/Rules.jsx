@@ -145,7 +145,7 @@ export default function Rules() {
 
                     <Rule n="6" title="CONDUCTA Y CHAT">
                         El chat es para alentar, picar al rival y celebrar — no para insultos ni faltas de respeto.
-                        El admin puede silenciar o eliminar a un parcero que se pase de la raya. Cero reembolso en ese caso.
+                        <b> El admin puede silenciar o eliminar a un parcero que se pase de la raya. Cero reembolso en ese caso.</b>
                     </Rule>
 
                     <Rule n="7" title="LO IMPREVISTO">

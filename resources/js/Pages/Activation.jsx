@@ -125,10 +125,8 @@ export default function Activation({ adminName, adminPhone, adminWhatsApp }) {
                 <div className="flex-1 overflow-y-auto px-[18px] pt-3.5 min-h-0" style={{ WebkitOverflowScrolling: 'touch' }}>
                     <SectionHead title="PAGÁ POR" accent="red" />
                     <div className="grid grid-cols-2 gap-2">
-                        <PayMethod label="NEQUI" sub="300 123 4567" color="#ff006e" />
-                        <PayMethod label="DAVIPLATA" sub="300 123 4567" color="#ed1c24" />
-                        <PayMethod label="BANCOLOMBIA" sub="© ahorros 123-456" color="#fdda24" />
-                        <PayMethod label="EFECTIVO" sub="al admin, en persona" color="var(--c-teal)" />
+                        <PayMethod label="NEQUI" sub="301 481 9820" color="#ff006e" />
+                        <PayMethod label="Bre-B" sub="@fotoaleph" color="var(--c-teal)" />
                     </div>
 
                     {/* Admin card */}

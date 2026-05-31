@@ -128,8 +128,8 @@ return [
     | Admin Contact
     |--------------------------------------------------------------------------
     */
-    'admin_name'      => env('ADMIN_NAME', 'Admin'),
-    'admin_phone'     => env('ADMIN_PHONE', '+57 300 000 0000'),
-    'admin_whatsapp'  => env('ADMIN_WHATSAPP', '573000000000'),
+    'admin_name'      => env('ADMIN_NAME', 'Darwin D.'),
+    'admin_phone'     => env('ADMIN_PHONE', '+57 318 1252775'),
+    'admin_whatsapp'  => env('ADMIN_WHATSAPP', '573181252775'),
 
 ];

@@ -96,8 +96,8 @@ export default function Rules() {
                 {/* Scroll area */}
                 <div className="flex-1 overflow-y-auto px-[18px] pt-3" style={{ WebkitOverflowScrolling: 'touch' }}>
                     <Rule n="1" title="INSCRIPCIÓN">
-                        Para entrar al parche aportás <b>50K una sola vez</b>, antes del primer partido de la fase de grupos.
-                        El admin verifica el pago y te activa la cuenta. Si no estás activado al cierre de la Fase 1, no podés participar.
+                        Para entrar al parche aportas <b>50K una sola vez</b>, antes del primer partido de la fase de grupos.
+                        El admin verifica el pago y te activa la cuenta. Si no estás activado al cierre de la Fase 1, no podras participar.
                     </Rule>
 
                     <Rule n="2" title="FASES Y CIERRES">
@@ -105,17 +105,20 @@ export default function Rules() {
                         Después del cierre, los goles guardados quedan en piedra — no se cambian.
                         <RuleList items={[
                             'Fase 1 · Grupos · 72 partidos',
-                            'Fase 2 · R32 + R16 · 24 partidos',
+                            'Fase 2 · R32 · 16 partidos',
                             'Fase 3 · 8vos + 4tos · 12 partidos',
                             'Fase 4 · Semis + Final · 3 partidos',
                         ]} />
                     </Rule>
 
                     <Rule n="3" title="PUNTUACIÓN">
-                        Sumás puntos por cada acierto, según lo que metiste:
+                        Sumas puntos por cada acierto, según lo que metiste:
                         <RuleList items={[
-                            'Los puntos son progresivos por fase: Grupos (exacto +3, ganador +1, clasif +2) · R32+R16 (exacto +5, ganador +2, clasif +4) · 8vos+SF (exacto +8, ganador +3) · Final (exacto +13, ganador +5).',
+                            'Los puntos son progresivos por fase: Grupos (exacto +3, ganador +1, clasif +2) · R32 (exacto +5, ganador +2, clasif +3) · 8vos + 4tos (exacto +8, ganador +3, clasif +5) · Semis + Final (exacto +13, ganador +5).',
                             'En rondas de eliminación, el marcador exacto es siempre a 90 minutos. Tiempos extra y penales no cuentan para el score exacto, pero sí para determinar el ganador.',
+                            'El fixture inicial de cada fase se inicia con los partidos ordenados según el resultado real FIFA de la fase anterior. Así se configura una nueva oportunidad de puntos en cada fase, incluso para los partidos de eliminación directa.',
+                            'Las predicciones de clasificados a la siguiente ronda (R32, R16, 4tos) se calculan automaticamente con los marcadores que vas guardando. No es necesario que las metas manualmente, pero tenés chance de corregirlas hasta el cierre de la fase. Si no las corregís, se asume que predijiste que pasan los equipos que realmente pasaron.',
+                            
                         ]} />
                     </Rule>
 
@@ -150,11 +153,20 @@ export default function Rules() {
                         Los goles ya guardados se mantienen como estaban.
                     </Rule>
 
+                    <Rule n="*" title="TRANSPARENCIA">
+                        <RuleList items={[
+                            'Todos podran ver las predicciones de todos al cierre de cada fase (antes del pitazo inicial).',
+                            'Ronda de grupos - Los 8 mejores terceros. Esta seleccion de clasificados se calcula automáticamente siguiendo el criterio oficial FIFA: puntos, diferencia de goles, goles a favor, y si es necesario, sorteo. No es necesario que los participantes predigan manualmente qué terceros avanzan; el sistema lo hará por ellos al cierre de la fase.',
+                            '8vos + 4tos | Semis + Final - TEN EN CUENTA: Los partidos de los 4tos y la Final se ordenan de acuerdo a los marcadores que elijas en la fase anterior.'
+                        ]} />
+                        
+                    </Rule>
+
                     {/* Admin card */}
                     <div className="mt-[18px] mb-3.5 px-3 py-2.5 bg-navy text-cream border-[2.5px] border-ink flex items-center gap-2.5">
                         <div className="text-[18px]">📞</div>
                         <div className="flex-1 font-mono text-[10px] leading-[1.5] tracking-[.02em]">
-                            ¿Dudas? Hablale al admin <b className="text-pop-yel">Edisson Á.</b> por WhatsApp.
+                            ¿Dudas? Hablale al admin <b className="text-pop-yel">Darwin D.</b> por WhatsApp.
                         </div>
                     </div>
 

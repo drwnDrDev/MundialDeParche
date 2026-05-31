@@ -128,14 +128,14 @@ export default function HowTo() {
                         n="1"
                         color="var(--c-red)"
                         title="ENTRÁ AL POZO"
-                        copy="Aportás 50K una sola vez. El admin te activa y quedás dentro."
+                        copy="Aportas 50K una sola vez. El admin te activa y quedas dentro."
                         icon={<KIcon />}
                     />
                     <Step
                         n="2"
                         color="var(--c-teal)"
                         title="METÉ TUS GOLES"
-                        copy="En cada fase predecís los marcadores de todos los partidos. Tenés tiempo hasta el cierre de la fase."
+                        copy="En cada fase predices los marcadores de todos los partidos. Tienes tiempo hasta el cierre de la fase."
                         icon={<SoccerBall size={38} />}
                     />
                     <Step
@@ -160,9 +160,9 @@ export default function HowTo() {
                         </div>
                         {[
                             { fase: 'Grupos',    exacto: 3,  ganador: 1, clasif: 2 },
-                            { fase: 'R32+R16',  exacto: 5,  ganador: 2, clasif: 4 },
-                            { fase: '8vos+SF',  exacto: 8,  ganador: 3, clasif: null },
-                            { fase: 'Final',    exacto: 13, ganador: 5, clasif: null },
+                            { fase: 'R32',  exacto: 5,  ganador: 2, clasif: 3 },
+                            { fase: 'R16+8vos',  exacto: 8,  ganador: 3, clasif: 5 },
+                            { fase: 'SF+Final',    exacto: 13, ganador: 5, clasif: null },
                         ].map(({ fase, exacto, ganador, clasif }, i) => (
                             <div key={fase} className={`grid grid-cols-4 ${i < 3 ? 'border-b border-ink/15' : ''}`}>
                                 <div className="col-span-1 px-2 py-2 font-mono text-[9px] font-bold opacity-70">{fase}</div>

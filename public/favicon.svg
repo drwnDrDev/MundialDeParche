@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 72">
+  <!-- Background pop-art yellow -->
+  <rect width="60" height="72" fill="#FFE14D"/>
+  <!-- Halftone dots -->
+  <pattern id="dots" x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse">
+    <circle cx="4" cy="4" r="1.2" fill="#1a1a2e" opacity="0.12"/>
+  </pattern>
+  <rect width="60" height="72" fill="url(#dots)"/>
+  <!-- Trophy handles -->
+  <path d="M14 18 C 4 18, 4 36, 16 36" stroke="#1a1a2e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M46 18 C 56 18, 56 36, 44 36" stroke="#1a1a2e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <!-- Trophy body -->
+  <path d="M14 10 H46 V28 C 46 40, 38 48, 30 48 C 22 48, 14 40, 14 28 Z" fill="#E8354A" stroke="#1a1a2e" stroke-width="2.5" stroke-linejoin="round"/>
+  <!-- Star -->
+  <path d="M30 18 L32 24 L38 24 L33 28 L35 34 L30 30 L25 34 L27 28 L22 24 L28 24 Z" fill="#1a1a2e"/>
+  <!-- Base -->
+  <rect x="26" y="48" width="8" height="8" fill="#E8354A" stroke="#1a1a2e" stroke-width="2.5"/>
+  <rect x="18" y="56" width="24" height="6" fill="#E8354A" stroke="#1a1a2e" stroke-width="2.5"/>
+  <rect x="14" y="62" width="32" height="6" fill="#1a1a2e"/>
+</svg>

@@ -10,7 +10,7 @@ const TABS = [
 
 export default function TabBar({ active = 'home' }) {
     return (
-        <nav className="fixed bottom-0 left-0 right-0 bg-cream border-t-[3px] border-ink px-3 pt-2.5 pb-[22px] flex justify-between gap-1.5 z-50">
+        <nav className="fixed bottom-0 left-0 right-0 bg-cream border-t-[3px] border-ink px-3 pt-2.5 flex justify-between gap-1.5 z-50" style={{ paddingBottom: 'calc(22px + env(safe-area-inset-bottom, 0px))' }}>
             {TABS.map((tab) => {
                 const isActive = tab.id === active;
                 return (

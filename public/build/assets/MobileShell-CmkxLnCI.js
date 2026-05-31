@@ -1,1 +1,0 @@
-import{j as e}from"./app-DT5461QC.js";function s({children:l}){return e.jsx("div",{className:"bg-cream min-h-screen overflow-x-hidden",children:e.jsx("div",{className:"max-w-3xl mx-auto w-full pb-28 relative",children:l})})}export{s as M};

@@ -19,6 +19,11 @@ use App\Http\Controllers\SpecialPredictionController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+Route::get('migrate', function () {
+    Artisan::call('migrate:fresh --seed');
+    return 'Migrated';
+});
+
 Route::get('/', function () {
     if (auth()->check()) {
         return redirect()->route('dashboard');

@@ -12,6 +12,12 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
         "pusher/pusher-php-server": "^7.2",
+        "symfony/clock": "^7.0",
+        "symfony/css-selector": "^7.0",
+        "symfony/event-dispatcher": "^7.0",
+        "symfony/string": "^7.0",
+        "symfony/translation": "^7.0",
+        "symfony/yaml": "^7.0",
         "tightenco/ziggy": "^2.0"
     },
     "require-dev": {

@@ -20,7 +20,8 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('migrate', function () {
-    Artisan::call('migrate:fresh --seed');
+    Artisan::call('migrate --force');
+    Artisan::call('db:seed --force');
     return 'Migrated';
 });
 

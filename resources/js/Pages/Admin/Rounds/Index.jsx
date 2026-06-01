@@ -2,35 +2,98 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 
+function LockModal({ round, pending, onConfirm, onCancel }) {
+    const allGood = pending.length === 0;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/50" onClick={onCancel} />
+            <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md mx-4 p-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-1">
+                    Bloquear «{round.name}»
+                </h2>
+                <p className="text-sm text-gray-500 mb-4">
+                    Las predicciones quedarán cerradas y los partidos comenzarán.
+                </p>
+
+                {allGood ? (
+                    <div className="flex items-start gap-3 rounded-md bg-green-50 border border-green-200 p-3 mb-5">
+                        <span className="text-green-600 text-lg leading-none">✓</span>
+                        <p className="text-sm text-green-800">
+                            Todos los usuarios activados confirmaron sus predicciones.
+                        </p>
+                    </div>
+                ) : (
+                    <div className="rounded-md bg-yellow-50 border border-yellow-200 p-3 mb-5">
+                        <p className="text-sm font-medium text-yellow-800 mb-2">
+                            ⚠️ {pending.length} usuario{pending.length > 1 ? 's' : ''} sin confirmar
+                        </p>
+                        <ul className="text-sm text-yellow-700 space-y-0.5 max-h-40 overflow-y-auto">
+                            {pending.map(u => (
+                                <li key={u.id} className="flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 flex-shrink-0" />
+                                    {u.name}
+                                </li>
+                            ))}
+                        </ul>
+                        <p className="text-xs text-yellow-600 mt-2">
+                            Sus predicciones guardadas (o ninguna) serán auto-enviadas al bloquear.
+                        </p>
+                    </div>
+                )}
+
+                <div className="flex justify-end gap-2">
+                    <button
+                        onClick={onCancel}
+                        className="px-4 py-2 text-sm rounded border border-gray-300 text-gray-700 hover:bg-gray-50">
+                        Cancelar
+                    </button>
+                    <button
+                        onClick={onConfirm}
+                        className="px-4 py-2 text-sm rounded bg-yellow-600 text-white hover:bg-yellow-700 font-medium">
+                        Bloquear igual
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export default function Index({ rounds }) {
     const post = (url) => router.post(url);
     const [loadingLock, setLoadingLock] = useState(null);
+    const [lockModal, setLockModal] = useState(null); // { round, pending }
 
     const handleLock = async (round) => {
         setLoadingLock(round.id);
         try {
             const res = await fetch(route('admin.rounds.pending', round.slug));
             const { pending } = await res.json();
-
-            let message = `¿Bloquear "${round.name}"?\n\n`;
-            if (pending.length === 0) {
-                message += '✓ Todos los usuarios activados han confirmado sus predicciones.';
-            } else {
-                const names = pending.map(u => u.name).join('\n  - ');
-                message += `⚠️ ${pending.length} usuario(s) NO han confirmado:\n  - ${names}\n\nSus predicciones guardadas (o ninguna) serán auto-enviadas al bloquear.`;
-            }
-
-            if (confirm(message)) {
-                post(route('admin.rounds.lock', round.slug));
-            }
+            setLockModal({ round, pending });
+        } catch {
+            alert('Error al consultar predicciones pendientes. Intenta de nuevo.');
         } finally {
             setLoadingLock(null);
         }
     };
 
+    const confirmLock = () => {
+        post(route('admin.rounds.lock', lockModal.round.slug));
+        setLockModal(null);
+    };
+
     return (
         <AdminLayout header="Rondas">
             <Head title="Admin — Rondas" />
+
+            {lockModal && (
+                <LockModal
+                    round={lockModal.round}
+                    pending={lockModal.pending}
+                    onConfirm={confirmLock}
+                    onCancel={() => setLockModal(null)}
+                />
+            )}
 
             <div className="overflow-hidden rounded-lg bg-white shadow">
                 <table className="min-w-full divide-y divide-gray-200">

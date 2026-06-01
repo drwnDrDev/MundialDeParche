@@ -12,6 +12,7 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -106,6 +107,14 @@ class UserController extends Controller
             ->update(['status' => 'draft', 'submitted_at' => null]);
 
         return back()->with('status', "Predicciones de '{$user->name}' reabiertas.");
+    }
+
+    public function generateResetLink(User $user): \Illuminate\Http\JsonResponse
+    {
+        $token = Password::broker()->createToken($user);
+        $url   = route('password.reset', ['token' => $token, 'email' => $user->email]);
+
+        return response()->json(['url' => $url]);
     }
 
     public function predictions(User $user): Response

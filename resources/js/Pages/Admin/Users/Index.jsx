@@ -87,6 +87,42 @@ function ReopenModal({ user, rounds, onClose }) {
     );
 }
 
+function CopyResetLinkButton({ user }) {
+    const [state, setState] = useState('idle'); // idle | copying | copied | error
+
+    const handleCopy = async () => {
+        setState('copying');
+        try {
+            const res = await fetch(route('admin.users.generate-reset-link', user.id));
+            const { url } = await res.json();
+            await navigator.clipboard.writeText(url);
+            setState('copied');
+            setTimeout(() => setState('idle'), 2500);
+        } catch {
+            setState('error');
+            setTimeout(() => setState('idle'), 2500);
+        }
+    };
+
+    const labels = { idle: 'Link reset', copying: '...', copied: '¡Copiado!', error: 'Error' };
+    const colors = {
+        idle:    'bg-purple-500 hover:bg-purple-600',
+        copying: 'bg-purple-400',
+        copied:  'bg-green-500',
+        error:   'bg-red-500',
+    };
+
+    return (
+        <button
+            onClick={handleCopy}
+            disabled={state === 'copying'}
+            className={`rounded px-2 py-1 text-xs text-white ${colors[state]} disabled:opacity-50`}
+        >
+            {labels[state]}
+        </button>
+    );
+}
+
 export default function Index({ users, rounds }) {
     const [reopenTarget, setReopenTarget] = useState(null);
 
@@ -153,6 +189,7 @@ export default function Index({ users, rounds }) {
                                         >
                                             Preds
                                         </Link>
+                                        <CopyResetLinkButton user={user} />
                                     </div>
                                 </td>
                             </tr>

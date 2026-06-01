@@ -74,6 +74,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Rounds
     Route::get('rounds', [RoundController::class, 'index'])->name('rounds.index');
+    Route::get('rounds/{round}/pending-submissions', [RoundController::class, 'pendingSubmissions'])->name('rounds.pending');
     Route::post('rounds/{round}/open', [RoundController::class, 'open'])->name('rounds.open');
     Route::post('rounds/{round}/lock', [RoundController::class, 'lock'])->name('rounds.lock');
     Route::post('rounds/{round}/finalize', [RoundController::class, 'finalize'])->name('rounds.finalize');

@@ -1,12 +1,13 @@
 import { Link } from '@inertiajs/react';
 
 function deriveState(round, submission) {
-    if (!round.is_open && !round.is_locked)                          return 'upcoming';
-    if (round.is_open  && !submission)                               return 'open';
-    if (round.is_open  && submission?.status === 'draft')            return 'draft';
-    if (round.is_open  && submission?.status === 'submitted')        return 'submitted';
-    if (round.is_locked && !submission)                              return 'locked';
-    return 'finalized'; // is_locked && submission exists
+    if (round.is_finalized && !submission)   return 'finalized_no_bet';
+    if (round.is_finalized)                  return 'finalized';
+    if (round.is_locked)                     return 'locked';
+    if (!round.is_open)                      return 'upcoming';
+    if (!submission)                         return 'open';
+    if (submission.status === 'draft')       return 'draft';
+    return 'submitted';
 }
 
 function ProgressBar({ value, max }) {
@@ -141,6 +142,24 @@ export default function PhaseCard({ round, submission, phasePts }) {
                     <span className="bg-pop-red text-white border border-ink px-2 py-0.5 font-mono text-[8px] font-bold tracking-[.06em] animate-pulse">
                         EN JUEGO
                     </span>
+                </div>
+            </div>
+        );
+    }
+
+    // ── finalized_no_bet ──────────────────────────────────────────────────────
+    if (state === 'finalized_no_bet') {
+        return (
+            <div className={`${wrapperBase} bg-navy text-cream opacity-70`}
+                 style={{ boxShadow: '2px 2px 0 var(--c-ink)' }}>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <div className="font-display text-[15px] leading-tight">{round.name.toUpperCase()}</div>
+                        <div className="font-mono text-[10px] opacity-60 mt-0.5">No apostaste en esta fase</div>
+                    </div>
+                    <div className="bg-ink/30 text-cream border-[2px] border-cream/20 px-2.5 py-1 font-display text-[18px] flex-shrink-0">
+                        +0
+                    </div>
                 </div>
             </div>
         );

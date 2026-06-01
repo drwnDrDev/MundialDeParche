@@ -1,8 +1,32 @@
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, router } from '@inertiajs/react';
+import { useState } from 'react';
 
 export default function Index({ rounds }) {
     const post = (url) => router.post(url);
+    const [loadingLock, setLoadingLock] = useState(null);
+
+    const handleLock = async (round) => {
+        setLoadingLock(round.id);
+        try {
+            const res = await fetch(route('admin.rounds.pending', round.slug));
+            const { pending } = await res.json();
+
+            let message = `¿Bloquear "${round.name}"?\n\n`;
+            if (pending.length === 0) {
+                message += '✓ Todos los usuarios activados han confirmado sus predicciones.';
+            } else {
+                const names = pending.map(u => u.name).join('\n  - ');
+                message += `⚠️ ${pending.length} usuario(s) NO han confirmado:\n  - ${names}\n\nSus predicciones guardadas (o ninguna) serán auto-enviadas al bloquear.`;
+            }
+
+            if (confirm(message)) {
+                post(route('admin.rounds.lock', round.slug));
+            }
+        } finally {
+            setLoadingLock(null);
+        }
+    };
 
     return (
         <AdminLayout header="Rondas">
@@ -43,9 +67,11 @@ export default function Index({ rounds }) {
                                         </button>
                                     )}
                                     {round.is_open && !round.is_locked && (
-                                        <button onClick={() => post(route('admin.rounds.lock', round.slug))}
-                                            className="rounded bg-yellow-600 px-3 py-1 text-xs text-white hover:bg-yellow-700">
-                                            Bloquear
+                                        <button
+                                            onClick={() => handleLock(round)}
+                                            disabled={loadingLock === round.id}
+                                            className="rounded bg-yellow-600 px-3 py-1 text-xs text-white hover:bg-yellow-700 disabled:opacity-50">
+                                            {loadingLock === round.id ? 'Verificando...' : 'Bloquear'}
                                         </button>
                                     )}
                                     {round.is_locked && !round.is_finalized && (

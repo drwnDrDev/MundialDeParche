@@ -6,7 +6,7 @@ import TournamentProgress from '@/Components/composed/TournamentProgress';
 import PhaseCard from '@/Components/composed/PhaseCard';
 
 export default function Index({ rounds, submissions, phasePts }) {
-    const { auth } = usePage().props;
+    const { auth, flash } = usePage().props;
     const totalPts = auth.user?.total_points ?? 0;
 
     return (
@@ -29,6 +29,12 @@ export default function Index({ rounds, submissions, phasePts }) {
                     </div>
                 </div>
             </div>
+
+            {flash?.status && (
+                <div className="mx-[18px] mt-3 px-3 py-2 bg-pop-yel border-[2px] border-ink font-mono text-[11px]">
+                    {flash.status}
+                </div>
+            )}
 
             {/* Progress bar del torneo */}
             <TournamentProgress rounds={rounds} submissions={submissions} />

@@ -93,13 +93,7 @@ export default function Home({ user, featured, stats, phase, nextBets, phaseAler
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Link
-                            href={route('predictions.index')}
-                            className="h-9 px-2.5 border-[2.5px] border-ink bg-pop-red shadow-pop-sm font-display text-[11px] tracking-[.02em] flex items-center justify-center"
-                            aria-label="Mis fases"
-                        >
-                            FASES
-                        </Link>
+                        
                         <a href={route('rules')}
                             className="w-9 h-9 border-[2.5px] border-ink bg-cream shadow-pop-sm font-display text-[18px] flex items-center justify-center cursor-pointer"
                             aria-label="Cómo se juega y reglas"
@@ -116,7 +110,7 @@ export default function Home({ user, featured, stats, phase, nextBets, phaseAler
                 </div>
 
                 {/* Activation banner */}
-                {!user.isActivated && (
+                {!user.isActivated ? (
                     <div className="px-[18px] mt-3.5">
                         <Link
                             href={route('activation')}
@@ -130,6 +124,19 @@ export default function Home({ user, featured, stats, phase, nextBets, phaseAler
                             <span className="font-display text-[13px]">ACTIVARME →</span>
                         </Link>
                     </div>
+                ):(
+                    <div className="px-[18px] mt-3.5">
+                        <Link
+                            href={route('predictions.index')}
+                            className="flex items-center justify-center px-3.5 py-2.5 bg-pop-yel border-[2.5px] border-ink"
+                            style={{ boxShadow: '3px 3px 0 var(--c-ink)' }}
+                        >
+                            <div>
+                                <div className="font-display text-[13px] leading-none">MIS GOLES →</div>
+                            </div>
+                        </Link>
+                    </div>
+
                 )}
 
                 {/* Invite banner */}
@@ -190,7 +197,7 @@ export default function Home({ user, featured, stats, phase, nextBets, phaseAler
                 </div>
 
                 {/* Phase banner */}
-                {phase && (
+                {user.isActivated && phase?.missing !== 0 && (
                     <div className="px-5 mt-4">
                         <div className="bg-pop-red text-white border-[2.5px] border-ink shadow-pop-md px-3 py-2.5 flex items-center gap-2.5 relative overflow-hidden">
                             <div className="halftone halftone-yel absolute inset-0 pointer-events-none" style={{ opacity: 0.25 }} />
@@ -199,7 +206,7 @@ export default function Home({ user, featured, stats, phase, nextBets, phaseAler
                                     RONDA · {phase.name.toUpperCase()}
                                 </div>
                                 <div className="font-display text-[15px] mt-0.5 leading-tight">
-                                    FALTAN{' '}
+                                    TE FALTAN{' '}
                                     <span className="text-pop-yel">{phase.missing}</span>{' '}
                                     PARTIDOS
                                 </div>
@@ -213,7 +220,9 @@ export default function Home({ user, featured, stats, phase, nextBets, phaseAler
                                     </div>
                                 )}
                             </div>
-                            <div className="relative font-display text-[24px] leading-none">→</div>
+                            <div className="relative font-display text-[24px] leading-none">
+                              <a href={route('predictions.index')}>→</a>  
+                            </div>
                         </div>
                     </div>
                 )}

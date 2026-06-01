@@ -197,7 +197,7 @@ export default function Home({ user, featured, stats, phase, nextBets, phaseAler
                 </div>
 
                 {/* Phase banner */}
-                {user.isActivated && phase?.missing !== 0 && (
+                {user.isActivated && phase && phase.missing !== 0 && (
                     <div className="px-5 mt-4">
                         <div className="bg-pop-red text-white border-[2.5px] border-ink shadow-pop-md px-3 py-2.5 flex items-center gap-2.5 relative overflow-hidden">
                             <div className="halftone halftone-yel absolute inset-0 pointer-events-none" style={{ opacity: 0.25 }} />

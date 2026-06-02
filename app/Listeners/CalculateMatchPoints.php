@@ -52,11 +52,18 @@ class CalculateMatchPoints
                 }
             } else {
                 // Knockout: result = acertar el ganador real (winner_team_id)
-                if ($fixture->winner_team_id !== null && $prediction->predicted_home !== $prediction->predicted_away) {
-                    $predictedWinnerId = $prediction->predicted_home > $prediction->predicted_away
-                        ? $fixture->home_team_id
-                        : $fixture->away_team_id;
-                    if ($predictedWinnerId === $fixture->winner_team_id) {
+                if ($fixture->winner_team_id !== null) {
+                    if ($prediction->predicted_home !== $prediction->predicted_away) {
+                        // Predicción directa (sin empate): ganador = equipo con más goles
+                        $predictedWinnerId = $prediction->predicted_home > $prediction->predicted_away
+                            ? $fixture->home_team_id
+                            : $fixture->away_team_id;
+                    } else {
+                        // Predicción de empate a 90': ganador definido por predicted_winner_id (ET/penales)
+                        $predictedWinnerId = $prediction->predicted_winner_id;
+                    }
+
+                    if ($predictedWinnerId !== null && $predictedWinnerId === $fixture->winner_team_id) {
                         $ptsResult = $round->points_result;
                     }
                 }

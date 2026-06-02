@@ -123,6 +123,7 @@ class PredictionController extends Controller
             'predictions'                          => ['required', 'array'],
             'predictions.*.predicted_home'         => ['required', 'integer', 'min:0', 'max:20'],
             'predictions.*.predicted_away'         => ['required', 'integer', 'min:0', 'max:20'],
+            'predictions.*.predicted_winner_id'    => ['nullable', 'integer', 'exists:teams,id'],
             'predicted_classifiers'                => ['nullable', 'array'],
             'predicted_classifiers.*.team_id'      => ['required', 'integer'],
             'predicted_classifiers.*.group'        => ['required', 'string'],
@@ -130,9 +131,17 @@ class PredictionController extends Controller
         ]);
 
         if ($round->slug !== 'grupos') {
-            foreach ($data['predictions'] as $scores) {
-                if ((int) $scores['predicted_home'] === (int) $scores['predicted_away']) {
-                    return back()->withErrors(['predictions' => 'En rondas de eliminación debe haber un ganador (no empates).']);
+            $fixturesMap = $round->fixtures()->select(['id', 'home_team_id', 'away_team_id'])->get()->keyBy('id');
+            foreach ($data['predictions'] as $matchId => $scores) {
+                $h = (int) $scores['predicted_home'];
+                $a = (int) $scores['predicted_away'];
+                if ($h === $a) {
+                    $fixture   = $fixturesMap[(int) $matchId] ?? null;
+                    $winnerId  = isset($scores['predicted_winner_id']) ? (int) $scores['predicted_winner_id'] : null;
+                    $validIds  = $fixture ? [$fixture->home_team_id, $fixture->away_team_id] : [];
+                    if (! $winnerId || ! in_array($winnerId, $validIds)) {
+                        return back()->withErrors(['predictions' => 'Cuando predices empate, debes elegir quién avanza por ET/penales.']);
+                    }
                 }
             }
         }
@@ -140,11 +149,21 @@ class PredictionController extends Controller
         $fixtureIds = $round->fixtures()->pluck('id');
 
         return DB::transaction(function () use ($data, $fixtureIds, $round, $submission) {
+            $isKnockout = $round->slug !== 'grupos';
             foreach ($data['predictions'] as $matchId => $scores) {
                 if (! $fixtureIds->contains((int) $matchId)) continue;
+                $h = (int) $scores['predicted_home'];
+                $a = (int) $scores['predicted_away'];
+                $predictedWinnerId = ($isKnockout && $h === $a)
+                    ? ($scores['predicted_winner_id'] ?? null)
+                    : null;
                 Prediction::updateOrCreate(
                     ['user_id' => Auth::id(), 'match_id' => (int) $matchId],
-                    ['predicted_home' => $scores['predicted_home'], 'predicted_away' => $scores['predicted_away']]
+                    [
+                        'predicted_home'       => $h,
+                        'predicted_away'       => $a,
+                        'predicted_winner_id'  => $predictedWinnerId,
+                    ]
                 );
             }
 
@@ -333,9 +352,17 @@ class PredictionController extends Controller
 
                 $ph = (int) $pred->predicted_home;
                 $pa = (int) $pred->predicted_away;
-                if ($ph === $pa) continue; // empate no válido en knockout
 
-                $winner = $ph > $pa ? $f->homeTeam : $f->awayTeam;
+                if ($ph === $pa) {
+                    // Empate a 90': ganador por ET/penales
+                    $winnerId = $pred->predicted_winner_id;
+                    $winner   = $winnerId
+                        ? ($f->home_team_id === $winnerId ? $f->homeTeam : $f->awayTeam)
+                        : null;
+                } else {
+                    $winner = $ph > $pa ? $f->homeTeam : $f->awayTeam;
+                }
+
                 if (! $winner) continue;
 
                 $knockoutClassifiers[] = [

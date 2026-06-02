@@ -90,10 +90,49 @@ function GroupChip({ groupKey, active, done, teams, onClick }) {
     );
 }
 
+// ── WinnerPicker — selector de quien avanza en empate de knockout ─────────
+
+function WinnerPicker({ homeTeam, awayTeam, selectedId, onSelect, disabled }) {
+    const teams = [homeTeam, awayTeam].filter(Boolean);
+    if (teams.length < 2) return null;
+
+    return (
+        <div className="mt-2 px-2 pb-1">
+            <div className="font-mono text-[8px] tracking-[.1em] opacity-60 text-center mb-1.5">
+                ¿QUIÉN AVANZA? (ET / PENALES)
+            </div>
+            <div className="flex gap-1.5">
+                {teams.map(t => {
+                    const active = selectedId === t.id;
+                    return (
+                        <button
+                            key={t.id}
+                            type="button"
+                            disabled={disabled}
+                            onClick={() => onSelect(active ? null : t.id)}
+                            className={[
+                                'flex-1 flex items-center justify-center gap-1.5 py-1.5 border-[2px] border-ink font-display text-[11px] transition-colors',
+                                active
+                                    ? 'bg-pop-teal text-white'
+                                    : 'bg-white text-ink opacity-70',
+                            ].join(' ')}
+                            style={active ? { boxShadow: '2px 2px 0 var(--c-ink)' } : {}}
+                        >
+                            {t.flag_url && <img src={t.flag_url} alt="" className="h-3.5 w-5 object-cover" />}
+                            {t.fifa_code ?? t.name}
+                            {active && <span className="text-[9px]"> ✓</span>}
+                        </button>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
 // ── MatchPredRow ──────────────────────────────────────────────────────────
 
 function MatchPredRow({ fixture, homeScore, awayScore, onChangeHome, onChangeAway, disabled, last,
-                        simulatedHome, simulatedAway }) {
+                        simulatedHome, simulatedAway, isKnockout, predictedWinnerId, onSelectWinner }) {
     const filled = homeScore !== null && homeScore !== undefined
                 && awayScore !== null && awayScore !== undefined;
 
@@ -142,10 +181,26 @@ function MatchPredRow({ fixture, homeScore, awayScore, onChangeHome, onChangeAwa
                     rival simulado de tus predicciones
                 </div>
             )}
+
+            {/* Winner picker: solo en knockout cuando el marcador es empate */}
+            {isKnockout && filled && Number(homeScore) === Number(awayScore) && (
+                <WinnerPicker
+                    homeTeam={resolvedHome}
+                    awayTeam={resolvedAway}
+                    selectedId={predictedWinnerId}
+                    onSelect={onSelectWinner}
+                    disabled={disabled}
+                />
+            )}
+
             <div className="flex justify-center mt-2">
-                {filled ? (
+                {filled && (!isKnockout || Number(homeScore) !== Number(awayScore) || predictedWinnerId) ? (
                     <span className="inline-flex items-center gap-1 font-mono text-[8.5px] font-bold tracking-[.08em] bg-pop-teal text-white px-1.5 py-0.5 border-[1.5px] border-ink">
                         ✓ GUARDADO
+                    </span>
+                ) : filled && isKnockout && Number(homeScore) === Number(awayScore) ? (
+                    <span className="inline-flex items-center gap-1 font-mono text-[8.5px] font-bold tracking-[.08em] bg-pop-yel text-ink px-1.5 py-0.5 border-[1.5px] border-ink">
+                        ↑ ELIGE QUIÉN AVANZA
                     </span>
                 ) : (
                     <span className="inline-flex items-center gap-1 font-mono text-[8.5px] font-bold tracking-[.08em] bg-white text-pop-red px-1.5 py-0.5 border-[1.5px] border-dashed border-pop-red">
@@ -244,18 +299,18 @@ function simulateAllGroups(fixtures, scores) {
 }
 
 // ── Bracket simulation ────────────────────────────────────────────────────────
-function simulateBracketWinner(matchNumber, fixturesByMatchNumber, scores) {
+function simulateBracketWinner(matchNumber, fixturesByMatchNumber, scores, winners) {
     const fixture = fixturesByMatchNumber[matchNumber];
     if (!fixture) return null;
 
     const homeTeam = fixture.home_team
         ?? (fixture.home_fed_by_match_number
-            ? simulateBracketWinner(fixture.home_fed_by_match_number, fixturesByMatchNumber, scores)
+            ? simulateBracketWinner(fixture.home_fed_by_match_number, fixturesByMatchNumber, scores, winners)
             : null);
 
     const awayTeam = fixture.away_team
         ?? (fixture.away_fed_by_match_number
-            ? simulateBracketWinner(fixture.away_fed_by_match_number, fixturesByMatchNumber, scores)
+            ? simulateBracketWinner(fixture.away_fed_by_match_number, fixturesByMatchNumber, scores, winners)
             : null);
 
     if (!homeTeam || !awayTeam) return null;
@@ -263,10 +318,17 @@ function simulateBracketWinner(matchNumber, fixturesByMatchNumber, scores) {
     const s = scores[fixture.id];
     if (s?.home == null || s?.away == null) return null;
 
-    return Number(s.home) > Number(s.away) ? homeTeam : awayTeam;
+    const h = Number(s.home);
+    const a = Number(s.away);
+    if (h !== a) return h > a ? homeTeam : awayTeam;
+
+    // Empate: usar predicted winner (ET/penales)
+    const winnerId = winners[fixture.id];
+    if (!winnerId) return null;
+    return homeTeam.id === winnerId ? homeTeam : awayTeam;
 }
 
-function getBracketTeam(fixture, slot, fixturesByMatchNumber, scores) {
+function getBracketTeam(fixture, slot, fixturesByMatchNumber, scores, winners) {
     const realTeam = slot === 'home' ? fixture.home_team : fixture.away_team;
     if (realTeam) return { team: realTeam, isSimulated: false };
 
@@ -275,7 +337,7 @@ function getBracketTeam(fixture, slot, fixturesByMatchNumber, scores) {
         : fixture.away_fed_by_match_number;
     if (!fedBy) return { team: null, isSimulated: false };
 
-    return { team: simulateBracketWinner(fedBy, fixturesByMatchNumber, scores), isSimulated: true };
+    return { team: simulateBracketWinner(fedBy, fixturesByMatchNumber, scores, winners), isSimulated: true };
 }
 
 // ── GroupPanel ─────────────────────────────────────────────────────────────
@@ -371,15 +433,18 @@ export default function Round({ round, fixtures, predictions, submission }) {
 
     // Initialize scores from existing predictions
     const initialScores = {};
+    const initialWinners = {};
     fixtures.forEach(f => {
         const pred = predictions[f.id];
         initialScores[f.id] = {
             home: pred ? pred.predicted_home : null,
             away: pred ? pred.predicted_away : null,
         };
+        initialWinners[f.id] = pred?.predicted_winner_id ?? null;
     });
 
-    const [scores, setScores] = useState(initialScores);
+    const [scores,  setScores]  = useState(initialScores);
+    const [winners, setWinners] = useState(initialWinners);
 
     // Build lookup map for bracket simulation
     const fixturesByMatchNumber = Object.fromEntries(fixtures.map(f => [f.match_number, f]));
@@ -399,6 +464,13 @@ export default function Round({ round, fixtures, predictions, submission }) {
             ...prev,
             [fixtureId]: { ...prev[fixtureId], [side]: isNaN(value) ? null : value },
         }));
+        // Al cambiar marcador ya no es empate, limpiar winner
+        setWinners(prev => ({ ...prev, [fixtureId]: null }));
+    }
+
+    function handleSelectWinner(fixtureId, teamId) {
+        if (isLocked || isSubmitted) return;
+        setWinners(prev => ({ ...prev, [fixtureId]: teamId }));
     }
 
     function isGroupDone(key) {
@@ -420,10 +492,14 @@ export default function Round({ round, fixtures, predictions, submission }) {
         fixtures.forEach(f => {
             const s = scores[f.id];
             if (s && s.home !== null && s.away !== null) {
-                preds[String(f.id)] = {
+                const entry = {
                     predicted_home: Number(s.home),
                     predicted_away: Number(s.away),
                 };
+                if (!isGroupStage && Number(s.home) === Number(s.away) && winners[f.id]) {
+                    entry.predicted_winner_id = winners[f.id];
+                }
+                preds[String(f.id)] = entry;
             }
         });
         return { predictions: preds };
@@ -433,11 +509,13 @@ export default function Round({ round, fixtures, predictions, submission }) {
         const payload = buildPayload();
 
         if (!isGroupStage) {
-            const draws = Object.values(payload.predictions).filter(
-                s => Number(s.predicted_home) === Number(s.predicted_away)
-            );
-            if (draws.length > 0) {
-                setDrawError('En eliminatoria no puede haber empate — el marcador define el ganador. Corrige los marcadores iguales.');
+            const drawsWithoutWinner = fixtures.filter(f => {
+                const s = scores[f.id];
+                if (!s || s.home === null || s.away === null) return false;
+                return Number(s.home) === Number(s.away) && !winners[f.id];
+            });
+            if (drawsWithoutWinner.length > 0) {
+                setDrawError('Si predices empate, elige quién avanza por ET/penales en cada partido empatado.');
                 return;
             }
         }
@@ -571,8 +649,8 @@ export default function Round({ round, fixtures, predictions, submission }) {
                             </div>
                             <div className="mt-10">
                                 {fixtures.map((f, i) => {
-                                    const simHome = isBracketPhase ? getBracketTeam(f, 'home', fixturesByMatchNumber, scores) : { team: null, isSimulated: false };
-                                    const simAway = isBracketPhase ? getBracketTeam(f, 'away', fixturesByMatchNumber, scores) : { team: null, isSimulated: false };
+                                    const simHome = isBracketPhase ? getBracketTeam(f, 'home', fixturesByMatchNumber, scores, winners) : { team: null, isSimulated: false };
+                                    const simAway = isBracketPhase ? getBracketTeam(f, 'away', fixturesByMatchNumber, scores, winners) : { team: null, isSimulated: false };
                                     return (
                                         <MatchPredRow
                                             key={f.id}
@@ -585,6 +663,9 @@ export default function Round({ round, fixtures, predictions, submission }) {
                                             last={i === fixtures.length - 1}
                                             simulatedHome={simHome.isSimulated ? simHome.team : null}
                                             simulatedAway={simAway.isSimulated ? simAway.team : null}
+                                            isKnockout={true}
+                                            predictedWinnerId={winners[f.id] ?? null}
+                                            onSelectWinner={teamId => handleSelectWinner(f.id, teamId)}
                                         />
                                     );
                                 })}

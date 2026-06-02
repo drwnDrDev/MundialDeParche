@@ -15,6 +15,7 @@ class Prediction extends Model
         'match_id',
         'predicted_home',
         'predicted_away',
+        'predicted_winner_id',
         'pts_exact',
         'pts_result',
         'total_points',
@@ -25,8 +26,9 @@ class Prediction extends Model
     {
         return [
             'calculated_at' => 'datetime',
-            'predicted_home' => 'integer',
-            'predicted_away' => 'integer',
+            'predicted_home'       => 'integer',
+            'predicted_away'       => 'integer',
+            'predicted_winner_id'  => 'integer',
             'pts_exact' => 'integer',
             'pts_result' => 'integer',
             'total_points' => 'integer',

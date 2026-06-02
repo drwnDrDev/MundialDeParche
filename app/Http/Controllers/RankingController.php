@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -43,8 +44,9 @@ class RankingController extends Controller
         $fmt = fn ($n) => number_format($n / 1000, 0, '.', '.') . 'K';
 
         return Inertia::render('Ranking', [
-            'users' => $users,
-            'pozo'  => [
+            'users'               => $users,
+            'tournamentFinalized' => Cache::has('tournament_results'),
+            'pozo'                => [
                 'total'           => $fmt($total) ?: '0K',
                 'players'         => $activated,
                 'amountPerPlayer' => $fmt(50000),

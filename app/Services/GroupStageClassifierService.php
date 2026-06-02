@@ -51,33 +51,43 @@ class GroupStageClassifierService
      * Construye la tabla de posiciones de un grupo.
      *
      * @return array  Filas ordenadas desc por pts → gd → gf.
-     *                Cada fila: ['team_id', 'pts', 'gd', 'gf']
+     *                Cada fila: ['team_id', 'pts', 'gd', 'gf', 'ga', 'w', 'd', 'l', 'played']
      */
-    private function buildGroupTable(Collection $fixtures, callable $getScores): array
+    public function buildGroupTable(Collection $fixtures, callable $getScores): array
     {
         $table = [];
 
         foreach ($fixtures as $f) {
-            if ($f->home_team_id) $table[$f->home_team_id] ??= ['team_id' => $f->home_team_id, 'pts' => 0, 'gd' => 0, 'gf' => 0];
-            if ($f->away_team_id) $table[$f->away_team_id] ??= ['team_id' => $f->away_team_id, 'pts' => 0, 'gd' => 0, 'gf' => 0];
+            if ($f->home_team_id) $table[$f->home_team_id] ??= ['team_id' => $f->home_team_id, 'pts' => 0, 'gd' => 0, 'gf' => 0, 'ga' => 0, 'w' => 0, 'd' => 0, 'l' => 0, 'played' => 0];
+            if ($f->away_team_id) $table[$f->away_team_id] ??= ['team_id' => $f->away_team_id, 'pts' => 0, 'gd' => 0, 'gf' => 0, 'ga' => 0, 'w' => 0, 'd' => 0, 'l' => 0, 'played' => 0];
         }
 
         foreach ($fixtures as $f) {
             [$h, $a] = $getScores($f);
             if ($h === null || $a === null || !$f->home_team_id || !$f->away_team_id) continue;
 
-            $table[$f->home_team_id]['gf'] += $h;
-            $table[$f->home_team_id]['gd'] += $h - $a;
-            $table[$f->away_team_id]['gf'] += $a;
-            $table[$f->away_team_id]['gd'] += $a - $h;
+            $table[$f->home_team_id]['gf']     += $h;
+            $table[$f->home_team_id]['ga']     += $a;
+            $table[$f->home_team_id]['gd']     += $h - $a;
+            $table[$f->home_team_id]['played'] += 1;
+            $table[$f->away_team_id]['gf']     += $a;
+            $table[$f->away_team_id]['ga']     += $h;
+            $table[$f->away_team_id]['gd']     += $a - $h;
+            $table[$f->away_team_id]['played'] += 1;
 
             if ($h > $a) {
                 $table[$f->home_team_id]['pts'] += 3;
+                $table[$f->home_team_id]['w']   += 1;
+                $table[$f->away_team_id]['l']   += 1;
             } elseif ($h < $a) {
                 $table[$f->away_team_id]['pts'] += 3;
+                $table[$f->away_team_id]['w']   += 1;
+                $table[$f->home_team_id]['l']   += 1;
             } else {
                 $table[$f->home_team_id]['pts'] += 1;
+                $table[$f->home_team_id]['d']   += 1;
                 $table[$f->away_team_id]['pts'] += 1;
+                $table[$f->away_team_id]['d']   += 1;
             }
         }
 

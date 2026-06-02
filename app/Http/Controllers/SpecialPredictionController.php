@@ -8,6 +8,7 @@ use App\Models\Team;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -23,11 +24,22 @@ class SpecialPredictionController extends Controller
             ->where('user_id', Auth::id())
             ->first();
 
+        $realResults = null;
+        $cached      = Cache::get('tournament_results');
+        if ($cached) {
+            $realResults = [
+                'champion'   => Team::find($cached['champion_team_id']),
+                'runner_up'  => Team::find($cached['runner_up_team_id']),
+                'top_scorer' => Player::with('team')->find($cached['top_scorer_player_id']),
+            ];
+        }
+
         return Inertia::render('Predictions/Special', [
-            'special' => $special,
-            'teams'   => Team::with('group')->orderBy('name')->get(),
-            'players' => Player::with('team')->orderBy('name')->get(),
-            'status'  => session('status'),
+            'special'     => $special,
+            'teams'       => Team::with('group')->orderBy('name')->get(),
+            'players'     => Player::with('team')->orderBy('name')->get(),
+            'status'      => session('status'),
+            'realResults' => $realResults,
         ]);
     }
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Fixture;
 use App\Models\Prediction;
 use App\Models\Round;
+use App\Models\SpecialPrediction;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -218,12 +219,22 @@ class HomeController extends Controller
 
         if ($hoursLeft < 0) return null;
 
+        $pendingSpecials = false;
+        if ($round->slug === 'grupos') {
+            $special = SpecialPrediction::where('user_id', $user->id)->first();
+            $pendingSpecials = ! $special
+                || ! $special->champion_team_id
+                || ! $special->runner_up_team_id
+                || ! $special->top_scorer_player_id;
+        }
+
         return [
-            'round'       => $round->name,
-            'hoursLeft'   => $hoursLeft,
-            'minutesLeft' => (int) now()->diffInMinutes($round->closes_at, false) % 60,
-            'pending'     => max(0, $totalMatches - $predicted),
-            'total'       => $totalMatches,
+            'round'           => $round->name,
+            'hoursLeft'       => $hoursLeft,
+            'minutesLeft'     => (int) now()->diffInMinutes($round->closes_at, false) % 60,
+            'pending'         => max(0, $totalMatches - $predicted),
+            'total'           => $totalMatches,
+            'pendingSpecials' => $pendingSpecials,
         ];
     }
 }

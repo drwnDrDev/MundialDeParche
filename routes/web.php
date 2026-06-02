@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\PlayerController;
 use App\Http\Controllers\Admin\RoundController;
 use App\Http\Controllers\Admin\TeamController;
 use App\Http\Controllers\Admin\ScoreEntryController;
+use App\Http\Controllers\Admin\StandingsController;
 use App\Http\Controllers\Admin\TournamentController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ActivationController;
@@ -112,6 +113,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Tournament
     Route::get('tournament', [TournamentController::class, 'show'])->name('tournament');
     Route::post('tournament/finalize', [TournamentController::class, 'finalize'])->name('tournament.finalize');
+
+    // Standings
+    Route::get('standings', [StandingsController::class, 'index'])->name('standings');
 
     // Score Entry
     Route::get('score-entry', [ScoreEntryController::class, 'index'])->name('score-entry');

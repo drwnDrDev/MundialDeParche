@@ -132,6 +132,78 @@ function GoalScorerPicker({ playersByTeam, teams, playerId, customName, customTe
     );
 }
 
+// ── ComparisonCard ────────────────────────────────────────────────────────────
+
+function ComparisonCard({ label, predicted, real, pts, ptsType }) {
+    const isMatch = pts > 0;
+    return (
+        <div
+            className={[
+                'border-[2px] border-ink overflow-hidden',
+                isMatch ? 'bg-pop-teal/10' : 'bg-pop-red/10',
+            ].join(' ')}
+            style={{ boxShadow: '2px 2px 0 var(--c-ink)' }}
+        >
+            <div className="flex items-center justify-between px-3 py-2.5 gap-2">
+                <div className="flex-1 min-w-0">
+                    {/* Tu predicción */}
+                    <div className="font-mono text-[8px] opacity-50 tracking-[.08em] mb-1">TU PREDICCIÓN</div>
+                    <div className="flex items-center gap-1.5">
+                        {predicted?.flag_url && (
+                            <img src={predicted.flag_url} alt="" className="h-4 w-6 object-cover border border-ink/20 flex-shrink-0" />
+                        )}
+                        <span className="font-display text-[13px] leading-tight truncate">
+                            {(predicted?.name ?? '—').toUpperCase()}
+                        </span>
+                    </div>
+                    {/* Resultado real */}
+                    {real && (
+                        <>
+                            <div className="font-mono text-[8px] opacity-50 tracking-[.08em] mt-2 mb-1">RESULTADO REAL</div>
+                            <div className="flex items-center gap-1.5">
+                                {real.flag_url && (
+                                    <img src={real.flag_url} alt="" className="h-4 w-6 object-cover border border-ink/20 flex-shrink-0" />
+                                )}
+                                <span className="font-display text-[13px] leading-tight truncate">
+                                    {(real.name ?? '—').toUpperCase()}
+                                </span>
+                            </div>
+                        </>
+                    )}
+                </div>
+                <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                    <span className={`font-display text-[20px] leading-none ${isMatch ? 'text-pop-teal' : 'text-pop-red'}`}>
+                        {isMatch ? '✓' : '✗'}
+                    </span>
+                    <span
+                        className="font-display text-[13px] px-2 py-0.5 border-[2px] border-ink"
+                        style={{ background: ptsType === 'champion' ? 'var(--c-red)' : ptsType === 'runner' ? 'var(--c-teal)' : 'var(--c-yel)',
+                                 color: ptsType === 'scorer' ? 'var(--c-ink)' : '#fff' }}
+                    >
+                        +{pts}
+                    </span>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function LockedPredictionCard({ label, predicted }) {
+    return (
+        <div className="border-[2px] border-ink/30 bg-white/60 px-3 py-2.5 flex items-center gap-2.5">
+            {predicted?.flag_url && (
+                <img src={predicted.flag_url} alt="" className="h-5 w-7 object-cover border border-ink/20 flex-shrink-0" />
+            )}
+            <div>
+                <div className="font-mono text-[8px] opacity-50 tracking-[.08em]">{label}</div>
+                <div className="font-display text-[14px] leading-tight">
+                    {(predicted?.name ?? '—').toUpperCase()}
+                </div>
+            </div>
+        </div>
+    );
+}
+
 // ── SectionHeader ─────────────────────────────────────────────────────────────
 
 function SectionHeader({ title, subtitle, pts, ptsType }) {
@@ -158,7 +230,7 @@ function SectionHeader({ title, subtitle, pts, ptsType }) {
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
-export default function Special({ special, teams, players, status }) {
+export default function Special({ special, teams, players, status, realResults }) {
     const { auth } = usePage().props;
     const isLocked    = special?.is_locked ?? false;
     const totalPts    = auth.user?.total_points ?? 0;
@@ -293,19 +365,34 @@ export default function Special({ special, teams, players, status }) {
                             pts={30}
                             ptsType="champion"
                         />
-                        {isLocked && special?.pts_champion !== undefined && special.pts_champion !== null && (
-                            <div className="mb-2 flex items-center gap-2">
-                                <span className="font-mono text-[10px] opacity-60">PUNTOS GANADOS:</span>
-                                <PtsChip pts={special.pts_champion} type="exact" />
-                            </div>
+                        {isLocked && realResults ? (
+                            <ComparisonCard
+                                label="CAMPEÓN"
+                                predicted={special?.champion}
+                                real={realResults.champion}
+                                pts={special?.pts_champion ?? 0}
+                                ptsType="champion"
+                            />
+                        ) : isLocked ? (
+                            <>
+                                {special?.pts_champion !== undefined && special.pts_champion !== null && (
+                                    <div className="mb-2 flex items-center gap-2">
+                                        <span className="font-mono text-[10px] opacity-60">PUNTOS GANADOS:</span>
+                                        <PtsChip pts={special.pts_champion} type="exact" />
+                                    </div>
+                                )}
+                                <LockedPredictionCard label="TU CAMPEÓN" predicted={special?.champion} />
+                                <div className="mt-1.5 font-mono text-[9px] opacity-40 text-center tracking-[.06em]">ESPERANDO RESULTADOS OFICIALES</div>
+                            </>
+                        ) : (
+                            <TeamPickerGrid
+                                teams={teams}
+                                selectedId={championId}
+                                disabledId={runnerUpId}
+                                onSelect={setChampionId}
+                                locked={isLocked || !isActivated}
+                            />
                         )}
-                        <TeamPickerGrid
-                            teams={teams}
-                            selectedId={championId}
-                            disabledId={runnerUpId}
-                            onSelect={setChampionId}
-                            locked={isLocked || !isActivated}
-                        />
                     </div>
 
                     {/* ── Sección 2: Sub-campeón ── */}
@@ -317,19 +404,34 @@ export default function Special({ special, teams, players, status }) {
                             pts={10}
                             ptsType="runner"
                         />
-                        {isLocked && special?.pts_runner_up !== undefined && special.pts_runner_up !== null && (
-                            <div className="mb-2 flex items-center gap-2">
-                                <span className="font-mono text-[10px] opacity-60">PUNTOS GANADOS:</span>
-                                <PtsChip pts={special.pts_runner_up} type="result" />
-                            </div>
+                        {isLocked && realResults ? (
+                            <ComparisonCard
+                                label="SUB-CAMPEÓN"
+                                predicted={special?.runnerUp}
+                                real={realResults.runner_up}
+                                pts={special?.pts_runner_up ?? 0}
+                                ptsType="runner"
+                            />
+                        ) : isLocked ? (
+                            <>
+                                {special?.pts_runner_up !== undefined && special.pts_runner_up !== null && (
+                                    <div className="mb-2 flex items-center gap-2">
+                                        <span className="font-mono text-[10px] opacity-60">PUNTOS GANADOS:</span>
+                                        <PtsChip pts={special.pts_runner_up} type="result" />
+                                    </div>
+                                )}
+                                <LockedPredictionCard label="TU SUB-CAMPEÓN" predicted={special?.runnerUp} />
+                                <div className="mt-1.5 font-mono text-[9px] opacity-40 text-center tracking-[.06em]">ESPERANDO RESULTADOS OFICIALES</div>
+                            </>
+                        ) : (
+                            <TeamPickerGrid
+                                teams={teams}
+                                selectedId={runnerUpId}
+                                disabledId={championId}
+                                onSelect={setRunnerUpId}
+                                locked={isLocked || !isActivated}
+                            />
                         )}
-                        <TeamPickerGrid
-                            teams={teams}
-                            selectedId={runnerUpId}
-                            disabledId={championId}
-                            onSelect={setRunnerUpId}
-                            locked={isLocked || !isActivated}
-                        />
                     </div>
 
                     {/* ── Sección 3: Goleador ── */}
@@ -341,7 +443,19 @@ export default function Special({ special, teams, players, status }) {
                             pts={15}
                             ptsType="scorer"
                         />
-                        {isLocked ? (
+                        {isLocked && realResults ? (
+                            <ComparisonCard
+                                label="GOLEADOR"
+                                predicted={special?.topScorer
+                                    ? { name: special.topScorer.name, flag_url: special.topScorer.team?.flag_url ?? null }
+                                    : null}
+                                real={realResults.top_scorer
+                                    ? { name: realResults.top_scorer.name, flag_url: realResults.top_scorer.team?.flag_url ?? null }
+                                    : null}
+                                pts={special?.pts_top_scorer ?? 0}
+                                ptsType="scorer"
+                            />
+                        ) : isLocked ? (
                             <div>
                                 {special?.pts_top_scorer !== undefined && special.pts_top_scorer !== null && (
                                     <div className="mb-2 flex items-center gap-2">
@@ -361,6 +475,7 @@ export default function Special({ special, teams, players, status }) {
                                         )}
                                     </div>
                                 </div>
+                                <div className="mt-1.5 font-mono text-[9px] opacity-40 text-center tracking-[.06em]">ESPERANDO RESULTADOS OFICIALES</div>
                             </div>
                         ) : (
                             <GoalScorerPicker

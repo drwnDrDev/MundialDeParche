@@ -2,7 +2,7 @@ import { router } from '@inertiajs/react';
 import { Whistle } from '@/Components/icons/football';
 
 export default function DeadlineAlert({ deadlineAlert, onDismiss }) {
-    const { round, hoursLeft, minutesLeft, pending, total } = deadlineAlert;
+    const { round, hoursLeft, minutesLeft, pending, total, pendingSpecials } = deadlineAlert;
     const filled = total > 0 ? Math.round(((total - pending) / total) * 100) : 0;
 
     const pad = (n) => String(n).padStart(2, '0');
@@ -103,6 +103,22 @@ export default function DeadlineAlert({ deadlineAlert, onDismiss }) {
                     </div>
                     <div className="font-mono text-[9px] opacity-60 mt-1 text-right">{total - pending} / {total}</div>
                 </div>
+
+                {/* Especiales pendientes — solo R1 */}
+                {pendingSpecials && (
+                    <div
+                        className="mt-3 px-3.5 py-2.5 bg-pop-yel/20 border-[2.5px] border-ink"
+                        style={{ boxShadow: '3px 3px 0 var(--c-ink)' }}
+                    >
+                        <div className="flex items-center gap-2">
+                            <span className="text-[16px]">⚠️</span>
+                            <div>
+                                <div className="font-display text-[13px] leading-tight">ESPECIALES SIN GUARDAR</div>
+                                <div className="font-mono text-[10px] opacity-70 mt-0.5">Campeón · Sub-campeón · Goleador</div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* CTAs */}

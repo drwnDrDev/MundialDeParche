@@ -5,6 +5,7 @@ namespace App\Listeners;
 use App\Events\TournamentFinalized;
 use App\Models\SpecialPrediction;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 
 class CalculateSpecialPredictions
 {
@@ -27,5 +28,11 @@ class CalculateSpecialPredictions
 
             User::recalculateTotalPoints($special->user_id);
         }
+
+        Cache::forever('tournament_results', [
+            'champion_team_id'     => $event->championTeamId,
+            'runner_up_team_id'    => $event->runnerUpTeamId,
+            'top_scorer_player_id' => $event->topScorerPlayerId,
+        ]);
     }
 }

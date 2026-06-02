@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { useState, useEffect } from 'react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import TabBar from '@/Components/composed/TabBar';
 import PhaseOpenAlert from '@/Components/overlays/PhaseOpenAlert';
 import DeadlineAlert from '@/Components/overlays/DeadlineAlert';
@@ -37,9 +37,31 @@ function Ticker({ text }) {
 }
 
 export default function Home({ user, featured, stats, phase, nextBets, phaseAlert, deadlineAlert }) {
+    const { auth } = usePage().props;
     const avatarCls = AVATAR_CLASSES[user.avatarColor] ?? AVATAR_CLASSES.yel;
     const firstName = user.name.split(' ')[0].toUpperCase();
     const initial   = user.name.charAt(0).toUpperCase();
+
+    const [featuredData, setFeaturedData] = useState(featured);
+    const [totalPoints,  setTotalPoints]  = useState(user.totalPoints);
+    const [position,     setPosition]     = useState(stats.position);
+
+    useEffect(() => {
+        const channel = window.Echo.join('quinela');
+        channel.listen('.LiveScoreUpdated', (e) => {
+            setFeaturedData(prev => prev?.id === e.match_id
+                ? { ...prev, scoreA: e.home_score, scoreB: e.away_score, status: e.is_live ? 'live' : prev.status }
+                : prev
+            );
+        });
+        channel.listen('.PointsUpdated', (e) => {
+            if (e.user_id === auth.user.id) {
+                setTotalPoints(e.total_points);
+                setPosition(e.position);
+            }
+        });
+        return () => window.Echo.leave('quinela');
+    }, []);
 
     const [alertDismissed, setAlertDismissed] = useState(() => {
         if (phaseAlert) {
@@ -100,7 +122,7 @@ export default function Home({ user, featured, stats, phase, nextBets, phaseAler
                         >
                             ?
                         </a>
-                        <PtsBadge value={user.totalPoints} rank={`#${user.position}`} />
+                        <PtsBadge value={totalPoints} rank={`#${position}`} />
                     </div>
                 </div>
 
@@ -159,11 +181,11 @@ export default function Home({ user, featured, stats, phase, nextBets, phaseAler
                 {/* Featured match */}
                 <div className="px-5 mt-5">
                     <SectionHead
-                        title={featured?.status === 'live' ? 'AHORA MISMO' : 'EL PRÓXIMO'}
+                        title={featuredData?.status === 'live' ? 'AHORA MISMO' : 'EL PRÓXIMO'}
                         accent="red"
                     />
-                    {featured ? (
-                        <FeaturedMatchCard {...featured} />
+                    {featuredData ? (
+                        <FeaturedMatchCard {...featuredData} />
                     ) : (
                         <div className="border-[2.5px] border-ink p-4 text-center font-mono text-[12px] opacity-60">
                             No hay partidos programados
@@ -175,7 +197,7 @@ export default function Home({ user, featured, stats, phase, nextBets, phaseAler
                 <div className="px-5 mt-5 grid grid-cols-3 gap-2">
                     <StatCard
                         label="POSICIÓN"
-                        value={`#${stats.position}`}
+                        value={`#${position}`}
                         sub={`/ ${stats.totalActive}`}
                         color="red"
                         icon="trophy"

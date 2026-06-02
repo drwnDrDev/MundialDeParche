@@ -1,6 +1,38 @@
 import Burst from '@/Components/ui/Burst';
 import { GoalNet, SoccerBall } from '@/Components/icons/football';
 
+const MONTHS_ES = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+const DAYS_ES   = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
+
+function isSameDay(a, b) {
+    return a.getFullYear() === b.getFullYear()
+        && a.getMonth()    === b.getMonth()
+        && a.getDate()     === b.getDate();
+}
+
+function computeTimeLabel(matchDate) {
+    const d    = new Date(matchDate);
+    const now  = new Date();
+    const h    = d.getHours().toString().padStart(2, '0');
+    const m    = d.getMinutes().toString().padStart(2, '0');
+    const time = `${h}:${m}`;
+    const tomorrow = new Date(now);
+    tomorrow.setDate(now.getDate() + 1);
+
+    if (isSameDay(now, d))       return `HOY · ${time}`;
+    if (isSameDay(tomorrow, d))  return `MAÑ · ${time}`;
+    return `${d.getDate()} ${MONTHS_ES[d.getMonth()]} · ${time}`;
+}
+
+function computeBurstText(matchDate) {
+    const diffMs = new Date(matchDate).getTime() - Date.now();
+    const diffH  = Math.round(diffMs / 3_600_000);
+    if (diffH <= 0)  return '¡YA!';
+    if (diffH < 24)  return `EN ${diffH}H`;
+    if (diffH < 48)  return 'MAÑANA';
+    return DAYS_ES[new Date(matchDate).getDay()];
+}
+
 export default function FeaturedMatchCard({
     status,
     teamA, teamB,
@@ -12,15 +44,9 @@ export default function FeaturedMatchCard({
     myPick, myPts,
     isWinnerCorrect,
 }) {
-    const isLive = status === 'live';
-
-    let timeLabel = '';
-    if (!isLive && matchDate) {
-        const d = new Date(matchDate);
-        const h = d.getHours().toString().padStart(2, '0');
-        const m = d.getMinutes().toString().padStart(2, '0');
-        timeLabel = `HOY · ${h}:${m}`;
-    }
+    const isLive   = status === 'live';
+    const timeLabel = (!isLive && matchDate) ? computeTimeLabel(matchDate) : '';
+    const burstText = (!isLive && matchDate) ? computeBurstText(matchDate) : '¡VAMOS!';
 
     return (
         <div className="relative pt-3">
@@ -39,7 +65,7 @@ export default function FeaturedMatchCard({
             {/* Burst — top-right */}
             <div className="absolute -top-0.5 -right-2 z-10">
                 <Burst color={isLive ? 'yel' : 'red'} size="sm" rotate={isLive ? 14 : 12}>
-                    {isLive ? '¡VAMOS!' : 'EN 2H'}
+                    {isLive ? '¡VAMOS!' : burstText}
                 </Burst>
             </div>
 

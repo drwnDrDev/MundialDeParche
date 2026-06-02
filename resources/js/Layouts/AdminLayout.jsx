@@ -10,6 +10,7 @@ const NAV_LINKS = [
     { label: 'Jugadores',   href: () => route('admin.players.index') },
     { label: 'Usuarios',    href: () => route('admin.users.index') },
     { label: 'Posiciones',  href: () => route('admin.standings') },
+    { label: 'Torneo',      href: () => route('admin.tournament') },
     { label: 'Chat',        href: () => route('chat') },
 ];
 

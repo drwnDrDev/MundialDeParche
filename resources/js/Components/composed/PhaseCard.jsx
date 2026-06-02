@@ -143,6 +143,13 @@ export default function PhaseCard({ round, submission, phasePts }) {
                         EN JUEGO
                     </span>
                 </div>
+                <Link
+                    href={route('predictions.receipt', round.slug)}
+                    className="block w-full py-2 mt-3 bg-white text-ink font-display text-[12px] tracking-[.01em] border-[2px] border-ink text-center"
+                    style={{ boxShadow: '2px 2px 0 var(--c-ink)' }}
+                >
+                    VER COMPROBANTE →
+                </Link>
             </div>
         );
     }

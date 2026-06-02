@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\BracketController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FixtureController;
 use App\Http\Controllers\Admin\PlayerController;
@@ -115,4 +116,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Score Entry
     Route::get('score-entry', [ScoreEntryController::class, 'index'])->name('score-entry');
     Route::patch('score-entry/{fixture}', [ScoreEntryController::class, 'update'])->name('score-entry.update');
+
+    // Bracket
+    Route::post('bracket/populate-r32', [BracketController::class, 'populateR32'])->name('bracket.populate-r32');
 });

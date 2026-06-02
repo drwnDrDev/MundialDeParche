@@ -148,6 +148,17 @@ export default function Index({ rounds }) {
                                             Finalizar
                                         </button>
                                     )}
+                                    {round.is_finalized && round.slug === 'grupos' && (
+                                        <button
+                                            onClick={() => {
+                                                if (confirm('¿Poblar los 16 partidos del R32 con los clasificados de grupos?')) {
+                                                    post(route('admin.bracket.populate-r32'));
+                                                }
+                                            }}
+                                            className="rounded bg-indigo-600 px-3 py-1 text-xs text-white hover:bg-indigo-700">
+                                            Poblar R32
+                                        </button>
+                                    )}
                                     {round.is_finalized && (
                                         <span className="text-xs text-gray-400">✓ Completada</span>
                                     )}

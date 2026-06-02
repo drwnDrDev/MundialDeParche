@@ -310,6 +310,37 @@ class PredictionController extends Controller
             );
         }
 
+        // Clasificados knockout: solo R2 (r32) tiene points_classifier > 0
+        if ($round->slug === 'r32') {
+            $knockoutClassifiers = [];
+            foreach ($fixtures->whereNotNull('home_team_id')->whereNotNull('away_team_id') as $f) {
+                $pred = $predictions[$f->id] ?? null;
+                if (! $pred || $pred->predicted_home === null || $pred->predicted_away === null) continue;
+                if ($pred->predicted_home === $pred->predicted_away) continue;
+
+                $winner = $pred->predicted_home > $pred->predicted_away ? $f->homeTeam : $f->awayTeam;
+                if (! $winner) continue;
+
+                $knockoutClassifiers[] = [
+                    'team_id'      => $winner->id,
+                    'team_name'    => $winner->name,
+                    'flag_url'     => $winner->flag_url,
+                    'match_number' => $f->match_number,
+                ];
+            }
+
+            if (! empty($knockoutClassifiers)) {
+                $classifiers = $knockoutClassifiers;
+            }
+
+            if ($round->is_locked) {
+                $realClassifierIds = $fixtures->whereNotNull('winner_team_id')
+                    ->pluck('winner_team_id')
+                    ->values()
+                    ->toArray();
+            }
+        }
+
         // Predicciones especiales (solo ronda grupos)
         $specialPrediction = null;
         if ($round->slug === 'grupos') {

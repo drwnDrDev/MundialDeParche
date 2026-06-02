@@ -128,18 +128,61 @@ export default function Receipt({
 
                 {/* Bloque de clasificados */}
                 {classifiers && classifiers.length > 0 && (() => {
-                    const realIds = new Set(realClassifierIds ?? []);
+                    const realIds       = new Set(realClassifierIds ?? []);
+                    const isKnockout    = !classifiers[0]?.group;
+                    const hitCount      = isFinalized ? classifiers.filter(c => realIds.has(c.team_id)).length : null;
 
-                    const byGroup = {};
+                    if (isKnockout) {
+                        // Clasificados knockout (R32 → 16 clasificados a octavos)
+                        return (
+                            <div className="mx-[18px] my-3 border-[2.5px] border-ink overflow-hidden"
+                                 style={{ boxShadow: '3px 3px 0 var(--c-ink)' }}>
+                                <div className="bg-navy text-cream px-3.5 py-2.5 flex items-center justify-between">
+                                    <div>
+                                        <div className="font-mono text-[8px] tracking-[.1em] opacity-70">R32 — TUS CLASIFICADOS</div>
+                                        <div className="font-display text-[15px] leading-none mt-0.5">A OCTAVOS</div>
+                                    </div>
+                                    {isFinalized && (
+                                        <div className="font-mono text-[8px] opacity-70 text-right leading-[1.4]">
+                                            <div className="text-pop-teal font-bold">{hitCount} acertados</div>
+                                            <div className="opacity-60">de {classifiers.length}</div>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="bg-white px-3 pt-2 pb-1">
+                                    <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
+                                        {classifiers.map(c => {
+                                            const hit = isFinalized ? realIds.has(c.team_id) : null;
+                                            return (
+                                                <div key={c.team_id}
+                                                     className={[
+                                                         'flex items-center gap-1.5 py-1 border-b border-dashed border-black/10',
+                                                         hit === false ? 'opacity-40' : '',
+                                                     ].join(' ')}>
+                                                    {isFinalized && (
+                                                        <span className={`font-mono text-[10px] font-bold w-3.5 flex-shrink-0 ${hit ? 'text-pop-teal' : 'text-pop-red'}`}>
+                                                            {hit ? '✓' : '✗'}
+                                                        </span>
+                                                    )}
+                                                    {c.flag_url && <img src={c.flag_url} alt="" className="h-3 w-4 object-cover flex-shrink-0" />}
+                                                    <span className="font-display text-[10px] truncate leading-none">{(c.team_name ?? '?').toUpperCase()}</span>
+                                                    <span className="font-mono text-[8px] opacity-40 ml-auto flex-shrink-0">M{c.match_number}</span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    }
+
+                    // Clasificados fase de grupos (32 equipos con grupos/posiciones)
+                    const byGroup    = {};
                     classifiers.forEach(c => {
                         if (!byGroup[c.group]) byGroup[c.group] = [];
                         byGroup[c.group].push(c);
                     });
                     const bestThirds = classifiers.filter(c => c.position === 3);
-
-                    const hitCount = isFinalized
-                        ? classifiers.filter(c => realIds.has(c.team_id)).length
-                        : null;
 
                     return (
                         <div className="mx-[18px] my-3 border-[2.5px] border-ink overflow-hidden"
@@ -160,7 +203,7 @@ export default function Receipt({
                                 <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 mb-2">
                                     {Object.entries(byGroup)
                                         .sort(([a], [b]) => a.localeCompare(b))
-                                        .flatMap(([groupName, entries]) =>
+                                        .flatMap(([, entries]) =>
                                             entries
                                                 .filter(c => c.position <= 2)
                                                 .sort((a, b) => a.position - b.position)

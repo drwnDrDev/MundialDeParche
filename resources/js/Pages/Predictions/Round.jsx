@@ -362,11 +362,12 @@ function GroupPanel({ groupKey, fixtures, scores, isLocked, onChange, round }) {
 // ── Main Page ──────────────────────────────────────────────────────────────
 
 export default function Round({ round, fixtures, predictions, submission }) {
-    const { auth } = usePage().props;
+    const { auth, flash } = usePage().props;
     const isActivated = auth.user.is_activated;
     const isLocked    = submission?.status === 'locked';
     const isSubmitted = submission?.status === 'submitted';
     const isGroupStage = round.slug === 'grupos';
+    const [drawError, setDrawError] = useState(null);
 
     // Initialize scores from existing predictions
     const initialScores = {};
@@ -393,6 +394,7 @@ export default function Round({ round, fixtures, predictions, submission }) {
 
     function handleChange(fixtureId, side, value) {
         if (isLocked || isSubmitted) return;
+        setDrawError(null);
         setScores(prev => ({
             ...prev,
             [fixtureId]: { ...prev[fixtureId], [side]: isNaN(value) ? null : value },
@@ -429,6 +431,18 @@ export default function Round({ round, fixtures, predictions, submission }) {
 
     function submit() {
         const payload = buildPayload();
+
+        if (!isGroupStage) {
+            const draws = Object.values(payload.predictions).filter(
+                s => Number(s.predicted_home) === Number(s.predicted_away)
+            );
+            if (draws.length > 0) {
+                setDrawError('En eliminatoria no puede haber empate — el marcador define el ganador. Corrige los marcadores iguales.');
+                return;
+            }
+        }
+
+        setDrawError(null);
 
         if (isGroupStage && filledCount === totalFixtures) {
             payload.predicted_classifiers = simulateAllGroups(fixtures, scores);
@@ -657,6 +671,24 @@ export default function Round({ round, fixtures, predictions, submission }) {
                     );
                 })()}
             </div>
+
+            {/* Flash / error banners */}
+            {(drawError || flash?.status) && (
+                <div className="fixed bottom-[140px] left-[14px] right-[14px] z-50 flex flex-col gap-2">
+                    {drawError && (
+                        <div className="bg-pop-red text-white border-[2.5px] border-ink px-3 py-2 font-mono text-[10px] leading-[1.4]"
+                             style={{ boxShadow: '3px 3px 0 var(--c-ink)' }}>
+                            ⚠ {drawError}
+                        </div>
+                    )}
+                    {flash?.status && (
+                        <div className="bg-pop-teal text-white border-[2.5px] border-ink px-3 py-2 font-mono text-[10px] font-bold tracking-[.06em]"
+                             style={{ boxShadow: '3px 3px 0 var(--c-ink)' }}>
+                            ✓ {flash.status}
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Sticky CTA */}
             <div className="fixed bottom-[72px] left-0 right-0 bg-cream border-t-[3px] border-ink px-[14px] py-2.5 flex items-center gap-3 z-40">

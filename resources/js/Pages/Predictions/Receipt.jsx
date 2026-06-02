@@ -133,14 +133,17 @@ export default function Receipt({
                     const hitCount      = isFinalized ? classifiers.filter(c => realIds.has(c.team_id)).length : null;
 
                     if (isKnockout) {
-                        // Clasificados knockout (R32 → 16 clasificados a octavos)
+                        // Clasificados knockout (R32 → 16 a octavos | F3 → 4 semifinalistas)
+                        const knockoutLabel = round.slug === 'r32'
+                            ? { phase: 'R32 — TUS CLASIFICADOS', title: 'A OCTAVOS' }
+                            : { phase: 'CUARTOS — TUS CLASIFICADOS', title: 'A SEMIS' };
                         return (
                             <div className="mx-[18px] my-3 border-[2.5px] border-ink overflow-hidden"
                                  style={{ boxShadow: '3px 3px 0 var(--c-ink)' }}>
                                 <div className="bg-navy text-cream px-3.5 py-2.5 flex items-center justify-between">
                                     <div>
-                                        <div className="font-mono text-[8px] tracking-[.1em] opacity-70">R32 — TUS CLASIFICADOS</div>
-                                        <div className="font-display text-[15px] leading-none mt-0.5">A OCTAVOS</div>
+                                        <div className="font-mono text-[8px] tracking-[.1em] opacity-70">{knockoutLabel.phase}</div>
+                                        <div className="font-display text-[15px] leading-none mt-0.5">{knockoutLabel.title}</div>
                                     </div>
                                     {isFinalized && (
                                         <div className="font-mono text-[8px] opacity-70 text-right leading-[1.4]">

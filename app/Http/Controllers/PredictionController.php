@@ -310,15 +310,32 @@ class PredictionController extends Controller
             );
         }
 
-        // Clasificados knockout: solo R2 (r32) tiene points_classifier > 0
-        if ($round->slug === 'r32') {
-            $knockoutClassifiers = [];
-            foreach ($fixtures->whereNotNull('home_team_id')->whereNotNull('away_team_id') as $f) {
-                $pred = $predictions[$f->id] ?? null;
-                if (! $pred || $pred->predicted_home === null || $pred->predicted_away === null) continue;
-                if ($pred->predicted_home === $pred->predicted_away) continue;
+        // Clasificados knockout derivados de predicciones (r32 y f3 tienen points_classifier > 0)
+        if (in_array($round->slug, ['r32', 'f3'])) {
+            // f3 contiene octavos (M89-M96) + cuartos (M97-M100).
+            // Solo los cuartos dan puntos de clasificado → filtramos por match_number.
+            $eligibleFixtures = $round->slug === 'f3'
+                ? $fixtures->whereBetween('match_number', [97, 100])
+                : $fixtures->whereNotNull('home_team_id')->whereNotNull('away_team_id');
 
-                $winner = $pred->predicted_home > $pred->predicted_away ? $f->homeTeam : $f->awayTeam;
+            // Construir mapa fixture_id → predicción sin array access en Collection
+            $predMap = [];
+            foreach ($predictions as $pred) {
+                $predMap[(int) $pred->match_id] = $pred;
+            }
+
+            $knockoutClassifiers = [];
+            foreach ($eligibleFixtures as $f) {
+                if (! $f->home_team_id || ! $f->away_team_id) continue;
+
+                $pred = $predMap[(int) $f->id] ?? null;
+                if (! $pred) continue;
+
+                $ph = (int) $pred->predicted_home;
+                $pa = (int) $pred->predicted_away;
+                if ($ph === $pa) continue; // empate no válido en knockout
+
+                $winner = $ph > $pa ? $f->homeTeam : $f->awayTeam;
                 if (! $winner) continue;
 
                 $knockoutClassifiers[] = [
@@ -334,7 +351,8 @@ class PredictionController extends Controller
             }
 
             if ($round->is_locked) {
-                $realClassifierIds = $fixtures->whereNotNull('winner_team_id')
+                $realClassifierIds = $eligibleFixtures
+                    ->whereNotNull('winner_team_id')
                     ->pluck('winner_team_id')
                     ->values()
                     ->toArray();

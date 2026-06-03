@@ -13,14 +13,20 @@ use Inertia\Response;
 
 class MatchesController extends Controller
 {
+    private const FIFA_ROUNDS = [
+        'grupos'  => ['label' => 'GRUPOS',  'max' => 72],
+        'r32'     => ['label' => 'R32',     'max' => 88],
+        'octavos' => ['label' => 'OCTAVOS', 'max' => 96],
+        'cuartos' => ['label' => 'CUARTOS', 'max' => 100],
+        'semis'   => ['label' => 'SEMIS',   'max' => 102],
+        'final'   => ['label' => 'FINAL',   'max' => PHP_INT_MAX],
+    ];
+
     public function index(): Response
     {
         $user = Auth::user();
 
-        $currentRound = Round::where('is_open', true)->first()
-                     ?? Round::orderBy('order')->first();
-
-        $fixtures = Fixture::with(['homeTeam', 'awayTeam', 'group'])
+        $fixtures = Fixture::with(['homeTeam', 'awayTeam', 'group', 'winnerTeam'])
             ->orderBy('match_date')
             ->orderBy('match_number')
             ->get();
@@ -37,13 +43,33 @@ class MatchesController extends Controller
                 return [
                     'date'    => $date ? $this->formatDate($date) : 'SIN FECHA',
                     'dateKey' => $dateKey,
-                    'live'    => $dayFixtures->contains(fn ($f) => $f->status === 'live'),
+                    'live'    => $dayFixtures->contains(fn ($f) => $f->status === 'in_progress'),
                     'matches' => $dayFixtures
                         ->map(fn ($f) => $this->formatFixture($f, $myPredictions->get($f->id)))
                         ->values(),
                 ];
             })
             ->values();
+
+        // Build FIFA rounds with match counts (only those with fixtures)
+        $fifaRounds = collect(self::FIFA_ROUNDS)
+            ->map(fn ($def, $slug) => [
+                'slug'       => $slug,
+                'label'      => $def['label'],
+                'matchCount' => $fixtures->filter(fn ($f) => $this->fifaRoundSlug($f->match_number) === $slug)->count(),
+            ])
+            ->filter(fn ($r) => $r['matchCount'] > 0)
+            ->values();
+
+        // Default: earliest non-finished fixture's FIFA round; fallback to last round
+        $firstPending = $fixtures
+            ->filter(fn ($f) => $f->status !== 'finished')
+            ->sortBy('match_number')
+            ->first();
+
+        $defaultFifaRound = $firstPending
+            ? $this->fifaRoundSlug($firstPending->match_number)
+            : $this->fifaRoundSlug($fixtures->max('match_number') ?? 1);
 
         $groups = Group::with('teams')->orderBy('name')->get()
             ->map(fn ($g) => [
@@ -52,13 +78,19 @@ class MatchesController extends Controller
             ]);
 
         return Inertia::render('Matches', [
-            'matchDays'    => $matchDays,
-            'groups'       => $groups,
-            'currentRound' => $currentRound ? [
-                'name'         => $currentRound->name,
-                'totalMatches' => $currentRound->fixtures()->count(),
-            ] : null,
+            'matchDays'        => $matchDays,
+            'groups'           => $groups,
+            'fifaRounds'       => $fifaRounds,
+            'defaultFifaRound' => $defaultFifaRound,
         ]);
+    }
+
+    private function fifaRoundSlug(int $n): string
+    {
+        foreach (self::FIFA_ROUNDS as $slug => $def) {
+            if ($n <= $def['max']) return $slug;
+        }
+        return 'final';
     }
 
     private function formatDate(\Carbon\Carbon $date): string
@@ -78,20 +110,24 @@ class MatchesController extends Controller
         $pts    = $pred ? ($pred->pts_exact + $pred->pts_result) : null;
 
         return [
-            'id'       => $f->id,
-            'time'     => $f->match_date?->format('H:i') ?? '--:--',
-            'teamA'    => $f->homeTeam?->fifa_code ?? $f->home_placeholder ?? 'TBD',
-            'teamB'    => $f->awayTeam?->fifa_code ?? $f->away_placeholder ?? 'TBD',
-            'flagUrlA' => $f->homeTeam?->flag_url,
-            'flagUrlB' => $f->awayTeam?->flag_url,
-            'scoreA'   => $f->home_score,
-            'scoreB'   => $f->away_score,
-            'status'   => $status,
-            'minute'   => null,
-            'group'    => $f->group?->name ?? '—',
-            'venue'    => $f->venue ?? '—',
-            'myPick'   => $pred ? "{$pred->predicted_home}-{$pred->predicted_away}" : null,
-            'myPts'    => (in_array($status, ['ft', 'finished']) && $pts > 0) ? $pts : null,
+            'id'          => $f->id,
+            'time'        => $f->match_date?->format('H:i') ?? '--:--',
+            'teamA'       => $f->homeTeam?->fifa_code ?? $f->home_placeholder ?? 'TBD',
+            'teamB'       => $f->awayTeam?->fifa_code ?? $f->away_placeholder ?? 'TBD',
+            'flagUrlA'    => $f->homeTeam?->flag_url,
+            'flagUrlB'    => $f->awayTeam?->flag_url,
+            'scoreA'      => $f->home_score,
+            'scoreB'      => $f->away_score,
+            'status'      => $status,
+            'minute'      => null,
+            'group'       => $f->group?->name ?? '—',
+            'venue'       => $f->venue ?? '—',
+            'myPick'      => $pred ? "{$pred->predicted_home}-{$pred->predicted_away}" : null,
+            'myPts'       => (in_array($status, ['ft', 'finished']) && $pts > 0) ? $pts : null,
+            'matchNumber' => $f->match_number,
+            'fifaRound'   => $this->fifaRoundSlug($f->match_number),
+            'wentToET'    => (bool) $f->went_to_extra_time,
+            'winner'      => $f->winnerTeam?->fifa_code,
         ];
     }
 

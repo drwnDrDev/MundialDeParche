@@ -122,11 +122,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('restartdata', function () {
         $log = [];
 
-        Artisan::call('migrate', ['--force' => true]);
-        $log[] = '✓ migrate: ' . trim(Artisan::output());
-
-        Artisan::call('db:seed', ['--force' => true]);
-        $log[] = '✓ db:seed: ' . trim(Artisan::output());
+        Artisan::call('migrate:fresh', ['--seed' => true, '--force' => true]);
+        $log[] = '✓ migrate:fresh --seed: ' . trim(Artisan::output());
 
         Artisan::call('cache:clear');
         $log[] = '✓ cache:clear';

@@ -38,7 +38,8 @@ export default function Register() {
     return (
         <>
             <Head title="Entra al Parche — Registro" />
-            <div className="min-h-screen bg-cream relative overflow-hidden">
+            <div className="min-h-screen bg-cream overflow-hidden">
+            <div className="max-w-3xl mx-auto min-h-screen relative overflow-hidden">
 
                 {/* Halftone corners */}
                 <div className="halftone halftone-red absolute top-0 left-0 w-[220px] h-[220px] pointer-events-none" style={{ opacity: .35 }} />
@@ -157,6 +158,7 @@ export default function Register() {
                         Entra aquí
                     </Link>
                 </div>
+            </div>
             </div>
         </>
     );

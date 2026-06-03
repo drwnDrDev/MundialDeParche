@@ -38,7 +38,8 @@ export default function ResetPassword({ token, email }) {
     return (
         <>
             <Head title="Nueva contraseña" />
-            <div className="min-h-screen bg-cream relative overflow-hidden">
+            <div className="min-h-screen bg-cream overflow-hidden">
+            <div className="max-w-3xl mx-auto min-h-screen relative overflow-hidden">
 
                 {/* Halftone corners */}
                 <div className="halftone halftone-teal absolute top-0 left-0 w-[220px] h-[220px] pointer-events-none" style={{ opacity: .3 }} />
@@ -131,6 +132,7 @@ export default function ResetPassword({ token, email }) {
                         </Link>
                     </form>
                 </div>
+            </div>
             </div>
         </>
     );

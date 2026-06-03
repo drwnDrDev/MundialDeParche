@@ -5,7 +5,8 @@ export default function Splash() {
     return (
         <>
             <Head title="Mundial de Parche" />
-            <div className="bg-navy text-cream min-h-screen overflow-hidden relative">
+            <div className="bg-navy text-cream min-h-screen overflow-hidden">
+            <div className="max-w-3xl mx-auto min-h-screen relative overflow-hidden">
 
                 {/* Halftone cream overlay */}
                 <div
@@ -101,6 +102,7 @@ export default function Splash() {
                 >
                     v1.0 · BETA
                 </div>
+            </div>
             </div>
         </>
     );

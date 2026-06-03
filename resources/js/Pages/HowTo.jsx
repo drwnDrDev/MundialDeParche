@@ -86,7 +86,8 @@ export default function HowTo() {
     return (
         <>
             <Head title="Cómo se juega · Mundial de Parche" />
-            <div className="bg-cream min-h-screen overflow-hidden relative flex flex-col">
+            <div className="bg-cream min-h-screen overflow-hidden">
+            <div className="max-w-3xl mx-auto min-h-screen relative overflow-hidden flex flex-col">
 
                 {/* Halftone yel — top right */}
                 <div
@@ -229,6 +230,7 @@ export default function HowTo() {
                         ENTENDÍ, A METER GOLES →
                     </button>
                 </div>
+            </div>
             </div>
         </>
     );

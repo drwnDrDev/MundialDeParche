@@ -39,7 +39,8 @@ export default function Rules() {
     return (
         <>
             <Head title="Reglas · Mundial de Parche" />
-            <div className="bg-cream min-h-screen overflow-hidden relative flex flex-col">
+            <div className="bg-cream min-h-screen overflow-hidden">
+            <div className="max-w-3xl mx-auto min-h-screen relative overflow-hidden flex flex-col">
 
                 {/* Halftone navy — bottom left */}
                 <div
@@ -198,6 +199,7 @@ export default function Rules() {
                         VOLVER AL PARCHE →
                     </button>
                 </div>
+            </div>
             </div>
         </>
     );

@@ -85,6 +85,7 @@ class FixtureController extends Controller
             'away_score'         => ['nullable', 'integer', 'min:0'],
             'winner_team_id'     => ['nullable', Rule::in(array_filter([$request->home_team_id, $request->away_team_id]))],
             'went_to_extra_time' => ['boolean'],
+            'venue'              => ['nullable', 'string', 'max:120'],
             'status'             => ['required', 'in:scheduled,in_progress,finished'],
         ]);
 

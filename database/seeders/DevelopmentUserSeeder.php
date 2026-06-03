@@ -13,34 +13,13 @@ class DevelopmentUserSeeder extends Seeder
         User::firstOrCreate(
             ['email' => 'admin@pollamundial.test'],
             [
-                'name' => 'Admin',
-                'password' => Hash::make('password'),
-                'role' => 'admin',
-                'is_active' => true,
-                'is_activated' => true,
+                'name'          => 'Admin',
+                'password'      => Hash::make('password'),
+                'role'          => 'admin',
+                'is_active'     => true,
+                'is_activated'  => true,
                 'coins_balance' => 50,
             ]
         );
-
-        $users = [
-            ['name' => 'Juan',   'email' => 'juan@pollamundial.test'],
-            ['name' => 'María',  'email' => 'maria@pollamundial.test'],
-            ['name' => 'Carlos', 'email' => 'carlos@pollamundial.test'],
-            ['name' => 'Ana',    'email' => 'ana@pollamundial.test'],
-            ['name' => 'Luis',   'email' => 'luis@pollamundial.test'],
-        ];
-
-        foreach ($users as $userData) {
-            User::firstOrCreate(
-                ['email' => $userData['email']],
-                array_merge($userData, [
-                    'password' => Hash::make('password'),
-                    'role' => 'user',
-                    'is_active' => true,
-                    'is_activated' => true,
-                    'coins_balance' => 50,
-                ])
-            );
-        }
     }
 }

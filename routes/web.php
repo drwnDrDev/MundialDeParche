@@ -18,14 +18,9 @@ use App\Http\Controllers\PredictionController;
 use App\Http\Controllers\RankingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SpecialPredictionController;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-
-Route::get('migrate', function () {
-    Artisan::call('migrate --force');
-    Artisan::call('db:seed --force');
-    return 'Migrated';
-});
 
 Route::get('/', function () {
     if (auth()->check()) {
@@ -123,4 +118,31 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Bracket
     Route::post('bracket/populate-r32', [BracketController::class, 'populateR32'])->name('bracket.populate-r32');
+
+    Route::get('restartdata', function () {
+        $log = [];
+
+        Artisan::call('migrate', ['--force' => true]);
+        $log[] = '✓ migrate: ' . trim(Artisan::output());
+
+        Artisan::call('db:seed', ['--force' => true]);
+        $log[] = '✓ db:seed: ' . trim(Artisan::output());
+
+        Artisan::call('cache:clear');
+        $log[] = '✓ cache:clear';
+
+        Artisan::call('config:cache');
+        $log[] = '✓ config:cache';
+
+        Artisan::call('route:cache');
+        $log[] = '✓ route:cache';
+
+        Artisan::call('view:cache');
+        $log[] = '✓ view:cache';
+
+        return response('<pre style="font-family:monospace;padding:2rem">'
+            . implode("\n", $log)
+            . "\n\nDone ✔</pre>", 200)
+            ->header('Content-Type', 'text/html');
+    })->name('admin.restartdata');
 });

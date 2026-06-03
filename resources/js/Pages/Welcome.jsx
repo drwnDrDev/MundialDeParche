@@ -19,7 +19,8 @@ export default function Welcome() {
     return (
         <>
             <Head title="Bienvenido · Mundial de Parche" />
-            <div className="bg-navy text-cream min-h-screen overflow-hidden relative flex flex-col">
+            <div className="bg-navy text-cream min-h-screen overflow-hidden">
+            <div className="max-w-3xl mx-auto min-h-screen relative overflow-hidden flex flex-col">
 
                 {/* Halftone cream overlay */}
                 <div
@@ -123,6 +124,7 @@ export default function Welcome() {
                         ¿CÓMO SE JUEGA?
                     </button>
                 </div>
+            </div>
             </div>
         </>
     );

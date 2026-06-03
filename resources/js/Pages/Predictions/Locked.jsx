@@ -4,9 +4,8 @@ export default function Locked({ roundName, roundOrder, isLocked, opensAt }) {
     return (
         <>
             <Head title="Fase bloqueada" />
-            <div
-                className="bg-navy text-cream min-h-screen overflow-hidden flex flex-col relative"
-            >
+            <div className="bg-navy text-cream min-h-screen overflow-hidden">
+            <div className="max-w-3xl mx-auto min-h-screen relative overflow-hidden flex flex-col">
                 {/* Scanlines */}
                 <div className="scanlines absolute inset-0 pointer-events-none" />
 
@@ -90,6 +89,7 @@ export default function Locked({ roundName, roundOrder, isLocked, opensAt }) {
                         VER RANKING
                     </Link>
                 </div>
+            </div>
             </div>
         </>
     );

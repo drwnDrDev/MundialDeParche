@@ -15,6 +15,7 @@ export default function Edit({ fixture, rounds, groups, teams }) {
         away_score:         fixture.away_score ?? '',
         winner_team_id:     fixture.winner_team_id ?? '',
         went_to_extra_time: fixture.went_to_extra_time ?? false,
+        venue:              fixture.venue ?? '',
         status:             fixture.status,
     });
 
@@ -132,6 +133,15 @@ export default function Edit({ fixture, rounds, groups, teams }) {
                             <label htmlFor="extra_time" className="text-sm text-gray-700">Fue a tiempo extra / penales</label>
                         </div>
                     </fieldset>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Estadio / Sede</label>
+                        <input type="text" value={data.venue}
+                            onChange={e => setData('venue', e.target.value)}
+                            placeholder="Ej. MetLife Stadium · East Rutherford"
+                            className="mt-1 block w-full rounded border-gray-300 shadow-sm" />
+                        {errors.venue && <p className="mt-1 text-xs text-red-600">{errors.venue}</p>}
+                    </div>
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Estado</label>

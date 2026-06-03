@@ -14,8 +14,8 @@
         <meta property="og:title"       content="Mundial de Parche — Quiniela FIFA 2026" />
         <meta property="og:description" content="La quiniela del parche. Predice los goles, los clasificados y el campeón del Mundial 2026." />
         <meta property="og:image"       content="{{ url('images/og.jpeg') }}" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
+        <meta property="og:image:width" content="630" />
+        <meta property="og:image:height" content="800" />
         <meta property="og:url"         content="{{ url('/') }}" />
         <meta name="twitter:card"       content="summary_large_image" />
         <meta name="twitter:image"      content="{{ url('images/og.jpeg') }}" />

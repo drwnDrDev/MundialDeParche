@@ -10,7 +10,7 @@ use ImagickPixel;
 class GenerateOgImage extends Command
 {
     protected $signature   = 'og:generate';
-    protected $description = 'Generate public/images/og.png for social sharing';
+    protected $description = 'Generate public/images/og.jpeg for social sharing';
 
     private const W     = 1200;
     private const H     = 630;
@@ -133,7 +133,7 @@ class GenerateOgImage extends Command
         $border->rectangle(4, 4, self::W - 4, self::H - 4);
         $img->drawImage($border);
 
-        $path = public_path('images/og.png');
+        $path = public_path('images/og.jpeg');
         $img->writeImage($path);
         $img->destroy();
 

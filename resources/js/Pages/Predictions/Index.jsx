@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { usePage } from '@inertiajs/react';
 import MobileShell from '@/Components/MobileShell';
 import TabBar from '@/Components/composed/TabBar';
@@ -16,9 +16,18 @@ export default function Index({ rounds, submissions, phasePts }) {
             {/* Header */}
             <div className="px-[18px] pt-4 pb-0">
                 <div className="flex items-start justify-between">
-                    <div>
-                        <div className="font-mono text-[9px] tracking-[.1em] opacity-50">MUNDIAL 2026</div>
-                        <div className="font-display text-[32px] leading-none mt-0.5">MIS FASES</div>
+                    <div className="flex items-start gap-3">
+                        <button
+                            onClick={() => router.visit(route('home'))}
+                            className="mt-1 w-8 h-8 border-[2.5px] border-ink flex items-center justify-center font-display text-[14px] flex-shrink-0"
+                            style={{ boxShadow: '2px 2px 0 var(--c-ink)' }}
+                        >
+                            ←
+                        </button>
+                        <div>
+                            <div className="font-mono text-[9px] tracking-[.1em] opacity-50">MUNDIAL 2026</div>
+                            <div className="font-display text-[32px] leading-none mt-0.5">MIS FASES</div>
+                        </div>
                     </div>
                     <div
                         className="bg-pop-yel text-ink border-[2.5px] border-ink px-2.5 py-1.5 text-right flex-shrink-0"

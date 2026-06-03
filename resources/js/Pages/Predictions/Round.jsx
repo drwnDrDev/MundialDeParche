@@ -544,13 +544,22 @@ export default function Round({ round, fixtures, predictions, submission }) {
 
                 {/* Header */}
                 <div className="relative px-[18px] pt-1.5 flex items-start justify-between">
-                    <div>
-                        <div className="font-mono text-[10px] opacity-70 tracking-[.1em] mt-1.5">MUNDIAL 2026</div>
-                        <div className="font-display text-[32px] leading-none mt-0.5">
-                            MIS{' '}
-                            <span className="text-pop-red" style={{ WebkitTextStroke: '1.5px var(--c-ink)' }}>
-                                GOLES
-                            </span>
+                    <div className="flex items-start gap-3">
+                        <button
+                            onClick={() => router.visit(route('predictions.index'))}
+                            className="mt-2 w-8 h-8 border-[2.5px] border-ink flex items-center justify-center font-display text-[14px] flex-shrink-0"
+                            style={{ boxShadow: '2px 2px 0 var(--c-ink)' }}
+                        >
+                            ←
+                        </button>
+                        <div>
+                            <div className="font-mono text-[10px] opacity-70 tracking-[.1em] mt-1.5">MUNDIAL 2026</div>
+                            <div className="font-display text-[32px] leading-none mt-0.5">
+                                MIS{' '}
+                                <span className="text-pop-red" style={{ WebkitTextStroke: '1.5px var(--c-ink)' }}>
+                                    GOLES
+                                </span>
+                            </div>
                         </div>
                     </div>
                     <div className="flex flex-col items-end gap-1.5 mt-1.5">

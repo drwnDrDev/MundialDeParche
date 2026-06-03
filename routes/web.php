@@ -120,6 +120,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('bracket/populate-r32', [BracketController::class, 'populateR32'])->name('bracket.populate-r32');
 
     Route::get('restartdata', function () {
+        set_time_limit(120);
+
+        // Cambiar sesión a archivo para que migrate:fresh no mate la respuesta
+        config(['session.driver' => 'file']);
+
         $log = [];
 
         Artisan::call('migrate:fresh', ['--seed' => true, '--force' => true]);
@@ -139,7 +144,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
         return response('<pre style="font-family:monospace;padding:2rem">'
             . implode("\n", $log)
-            . "\n\nDone ✔</pre>", 200)
+            . "\n\nDone ✔ — Vuelve a iniciar sesión con las credenciales del seeder</pre>", 200)
             ->header('Content-Type', 'text/html');
     })->name('admin.restartdata');
 });

@@ -63,11 +63,11 @@ export default function FeaturedMatchCard({
             )}
 
             {/* Burst — top-right */}
-            <div className="absolute -top-0.5 -right-2 z-10">
+            {/* <div className="absolute -top-0.5 -right-2 z-10">
                 <Burst color={isLive ? 'yel' : 'red'} size="sm" rotate={isLive ? 14 : 12}>
                     {isLive ? '¡VAMOS!' : burstText}
                 </Burst>
-            </div>
+            </div> */}
 
             {/* Card */}
             <div className="border-[3px] border-ink shadow-pop-xl rounded-[3px] bg-navy text-cream p-4 overflow-hidden relative">

@@ -7,7 +7,7 @@ export default function PhaseOpenAlert({ phaseAlert, onDismiss }) {
     const hasSubtitle = toRound.includes('+');
 
     return (
-        <div className="fixed inset-0 z-50 bg-pop-red text-cream overflow-hidden flex flex-col pb-[79px]">
+        <div className="fixed max-w-3xl inset-0 z-50 bg-pop-red text-cream overflow-hidden flex flex-col pb-[79px]">
 
             {/* Halftone overlay */}
             <div

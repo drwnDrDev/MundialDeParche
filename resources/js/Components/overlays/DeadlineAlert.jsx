@@ -8,7 +8,7 @@ export default function DeadlineAlert({ deadlineAlert, onDismiss }) {
     const pad = (n) => String(n).padStart(2, '0');
 
     return (
-        <div className="fixed inset-0 z-50 bg-pop-yel overflow-hidden flex flex-col pb-[79px]">
+        <div className="fixed max-w-3xl inset-0 z-50 bg-pop-yel overflow-hidden flex flex-col pb-[79px]">
 
             {/* Halftone red overlay */}
             <div

@@ -25,6 +25,7 @@ it('LiveScoreUpdated broadcasts to presence-quinela with correct payload', funct
         'home_score' => 2,
         'away_score' => 1,
         'is_live'    => true,
+        'status'     => 'scheduled',
     ]);
 });
 

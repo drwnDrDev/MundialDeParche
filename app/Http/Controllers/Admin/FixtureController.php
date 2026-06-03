@@ -100,6 +100,7 @@ class FixtureController extends Controller
                     $fresh->home_score,
                     $fresh->away_score,
                     $fresh->isLive(),
+                    $fresh->status,
                 );
             }
         }

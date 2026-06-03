@@ -106,6 +106,7 @@ class CalculateMatchPoints
             $fixture->home_score,
             $fixture->away_score,
             $fixture->status === 'in_progress',
+            $fixture->status,
         );
 
         // Phase 3: dispatch exact score alerts using already-loaded user names

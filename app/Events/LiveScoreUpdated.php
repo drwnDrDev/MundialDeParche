@@ -12,10 +12,11 @@ class LiveScoreUpdated implements ShouldBroadcastNow
     use Dispatchable, InteractsWithSockets;
 
     public function __construct(
-        public readonly int  $matchId,
-        public readonly ?int $homeScore,
-        public readonly ?int $awayScore,
-        public readonly bool $isLive,
+        public readonly int    $matchId,
+        public readonly ?int   $homeScore,
+        public readonly ?int   $awayScore,
+        public readonly bool   $isLive,
+        public readonly string $status = 'scheduled',
     ) {}
 
     public function broadcastAs(): string
@@ -35,6 +36,7 @@ class LiveScoreUpdated implements ShouldBroadcastNow
             'home_score' => $this->homeScore,
             'away_score' => $this->awayScore,
             'is_live'    => $this->isLive,
+            'status'     => $this->status,
         ];
     }
 }

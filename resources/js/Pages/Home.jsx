@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import TabBar from '@/Components/composed/TabBar';
 import PhaseOpenAlert from '@/Components/overlays/PhaseOpenAlert';
 import DeadlineAlert from '@/Components/overlays/DeadlineAlert';
@@ -46,13 +46,22 @@ export default function Home({ user, featured, stats, phase, nextBets, phaseAler
     const [totalPoints,  setTotalPoints]  = useState(user.totalPoints);
     const [position,     setPosition]     = useState(stats.position);
 
+    // Sync featured from Inertia partial reload
+    useEffect(() => { setFeaturedData(featured); }, [featured]);
+
     useEffect(() => {
         const channel = window.Echo.join('quinela');
         channel.listen('.LiveScoreUpdated', (e) => {
-            setFeaturedData(prev => prev?.id === e.match_id
-                ? { ...prev, scoreA: e.home_score, scoreB: e.away_score, status: e.is_live ? 'live' : prev.status }
-                : prev
-            );
+            setFeaturedData(prev => {
+                if (prev?.id !== e.match_id) return prev;
+                const newStatus = e.status === 'in_progress' ? 'live' : e.status;
+                if (newStatus === 'finished') {
+                    // Match done — reload featured to show the next upcoming match
+                    router.reload({ only: ['featured'] });
+                    return prev;
+                }
+                return { ...prev, scoreA: e.home_score, scoreB: e.away_score, status: newStatus };
+            });
         });
         channel.listen('.PointsUpdated', (e) => {
             if (e.user_id === auth.user.id) {

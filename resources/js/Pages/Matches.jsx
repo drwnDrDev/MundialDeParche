@@ -1,5 +1,5 @@
+import { useState, useEffect, useRef, forwardRef } from 'react';
 import { Head } from '@inertiajs/react';
-import { useState, useEffect } from 'react';
 import MobileShell from '@/Components/MobileShell';
 import TabBar from '@/Components/composed/TabBar';
 import MatchCard from '@/Components/composed/MatchCard';
@@ -20,24 +20,25 @@ function ViewTab({ label, active, last, onClick }) {
     );
 }
 
-function DateChip({ label, date, active, onClick }) {
+const RoundChip = forwardRef(function RoundChip({ label, count, active, onClick }, ref) {
     return (
         <button
+            ref={ref}
             onClick={onClick}
             className={[
-                'flex-shrink-0 px-2.5 py-1.5 border-[2.5px] border-ink text-center min-w-[56px]',
+                'flex-shrink-0 px-3 py-1.5 border-[2.5px] border-ink text-center',
                 active ? 'bg-pop-red text-white shadow-pop' : 'bg-white text-ink shadow-pop-sm',
             ].join(' ')}
         >
             <div className="font-display text-[13px] leading-none">{label}</div>
-            <div className="font-mono text-[9px] font-bold opacity-80 mt-0.5 tracking-[.06em]">{date}</div>
+            <div className="font-mono text-[9px] font-bold opacity-80 mt-0.5 tracking-[.06em]">{count}P</div>
         </button>
     );
-}
+});
 
-function DayBlock({ day }) {
+const DayBlock = forwardRef(function DayBlock({ day }, ref) {
     return (
-        <div className="mb-3">
+        <div ref={ref} className="mb-3">
             <div className="flex items-center gap-2 mb-1.5">
                 <span
                     className={`w-3 h-3 border-2 border-ink flex-shrink-0 ${
@@ -55,20 +56,29 @@ function DayBlock({ day }) {
             </div>
         </div>
     );
-}
+});
 
-export default function Matches({ matchDays: initialMatchDays, groups, currentRound }) {
+export default function Matches({ matchDays: initialMatchDays, groups, fifaRounds, defaultFifaRound }) {
     const today = new Date().toISOString().split('T')[0];
 
-    const [matchDays, setMatchDays] = useState(initialMatchDays);
+    const [matchDays, setMatchDays]                = useState(initialMatchDays);
+    const [view, setView]                          = useState('calendar');
+    const [selectedFifaRound, setSelectedFifaRound] = useState(defaultFifaRound);
 
-    const defaultDate = matchDays.find(d => d.dateKey === today)?.dateKey
-        ?? matchDays[0]?.dateKey
-        ?? null;
+    const activeChipRef = useRef(null);
+    const todayRef      = useRef(null);
 
-    const [view, setView]                 = useState('calendar');
-    const [selectedDate, setSelectedDate] = useState(defaultDate);
+    // Auto-scroll active chip into view on mount and on chip change
+    useEffect(() => {
+        activeChipRef.current?.scrollIntoView({ inline: 'center', behavior: 'instant', block: 'nearest' });
+    }, [selectedFifaRound]);
 
+    // Auto-scroll to today's DayBlock when round changes
+    useEffect(() => {
+        todayRef.current?.scrollIntoView({ behavior: 'instant', block: 'start' });
+    }, [selectedFifaRound]);
+
+    // Real-time score updates
     useEffect(() => {
         const channel = window.Echo.join('quinela');
         channel.listen('.LiveScoreUpdated', (event) => {
@@ -76,12 +86,7 @@ export default function Matches({ matchDays: initialMatchDays, groups, currentRo
                 ...day,
                 matches: day.matches.map(m =>
                     m.id === event.match_id
-                        ? {
-                            ...m,
-                            home_score: event.home_score,
-                            away_score: event.away_score,
-                            status: event.is_live ? 'in_progress' : m.status,
-                          }
+                        ? { ...m, home_score: event.home_score, away_score: event.away_score, status: event.status }
                         : m
                 ),
             })));
@@ -89,9 +94,12 @@ export default function Matches({ matchDays: initialMatchDays, groups, currentRo
         return () => { window.Echo.leave('quinela'); };
     }, []);
 
-    const visibleDays = selectedDate
-        ? matchDays.filter(d => d.dateKey === selectedDate)
-        : matchDays;
+    const visibleDays = matchDays
+        .map(day => ({
+            ...day,
+            matches: day.matches.filter(m => m.fifaRound === selectedFifaRound),
+        }))
+        .filter(day => day.matches.length > 0);
 
     return (
         <>
@@ -114,14 +122,9 @@ export default function Matches({ matchDays: initialMatchDays, groups, currentRo
                             PARTIDOS
                         </div>
                     </div>
-                    <div className="flex flex-col items-end gap-1 mt-2">
-                        {currentRound && (
-                            <div className="bg-navy text-cream border-[2px] border-ink px-2 py-0.5 font-display text-[9px] tracking-[.04em]">
-                                {currentRound.name.toUpperCase()}
-                            </div>
-                        )}
+                    <div className="mt-2">
                         <div className="font-mono text-[9px] opacity-65 tracking-[.06em]">
-                            {currentRound?.totalMatches ?? '—'} partidos
+                            {matchDays.reduce((s, d) => s + d.matches.length, 0)} partidos
                         </div>
                     </div>
                 </div>
@@ -145,32 +148,35 @@ export default function Matches({ matchDays: initialMatchDays, groups, currentRo
 
                 {view === 'calendar' ? (
                     <>
-                        {/* Date strip */}
+                        {/* Round chips */}
                         <div className="pt-3 pl-[14px]">
                             <div className="flex gap-1.5 overflow-x-auto pr-[14px] pb-1">
-                                {matchDays.map(day => {
-                                    const isToday = day.dateKey === today;
-                                    const parts   = day.date.split(' ');
-                                    return (
-                                        <DateChip
-                                            key={day.dateKey}
-                                            label={isToday ? 'HOY' : parts[0]}
-                                            date={parts.slice(1).join(' ')}
-                                            active={selectedDate === day.dateKey}
-                                            onClick={() => setSelectedDate(day.dateKey)}
-                                        />
-                                    );
-                                })}
+                                {fifaRounds.map(round => (
+                                    <RoundChip
+                                        key={round.slug}
+                                        label={round.label}
+                                        count={round.matchCount}
+                                        active={selectedFifaRound === round.slug}
+                                        ref={selectedFifaRound === round.slug ? activeChipRef : null}
+                                        onClick={() => setSelectedFifaRound(round.slug)}
+                                    />
+                                ))}
                             </div>
                         </div>
+
+                        {/* Match list */}
                         <div className="px-[14px] pt-2.5 pb-4">
                             {visibleDays.length > 0 ? (
                                 visibleDays.map(day => (
-                                    <DayBlock key={day.dateKey} day={day} />
+                                    <DayBlock
+                                        key={day.dateKey}
+                                        day={day}
+                                        ref={day.dateKey === today ? todayRef : null}
+                                    />
                                 ))
                             ) : (
                                 <div className="text-center font-mono text-[11px] opacity-50 py-8">
-                                    No hay partidos para esta fecha
+                                    No hay partidos para esta ronda
                                 </div>
                             )}
                             <div className="pt-2 text-center font-mono text-[10px] opacity-40 tracking-[.08em]">

@@ -7,15 +7,16 @@ export default function MatchCard({
     minute,
     group, venue,
     myPick, myPts,
-    matchNumber, fifaRound, wentToET, winner,
+    matchNumber, fifaRound, winner, winnerFlagUrl,
 }) {
     const isLive = status === 'in_progress' || status === 'live';
     const isFT   = status === 'finished' || status === 'ft';
     const isUp   = !isLive && !isFT;
 
-    const matchInfo = fifaRound === 'grupos'
+    const matchInfo   = fifaRound === 'grupos'
         ? `GRUPO ${group} · ${venue}`
         : `M${matchNumber} · ${venue}`;
+    const showWinner = isFT && winner && scoreA != null && scoreB != null && scoreA === scoreB;
 
     return (
         <div className={[
@@ -75,39 +76,49 @@ export default function MatchCard({
 
             {/* Footer */}
             <div className={[
-                'mt-2 pt-2 flex items-center justify-between gap-1.5',
-                'font-mono text-[9px] font-bold tracking-[.06em]',
+                'mt-2 pt-2 font-mono text-[9px] font-bold tracking-[.06em]',
                 isLive
                     ? 'border-t border-dashed border-cream/30'
                     : 'border-t border-dashed border-black/20',
             ].join(' ')}>
-                <div className="flex flex-col gap-0.5">
+                <div className={`flex items-center gap-1.5 ${showWinner ? 'justify-between' : 'justify-between'}`}>
+                    {/* Left: match info */}
                     <span className={isLive ? 'opacity-80' : 'opacity-65'}>{matchInfo}</span>
-                    {isFT && wentToET && winner && (
-                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 border-[1.5px] border-ink bg-pop-yel text-ink">
-                            {winner} · ET/PEN
+
+                    {/* Center: winner badge (only when ET/PEN) */}
+                    {showWinner && (
+                        <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
+                            <span className="font-mono text-[8px] tracking-[.1em] opacity-70">GANADOR</span>
+                            <div className="flex items-center gap-1 px-1.5 py-0.5 border-[1.5px] border-ink bg-pop-yel text-ink">
+                                {winnerFlagUrl && (
+                                    <img src={winnerFlagUrl} alt={winner} className="h-3 w-4 object-cover border border-ink/40" />
+                                )}
+                                <span className="font-display text-[12px] leading-none">{winner}</span>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Right: my pick */}
+                    {myPick ? (
+                        <span className={[
+                            'inline-flex items-center gap-1 px-1.5 py-0.5 border-[1.5px] border-ink flex-shrink-0',
+                            isFT && myPts != null
+                                ? 'bg-pop-teal text-white'
+                                : 'bg-pop-yel text-ink',
+                        ].join(' ')}>
+                            TUS GOLES: {myPick}{isFT && myPts != null ? ` · +${myPts} PTS` : ''}
+                        </span>
+                    ) : (
+                        <span className={[
+                            'px-1.5 py-0.5 border-[1.5px] border-dashed flex-shrink-0',
+                            isLive
+                                ? 'border-cream/60 text-cream'
+                                : 'border-pop-red text-pop-red',
+                        ].join(' ')}>
+                            ! FALTAN TUS GOLES
                         </span>
                     )}
                 </div>
-                {myPick ? (
-                    <span className={[
-                        'inline-flex items-center gap-1 px-1.5 py-0.5 border-[1.5px] border-ink flex-shrink-0',
-                        isFT && myPts != null
-                            ? 'bg-pop-teal text-white'
-                            : 'bg-pop-yel text-ink',
-                    ].join(' ')}>
-                        TUS GOLES: {myPick}{isFT && myPts != null ? ` · +${myPts} PTS` : ''}
-                    </span>
-                ) : (
-                    <span className={[
-                        'px-1.5 py-0.5 border-[1.5px] border-dashed flex-shrink-0',
-                        isLive
-                            ? 'border-cream/60 text-cream'
-                            : 'border-pop-red text-pop-red',
-                    ].join(' ')}>
-                        ! FALTAN TUS GOLES
-                    </span>
-                )}
             </div>
         </div>
     );

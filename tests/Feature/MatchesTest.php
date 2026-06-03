@@ -53,8 +53,8 @@ it('formatFixture includes fifaRound matchNumber wentToET winner', function () {
             ->component('Matches')
             ->where('matchDays.0.matches.0.fifaRound', 'grupos')
             ->where('matchDays.0.matches.0.matchNumber', 1)
-            ->where('matchDays.0.matches.0.wentToET', false)
             ->where('matchDays.0.matches.0.winner', 'MEX')
+            ->where('matchDays.0.matches.0.winnerFlagUrl', null)
         );
 });
 

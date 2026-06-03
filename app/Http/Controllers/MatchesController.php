@@ -124,10 +124,10 @@ class MatchesController extends Controller
             'venue'       => $f->venue ?? '—',
             'myPick'      => $pred ? "{$pred->predicted_home}-{$pred->predicted_away}" : null,
             'myPts'       => (in_array($status, ['ft', 'finished']) && $pts > 0) ? $pts : null,
-            'matchNumber' => $f->match_number,
-            'fifaRound'   => $this->fifaRoundSlug($f->match_number),
-            'wentToET'    => (bool) $f->went_to_extra_time,
-            'winner'      => $f->winnerTeam?->fifa_code,
+            'matchNumber'    => $f->match_number,
+            'fifaRound'      => $this->fifaRoundSlug($f->match_number),
+            'winner'         => $f->winnerTeam?->fifa_code,
+            'winnerFlagUrl'  => $f->winnerTeam?->flag_url,
         ];
     }
 

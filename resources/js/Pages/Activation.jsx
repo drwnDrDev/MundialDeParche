@@ -91,7 +91,7 @@ export default function Activation({ adminName, adminPhone, adminWhatsApp }) {
                         </span>
                     </div>
                     <div className="font-body text-[13px] mt-2 opacity-80 leading-[1.35]">
-                        Tu aporte de entrada se suma al pozo del parche. Cuando el admin lo confirme, quedás adentro y podés meter goles.
+                        Tu aporte de entrada se suma al pozo del parche. Confirma con el Admin el pago y listo, quedas dentro y a meter goles.
                     </div>
                 </div>
 
@@ -179,7 +179,7 @@ export default function Activation({ adminName, adminPhone, adminWhatsApp }) {
                         onClick={() => router.visit(route('dashboard'))}
                         className="w-full py-2 text-ink font-display text-[11px] tracking-[.01em] opacity-80"
                     >
-                        MIENTRAS, EXPLORAR EL PARCHE
+                        MIENTRAS, EXPLORAR EL PARCHE ➡️
                     </button>
                 </div>
             </div>

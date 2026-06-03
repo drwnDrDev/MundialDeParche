@@ -46,11 +46,11 @@ export default function Welcome() {
                 </div>
 
                 {/* Burst — top right */}
-                <div className="absolute top-[130px] right-3 z-10" style={{ transform: 'rotate(14deg)' }}>
+                {/* <div className="absolute top-[130px] right-3 z-10" style={{ transform: 'rotate(14deg)' }}>
                     <Burst color="yel" size="lg">
                         ¡DALE, PARCERO!
                     </Burst>
-                </div>
+                </div> */}
 
                 {/* Main content */}
                 <div className="relative z-10 flex-1 flex flex-col justify-center text-center px-[26px] pt-10">

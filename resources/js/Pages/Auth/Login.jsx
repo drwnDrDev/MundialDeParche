@@ -133,12 +133,12 @@ export default function Login({ status, canResetPassword }) {
                     </button>
                 </form>
 
-                {/* Burst +500K */}
+                {/* Burst +50K */}
                 <div
                     className="absolute top-[80px] right-[18px] z-10 bg-pop-yel border-[2.5px] border-ink px-3 py-2 font-display text-[12px] text-ink text-center"
                     style={{ transform: 'rotate(12deg)', boxShadow: '3px 3px 0 var(--c-ink)' }}
                 >
-                    +500K<br />BIENVE-<br />NIDA
+                    +50K<br />BIENVE-<br />NIDA
                 </div>
 
                 {/* Ghost ball */}

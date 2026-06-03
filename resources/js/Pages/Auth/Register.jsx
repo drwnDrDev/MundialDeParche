@@ -88,7 +88,7 @@ export default function Register() {
                         type="text"
                         name="name"
                         value={data.name}
-                        placeholder="ej: Tigre7, GolazoKing"
+                        placeholder="ej: lucho_14, GolazoKing"
                         autoComplete="nickname"
                         autoFocus
                         onChange={e => setData('name', e.target.value)}

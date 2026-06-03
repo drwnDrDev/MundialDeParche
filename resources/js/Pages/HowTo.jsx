@@ -198,9 +198,6 @@ export default function HowTo() {
                                 <PrizeBlock place="1°" pct="70%" />
                                 <PrizeBlock place="2°" pct="20%" />
                             </div>
-                            <div className="font-mono text-[10px] opacity-80 mt-2 leading-[1.4] max-w-[230px]">
-                                Con 84 parceros son <b className="text-pop-yel">4.200K</b> al final. El 10% cubre la operación de la plataforma.
-                            </div>
                         </div>
                     </Cromo>
 

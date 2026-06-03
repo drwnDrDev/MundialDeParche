@@ -7,14 +7,19 @@ export default function MatchCard({
     minute,
     group, venue,
     myPick, myPts,
+    matchNumber, fifaRound, wentToET, winner,
 }) {
-    const isLive = status === 'live';
-    const isFT   = status === 'ft';
-    const isUp   = status === 'upcoming';
+    const isLive = status === 'in_progress' || status === 'live';
+    const isFT   = status === 'finished' || status === 'ft';
+    const isUp   = !isLive && !isFT;
+
+    const matchInfo = fifaRound === 'grupos'
+        ? `GRUPO ${group} · ${venue}`
+        : `M${matchNumber} · ${venue}`;
 
     return (
         <div className={[
-            'border-2.5 border-ink shadow-pop p-[10px_12px] relative overflow-hidden',
+            'border-[2.5px] border-ink shadow-pop p-[10px_12px] relative overflow-hidden',
             isLive ? 'bg-navy text-cream' : 'bg-white text-ink',
         ].join(' ')}>
             {isLive && (
@@ -48,7 +53,7 @@ export default function MatchCard({
                 <div className="flex-1 grid grid-cols-[1fr_auto_1fr] items-center gap-1.5">
                     <div className="flex items-center gap-1.5 justify-end">
                         <span className="font-display text-[13px]">{teamA}</span>
-                        <img src={flagUrlA} alt={teamA} className="h-4 w-6 object-cover border border-ink" />
+                        {flagUrlA && <img src={flagUrlA} alt={teamA} className="h-4 w-6 object-cover border border-ink" />}
                     </div>
                     <div className="flex items-center gap-1 px-1">
                         {isUp ? (
@@ -62,7 +67,7 @@ export default function MatchCard({
                         )}
                     </div>
                     <div className="flex items-center gap-1.5">
-                        <img src={flagUrlB} alt={teamB} className="h-4 w-6 object-cover border border-ink" />
+                        {flagUrlB && <img src={flagUrlB} alt={teamB} className="h-4 w-6 object-cover border border-ink" />}
                         <span className="font-display text-[13px]">{teamB}</span>
                     </div>
                 </div>
@@ -76,12 +81,17 @@ export default function MatchCard({
                     ? 'border-t border-dashed border-cream/30'
                     : 'border-t border-dashed border-black/20',
             ].join(' ')}>
-                <span className={isLive ? 'opacity-80' : 'opacity-65'}>
-                    GRUPO {group} · {venue}
-                </span>
+                <div className="flex flex-col gap-0.5">
+                    <span className={isLive ? 'opacity-80' : 'opacity-65'}>{matchInfo}</span>
+                    {isFT && wentToET && winner && (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 border-[1.5px] border-ink bg-pop-yel text-ink">
+                            {winner} · ET/PEN
+                        </span>
+                    )}
+                </div>
                 {myPick ? (
                     <span className={[
-                        'inline-flex items-center gap-1 px-1.5 py-0.5 border-[1.5px] border-ink',
+                        'inline-flex items-center gap-1 px-1.5 py-0.5 border-[1.5px] border-ink flex-shrink-0',
                         isFT && myPts != null
                             ? 'bg-pop-teal text-white'
                             : 'bg-pop-yel text-ink',
@@ -90,7 +100,7 @@ export default function MatchCard({
                     </span>
                 ) : (
                     <span className={[
-                        'px-1.5 py-0.5 border-[1.5px] border-dashed',
+                        'px-1.5 py-0.5 border-[1.5px] border-dashed flex-shrink-0',
                         isLive
                             ? 'border-cream/60 text-cream'
                             : 'border-pop-red text-pop-red',

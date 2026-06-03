@@ -91,6 +91,10 @@ class GroupStageClassifierService
             }
         }
 
+        // Exclude teams with no predicted/scored matches — prevents groups with
+        // zero predictions from producing phantom classifiers via arbitrary sort order.
+        $table = array_filter($table, fn ($row) => $row['played'] > 0);
+
         usort($table, fn ($a, $b) =>
             $b['pts'] <=> $a['pts'] ?: $b['gd'] <=> $a['gd'] ?: $b['gf'] <=> $a['gf']
         );

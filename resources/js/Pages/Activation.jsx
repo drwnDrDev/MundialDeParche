@@ -39,7 +39,8 @@ export default function Activation({ adminName, adminPhone, adminWhatsApp }) {
     return (
         <>
             <Head title="Activación · Mundial de Parche" />
-            <div className="bg-cream min-h-screen overflow-hidden relative flex flex-col">
+            <div className="bg-cream min-h-screen overflow-hidden">
+            <div className="max-w-3xl mx-auto min-h-screen relative flex flex-col">
 
                 {/* Halftone yel — top right */}
                 <div
@@ -181,6 +182,7 @@ export default function Activation({ adminName, adminPhone, adminWhatsApp }) {
                         MIENTRAS, EXPLORAR EL PARCHE
                     </button>
                 </div>
+            </div>
             </div>
         </>
     );

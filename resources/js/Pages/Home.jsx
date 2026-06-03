@@ -100,7 +100,8 @@ export default function Home({ user, featured, stats, phase, nextBets, phaseAler
                 <DeadlineAlert deadlineAlert={deadlineAlert} onDismiss={handleDismiss} />
             )}
             <Head title="PARCHE" />
-            <div className="min-h-screen bg-cream relative overflow-x-hidden pb-28">
+            <div className="min-h-screen bg-cream overflow-x-hidden">
+            <div className="max-w-3xl mx-auto w-full relative pb-28">
 
                 {/* Halftone decoration — top right */}
                 <div
@@ -271,6 +272,7 @@ export default function Home({ user, featured, stats, phase, nextBets, phaseAler
                         </div>
                     </div>
                 )}
+            </div>
             </div>
 
             <TabBar active="home" />

@@ -63,7 +63,8 @@ export default function Chat({ messages: initialMessages, liveMatch }) {
         <>
             <Head title="El Parche" />
             {/* 80px = approximate TabBar rendered height (pt-2.5 + pb-[22px] + icon ~36px) */}
-            <div className="flex flex-col bg-cream overflow-hidden" style={{ height: '100vh', paddingBottom: '79px' }}>
+            <div className="bg-cream overflow-hidden" style={{ height: '100vh' }}>
+            <div className="max-w-3xl mx-auto h-full flex flex-col" style={{ paddingBottom: '79px' }}>
 
                 {/* Header */}
                 <div className="flex-shrink-0 px-4 pb-2.5 pt-1.5 border-b-[3px] border-ink bg-pop-yel relative overflow-hidden">
@@ -150,6 +151,7 @@ export default function Chat({ messages: initialMessages, liveMatch }) {
                         </Link>
                     </div>
                 )}
+            </div>
             </div>
             <TabBar active="chat" />
         </>

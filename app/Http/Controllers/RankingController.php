@@ -17,7 +17,7 @@ class RankingController extends Controller
         $lastPts  = null;
         $counter  = 0;
 
-        $users = User::where('is_active', true)
+        $users = User::where('is_activated', true)
             ->where('role', 'user')
             ->orderByDesc('total_points')
             ->select(['id', 'name', 'total_points'])

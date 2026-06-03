@@ -35,7 +35,7 @@ function ScoreBoxInput({ value, onChange, disabled }) {
                 value={value ?? ''}
                 onChange={e => onChange(parseInt(e.target.value, 10))}
                 disabled={disabled}
-                className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-default w-full h-full"
+                className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-default w-full h-full p-0"
                 aria-label="goles"
             />
         </div>

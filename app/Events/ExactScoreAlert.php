@@ -11,11 +11,14 @@ class ExactScoreAlert implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets;
 
+    /**
+     * @param array<int, string> $userNames
+     */
     public function __construct(
-        public readonly string $userName,
-        public readonly int    $matchId,
-        public readonly int    $homeScore,
-        public readonly int    $awayScore,
+        public readonly array $userNames,
+        public readonly int   $matchId,
+        public readonly int   $homeScore,
+        public readonly int   $awayScore,
     ) {}
 
     public function broadcastAs(): string
@@ -31,7 +34,7 @@ class ExactScoreAlert implements ShouldBroadcastNow
     public function broadcastWith(): array
     {
         return [
-            'user_name'  => $this->userName,
+            'user_names' => $this->userNames,
             'match_id'   => $this->matchId,
             'home_score' => $this->homeScore,
             'away_score' => $this->awayScore,

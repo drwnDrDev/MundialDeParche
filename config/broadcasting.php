@@ -43,6 +43,10 @@ return [
             ],
             'client_options' => [
                 // Guzzle client options: https://docs.guzzlephp.org/en/stable/request-options.html
+                // Sin timeout, una demora del servidor de websockets cuelga el request
+                // hasta max_execution_time (error 500)
+                'timeout' => 3,
+                'connect_timeout' => 2,
             ],
         ],
 
@@ -61,6 +65,10 @@ return [
             ],
             'client_options' => [
                 // Guzzle client options: https://docs.guzzlephp.org/en/stable/request-options.html
+                // Sin timeout, una demora del servidor de websockets cuelga el request
+                // hasta max_execution_time (error 500)
+                'timeout' => 3,
+                'connect_timeout' => 2,
             ],
         ],
 

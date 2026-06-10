@@ -3,7 +3,7 @@
 use App\Events\ExactScoreAlert;
 use App\Events\LiveScoreUpdated;
 use App\Events\MatchScoreUpdated;
-use App\Events\PointsUpdated;
+use App\Events\RankingUpdated;
 use App\Listeners\CalculateMatchPoints;
 use App\Models\Fixture;
 use App\Models\Group;
@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Event;
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    Event::fake([LiveScoreUpdated::class, PointsUpdated::class, ExactScoreAlert::class]);
+    Event::fake([LiveScoreUpdated::class, RankingUpdated::class, ExactScoreAlert::class]);
 });
 
 it('prediction_submission has pts_classifier column', function () {

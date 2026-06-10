@@ -70,13 +70,13 @@ class ScoreEntryController extends Controller
         MatchScoreUpdated::dispatch($fresh);
 
         if (in_array($data['status'], ['in_progress', 'finished'])) {
-            LiveScoreUpdated::dispatch(
+            rescue(fn () => LiveScoreUpdated::dispatch(
                 $fresh->id,
                 $fresh->home_score,
                 $fresh->away_score,
                 $fresh->isLive(),
                 $fresh->status,
-            );
+            ));
         }
 
         return redirect()->route('admin.score-entry', ['round_id' => $fixture->round_id])

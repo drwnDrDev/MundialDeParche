@@ -3,7 +3,7 @@
 use App\Events\ExactScoreAlert;
 use App\Events\LiveScoreUpdated;
 use App\Events\MatchScoreUpdated;
-use App\Events\PointsUpdated;
+use App\Events\RankingUpdated;
 use App\Listeners\CalculateMatchPoints;
 use App\Models\Fixture;
 use App\Models\Group;
@@ -37,7 +37,7 @@ function makeGroupFixtureWithScore(Round $round, int $home, int $away, int $matc
 
 it('dispatches LiveScoreUpdated after match points calculation', function () {
     // Fake only the broadcast events (not MatchScoreUpdated itself)
-    Event::fake([LiveScoreUpdated::class, PointsUpdated::class, ExactScoreAlert::class]);
+    Event::fake([LiveScoreUpdated::class, RankingUpdated::class, ExactScoreAlert::class]);
 
     $round   = Round::factory()->f1()->create();
     $user    = User::factory()->create();
@@ -58,8 +58,8 @@ it('dispatches LiveScoreUpdated after match points calculation', function () {
     });
 });
 
-it('dispatches PointsUpdated for each affected user after calculation', function () {
-    Event::fake([LiveScoreUpdated::class, PointsUpdated::class, ExactScoreAlert::class]);
+it('dispatches a single RankingUpdated with all affected users after calculation', function () {
+    Event::fake([LiveScoreUpdated::class, RankingUpdated::class, ExactScoreAlert::class]);
 
     $round   = Round::factory()->f1()->create();
     $userA   = User::factory()->create();
@@ -71,20 +71,29 @@ it('dispatches PointsUpdated for each affected user after calculation', function
 
     Prediction::factory()->create([
         'user_id' => $userA->id, 'match_id' => $fixture->id,
-        'predicted_home' => 2, 'predicted_away' => 1,
+        'predicted_home' => 2, 'predicted_away' => 1, // exacto: 3 + 1 = 4 pts
     ]);
     Prediction::factory()->create([
         'user_id' => $userB->id, 'match_id' => $fixture->id,
-        'predicted_home' => 1, 'predicted_away' => 0,
+        'predicted_home' => 1, 'predicted_away' => 0, // resultado: 1 pt
     ]);
 
     (new CalculateMatchPoints)->handle(new MatchScoreUpdated($fixture));
 
-    Event::assertDispatchedTimes(PointsUpdated::class, 2);
+    Event::assertDispatchedTimes(RankingUpdated::class, 1);
+    Event::assertDispatched(RankingUpdated::class, function ($e) use ($userA, $userB) {
+        $byUser = collect($e->updates)->keyBy('user_id');
+
+        return count($e->updates) === 2
+            && $byUser[$userA->id]['total_points'] === 4
+            && $byUser[$userA->id]['position'] === 1
+            && $byUser[$userB->id]['total_points'] === 1
+            && $byUser[$userB->id]['position'] === 2;
+    });
 });
 
 it('dispatches ExactScoreAlert when a user gets pts_exact', function () {
-    Event::fake([LiveScoreUpdated::class, PointsUpdated::class, ExactScoreAlert::class]);
+    Event::fake([LiveScoreUpdated::class, RankingUpdated::class, ExactScoreAlert::class]);
 
     $round   = Round::factory()->f1()->create();
     $user    = User::factory()->create(['name' => 'Ana']);
@@ -99,7 +108,7 @@ it('dispatches ExactScoreAlert when a user gets pts_exact', function () {
     (new CalculateMatchPoints)->handle(new MatchScoreUpdated($fixture));
 
     Event::assertDispatched(ExactScoreAlert::class, function ($e) use ($fixture) {
-        return $e->userName === 'Ana'
+        return $e->userNames === ['Ana']
             && $e->matchId === $fixture->id
             && $e->homeScore === 3
             && $e->awayScore === 1;
@@ -107,7 +116,7 @@ it('dispatches ExactScoreAlert when a user gets pts_exact', function () {
 });
 
 it('does not dispatch ExactScoreAlert when no user gets pts_exact', function () {
-    Event::fake([LiveScoreUpdated::class, PointsUpdated::class, ExactScoreAlert::class]);
+    Event::fake([LiveScoreUpdated::class, RankingUpdated::class, ExactScoreAlert::class]);
 
     $round   = Round::factory()->f1()->create();
     $user    = User::factory()->create();
@@ -124,8 +133,8 @@ it('does not dispatch ExactScoreAlert when no user gets pts_exact', function () 
     Event::assertNotDispatched(ExactScoreAlert::class);
 });
 
-it('dispatches ExactScoreAlert for each user who gets pts_exact', function () {
-    Event::fake([LiveScoreUpdated::class, PointsUpdated::class, ExactScoreAlert::class]);
+it('dispatches a single ExactScoreAlert with every user who gets pts_exact', function () {
+    Event::fake([LiveScoreUpdated::class, RankingUpdated::class, ExactScoreAlert::class]);
 
     $round   = Round::factory()->f1()->create();
     $userA   = User::factory()->create(['name' => 'Ana']);
@@ -146,13 +155,38 @@ it('dispatches ExactScoreAlert for each user who gets pts_exact', function () {
 
     (new CalculateMatchPoints)->handle(new MatchScoreUpdated($fixture));
 
-    Event::assertDispatchedTimes(ExactScoreAlert::class, 2);
-    Event::assertDispatched(ExactScoreAlert::class, fn ($e) => $e->userName === 'Ana');
-    Event::assertDispatched(ExactScoreAlert::class, fn ($e) => $e->userName === 'Bob');
+    Event::assertDispatchedTimes(ExactScoreAlert::class, 1);
+    Event::assertDispatched(ExactScoreAlert::class, function ($e) {
+        return collect($e->userNames)->sort()->values()->all() === ['Ana', 'Bob'];
+    });
+});
+
+it('uses a constant number of queries regardless of how many users predicted', function () {
+    Event::fake([LiveScoreUpdated::class, RankingUpdated::class, ExactScoreAlert::class]);
+
+    $round   = Round::factory()->f1()->create();
+    $fixture = makeGroupFixtureWithScore($round, 2, 1);
+
+    $users = User::factory(8)->create();
+    foreach ($users as $i => $user) {
+        PredictionSubmission::factory()->submitted()->create(['user_id' => $user->id, 'round_id' => $round->id]);
+        Prediction::factory()->create([
+            'user_id' => $user->id, 'match_id' => $fixture->id,
+            'predicted_home' => $i % 3, 'predicted_away' => ($i + 1) % 3,
+        ]);
+    }
+
+    \Illuminate\Support\Facades\DB::enableQueryLog();
+    (new CalculateMatchPoints)->handle(new MatchScoreUpdated($fixture));
+    $queries = count(\Illuminate\Support\Facades\DB::getQueryLog());
+    \Illuminate\Support\Facades\DB::disableQueryLog();
+
+    // 8 usuarios con el código viejo costaban ~40+ queries; el batch debe ser constante
+    expect($queries)->toBeLessThanOrEqual(15);
 });
 
 it('dispatches LiveScoreUpdated with isLive=true when match is in_progress', function () {
-    Event::fake([LiveScoreUpdated::class, PointsUpdated::class, ExactScoreAlert::class]);
+    Event::fake([LiveScoreUpdated::class, RankingUpdated::class, ExactScoreAlert::class]);
 
     $round   = Round::factory()->f1()->create();
     $group   = Group::factory()->create();

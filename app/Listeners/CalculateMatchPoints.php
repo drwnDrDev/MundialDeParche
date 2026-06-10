@@ -5,10 +5,13 @@ namespace App\Listeners;
 use App\Events\ExactScoreAlert;
 use App\Events\LiveScoreUpdated;
 use App\Events\MatchScoreUpdated;
-use App\Events\PointsUpdated;
+use App\Events\RankingUpdated;
 use App\Models\Prediction;
 use App\Models\PredictionSubmission;
+use App\Models\SpecialPrediction;
 use App\Models\User;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class CalculateMatchPoints
 {
@@ -30,7 +33,7 @@ class CalculateMatchPoints
             ->whereIn('user_id', $submittedUserIds)
             ->get();
 
-        $affectedUserIds   = [];
+        $idsByPoints       = []; // "exact|result" => [prediction ids]
         $exactScoreHitters = []; // user IDs who got pts_exact
 
         foreach ($predictions as $prediction) {
@@ -69,55 +72,134 @@ class CalculateMatchPoints
                 }
             }
 
-            $prediction->update([
-                'pts_exact'     => $ptsExact,
-                'pts_result'    => $ptsResult,
-                'total_points'  => $ptsExact + $ptsResult,
-                'calculated_at' => now(),
-            ]);
-
-            $affectedUserIds[] = $prediction->user_id;
+            $idsByPoints["{$ptsExact}|{$ptsResult}"][] = $prediction->id;
 
             if ($ptsExact > 0) {
                 $exactScoreHitters[] = $prediction->user_id;
             }
         }
 
-        // Phase 1: recalculate all affected users first
-        $uniqueAffectedIds = array_unique($affectedUserIds);
-        foreach ($uniqueAffectedIds as $userId) {
-            User::recalculateTotalPoints($userId);
+        // Una query por combinación de puntos (máx. 4 combos), no una por predicción
+        $now = now();
+        foreach ($idsByPoints as $key => $ids) {
+            [$ptsExact, $ptsResult] = array_map('intval', explode('|', $key));
+            Prediction::whereIn('id', $ids)->update([
+                'pts_exact'     => $ptsExact,
+                'pts_result'    => $ptsResult,
+                'total_points'  => $ptsExact + $ptsResult,
+                'calculated_at' => $now,
+            ]);
         }
 
-        // Phase 2: load all affected users in one query + compute positions from snapshot
-        $affectedUsers = User::whereIn('id', $uniqueAffectedIds)
-            ->select(['id', 'name', 'total_points'])
-            ->get()
-            ->keyBy('id');
+        $affectedUserIds = $predictions->pluck('user_id')->unique()->values();
 
-        foreach ($affectedUsers as $user) {
-            $position = User::where('total_points', '>', $user->total_points)->count() + 1;
-            PointsUpdated::dispatch($user->id, $user->total_points, $position);
+        if ($affectedUserIds->isNotEmpty()) {
+            $this->recalculateTotals($affectedUserIds);
+
+            $updates = $this->rankingUpdates($affectedUserIds);
+            if ($updates !== []) {
+                rescue(fn () => RankingUpdated::dispatch($updates));
+            }
         }
 
-        // Broadcast live score once
-        LiveScoreUpdated::dispatch(
+        rescue(fn () => LiveScoreUpdated::dispatch(
             $fixture->id,
             $fixture->home_score,
             $fixture->away_score,
             $fixture->status === 'in_progress',
             $fixture->status,
-        );
+        ));
 
-        // Phase 3: dispatch exact score alerts using already-loaded user names
-        foreach ($exactScoreHitters as $userId) {
-            $userName = $affectedUsers[$userId]->name ?? User::find($userId)?->name ?? 'Unknown';
-            ExactScoreAlert::dispatch(
-                $userName,
+        if ($exactScoreHitters !== []) {
+            $names = User::whereIn('id', array_unique($exactScoreHitters))->pluck('name')->all();
+
+            rescue(fn () => ExactScoreAlert::dispatch(
+                $names,
                 $fixture->id,
                 $fixture->home_score,
                 $fixture->away_score,
-            );
+            ));
         }
+    }
+
+    /**
+     * Recalcula users.total_points para todos los afectados:
+     * 3 SELECT agregados + 1 UPDATE, en vez de ~4 queries por usuario.
+     */
+    private function recalculateTotals(Collection $userIds): void
+    {
+        $matchPts = Prediction::whereIn('user_id', $userIds)
+            ->groupBy('user_id')
+            ->selectRaw('user_id, COALESCE(SUM(total_points), 0) AS pts')
+            ->pluck('pts', 'user_id');
+
+        $classifierPts = PredictionSubmission::whereIn('user_id', $userIds)
+            ->groupBy('user_id')
+            ->selectRaw('user_id, COALESCE(SUM(pts_classifier), 0) AS pts')
+            ->pluck('pts', 'user_id');
+
+        $specialPts = SpecialPrediction::whereIn('user_id', $userIds)
+            ->groupBy('user_id')
+            ->selectRaw('user_id, SUM(COALESCE(pts_champion,0) + COALESCE(pts_runner_up,0) + COALESCE(pts_top_scorer,0)) AS pts')
+            ->pluck('pts', 'user_id');
+
+        $cases    = '';
+        $bindings = [];
+
+        foreach ($userIds as $id) {
+            $total = (int) ($matchPts[$id] ?? 0)
+                + (int) ($classifierPts[$id] ?? 0)
+                + (int) ($specialPts[$id] ?? 0);
+
+            $cases .= ' WHEN ? THEN ?';
+            $bindings[] = $id;
+            $bindings[] = $total;
+        }
+
+        $placeholders = implode(',', array_fill(0, $userIds->count(), '?'));
+
+        DB::update(
+            "UPDATE users SET total_points = CASE id{$cases} END WHERE id IN ({$placeholders})",
+            array_merge($bindings, $userIds->all()),
+        );
+    }
+
+    /**
+     * Posiciones con dense rank entre participantes activados
+     * (mismo criterio que RankingController), en una sola query.
+     *
+     * @return array<int, array{user_id: int, total_points: int, position: int}>
+     */
+    private function rankingUpdates(Collection $affectedUserIds): array
+    {
+        $ranking = User::where('is_activated', true)
+            ->where('role', 'user')
+            ->orderByDesc('total_points')
+            ->get(['id', 'total_points']);
+
+        $affected = $affectedUserIds->flip();
+        $updates  = [];
+
+        $position = 0;
+        $lastPts  = null;
+        $counter  = 0;
+
+        foreach ($ranking as $user) {
+            $counter++;
+            if ($user->total_points !== $lastPts) {
+                $position = $counter;
+                $lastPts  = $user->total_points;
+            }
+
+            if ($affected->has($user->id)) {
+                $updates[] = [
+                    'user_id'      => $user->id,
+                    'total_points' => $user->total_points,
+                    'position'     => $position,
+                ];
+            }
+        }
+
+        return $updates;
     }
 }

@@ -3,7 +3,7 @@
 use App\Events\ExactScoreAlert;
 use App\Events\LiveScoreUpdated;
 use App\Events\MessageSent;
-use App\Events\PointsUpdated;
+use App\Events\RankingUpdated;
 use App\Events\RoundLocked;
 use App\Events\RoundOpened;
 use Illuminate\Broadcasting\PresenceChannel;
@@ -29,26 +29,21 @@ it('LiveScoreUpdated broadcasts to presence-quinela with correct payload', funct
     ]);
 });
 
-it('PointsUpdated broadcasts to presence-quinela and private-user', function () {
-    $event = new PointsUpdated(userId: 3, totalPoints: 42, position: 5);
+it('RankingUpdated broadcasts to presence-quinela with batched updates', function () {
+    $updates = [
+        ['user_id' => 3, 'total_points' => 42, 'position' => 1],
+        ['user_id' => 7, 'total_points' => 40, 'position' => 2],
+    ];
+    $event = new RankingUpdated(updates: $updates);
 
     expect($event)->toBeInstanceOf(ShouldBroadcast::class);
 
     $channels = $event->broadcastOn();
-    expect($channels)->toHaveCount(2);
+    expect($channels)->toHaveCount(1);
+    expect($channels[0])->toBeInstanceOf(PresenceChannel::class);
+    expect($channels[0]->name)->toBe('presence-quinela');
 
-    $channelClasses = array_map(fn($c) => get_class($c), $channels);
-    expect($channelClasses)->toContain(PresenceChannel::class);
-    expect($channelClasses)->toContain(PrivateChannel::class);
-
-    $privateChannel = collect($channels)->first(fn($c) => $c instanceof PrivateChannel);
-    expect($privateChannel->name)->toBe('private-user.3');
-
-    expect($event->broadcastWith())->toBe([
-        'user_id'      => 3,
-        'total_points' => 42,
-        'position'     => 5,
-    ]);
+    expect($event->broadcastWith())->toBe(['updates' => $updates]);
 });
 
 it('RoundOpened broadcasts to presence-quinela with round name', function () {
@@ -92,14 +87,14 @@ it('MessageSent broadcasts to presence-quinela with full message payload', funct
     ]);
 });
 
-it('ExactScoreAlert broadcasts to presence-quinela with username and score', function () {
-    $event = new ExactScoreAlert(userName: 'Pedro', matchId: 3, homeScore: 3, awayScore: 0);
+it('ExactScoreAlert broadcasts to presence-quinela with usernames and score', function () {
+    $event = new ExactScoreAlert(userNames: ['Pedro', 'Ana'], matchId: 3, homeScore: 3, awayScore: 0);
 
     expect($event)->toBeInstanceOf(ShouldBroadcast::class);
     expect($event->broadcastOn()[0])->toBeInstanceOf(PresenceChannel::class);
 
     expect($event->broadcastWith())->toBe([
-        'user_name'  => 'Pedro',
+        'user_names' => ['Pedro', 'Ana'],
         'match_id'   => 3,
         'home_score' => 3,
         'away_score' => 0,

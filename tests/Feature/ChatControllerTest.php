@@ -65,6 +65,30 @@ it('stores a new message and dispatches MessageSent', function () {
     });
 });
 
+it('stores the message and redirects even when the broadcaster fails', function () {
+    \Illuminate\Support\Facades\Broadcast::extend('failing', function () {
+        return new class implements \Illuminate\Contracts\Broadcasting\Broadcaster {
+            public function auth($request) {}
+            public function validAuthenticationResponse($request, $result) {}
+            public function broadcast(array $channels, $event, array $payload = [])
+            {
+                throw new \Illuminate\Broadcasting\BroadcastException('Pusher timeout');
+            }
+        };
+    });
+    config([
+        'broadcasting.default' => 'failing',
+        'broadcasting.connections.failing' => ['driver' => 'failing'],
+    ]);
+
+    $this->actingAs($this->user)->post('/chat/messages', [
+        'content' => 'Hola desde el partido',
+    ])->assertRedirect();
+
+    expect(Message::count())->toBe(1);
+    expect(Message::first()->content)->toBe('Hola desde el partido');
+});
+
 it('rejects empty message content', function () {
     $this->actingAs($this->user)->post('/chat/messages', [
         'content' => '',

@@ -185,10 +185,11 @@ export default function Ranking({ users: initialUsers, pozo, tournamentFinalized
     // Real-time: update points via Echo
     useEffect(() => {
         const channel = window.Echo.join('quinela');
-        channel.listen('.PointsUpdated', (event) => {
+        channel.listen('.RankingUpdated', (event) => {
             setUsers(prev => {
+                const byId = new Map(event.updates.map(u => [u.user_id, u]));
                 const updated = prev.map(u =>
-                    u.id === event.user_id ? { ...u, total_points: event.total_points } : u
+                    byId.has(u.id) ? { ...u, total_points: byId.get(u.id).total_points } : u
                 );
                 const sorted = [...updated].sort((a, b) => b.total_points - a.total_points);
                 let pos = 0, lastPts = null, counter = 0;

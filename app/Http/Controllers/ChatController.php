@@ -51,14 +51,15 @@ class ChatController extends Controller
 
         $message->load('user:id,name,avatar');
 
-        MessageSent::dispatch(
+        // El mensaje ya está guardado: si Pusher falla o demora, no debe tumbar el request
+        rescue(fn () => MessageSent::dispatch(
             $message->id,
             $request->user()->id,
             $request->user()->name,
             $request->user()->avatar,
             $data['content'],
             $message->created_at->toISOString(),
-        );
+        ));
 
         return back();
     }

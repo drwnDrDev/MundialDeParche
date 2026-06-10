@@ -119,16 +119,15 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Bracket
     Route::post('bracket/populate-r32', [BracketController::class, 'populateR32'])->name('bracket.populate-r32');
 
-    Route::get('restartdata', function () {
+    // Deploy sin consola: migraciones aditivas + rebuild de caches.
+    // Nunca usar migrate:fresh aquí — borraría todos los datos de producción.
+    Route::get('deploy', function () {
         set_time_limit(120);
-
-        // Cambiar sesión a archivo para que migrate:fresh no mate la respuesta
-        config(['session.driver' => 'file']);
 
         $log = [];
 
-        Artisan::call('migrate:fresh', ['--seed' => true, '--force' => true]);
-        $log[] = '✓ migrate:fresh --seed: ' . trim(Artisan::output());
+        Artisan::call('migrate', ['--force' => true]);
+        $log[] = '✓ migrate --force: ' . trim((string) Artisan::output());
 
         Artisan::call('cache:clear');
         $log[] = '✓ cache:clear';
@@ -144,7 +143,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
         return response('<pre style="font-family:monospace;padding:2rem">'
             . implode("\n", $log)
-            . "\n\nDone ✔ — Vuelve a iniciar sesión con las credenciales del seeder</pre>", 200)
+            . "\n\nDone ✔</pre>", 200)
             ->header('Content-Type', 'text/html');
-    })->name('admin.restartdata');
+    })->name('deploy');
 });

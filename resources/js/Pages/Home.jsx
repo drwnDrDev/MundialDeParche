@@ -63,10 +63,11 @@ export default function Home({ user, featured, stats, phase, nextBets, phaseAler
                 return { ...prev, scoreA: e.home_score, scoreB: e.away_score, status: newStatus };
             });
         });
-        channel.listen('.PointsUpdated', (e) => {
-            if (e.user_id === auth.user.id) {
-                setTotalPoints(e.total_points);
-                setPosition(e.position);
+        channel.listen('.RankingUpdated', (e) => {
+            const mine = e.updates.find(u => u.user_id === auth.user.id);
+            if (mine) {
+                setTotalPoints(mine.total_points);
+                setPosition(mine.position);
             }
         });
         return () => window.Echo.leave('quinela');

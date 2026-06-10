@@ -3,7 +3,7 @@
 use App\Events\ExactScoreAlert;
 use App\Events\LiveScoreUpdated;
 use App\Events\MatchScoreUpdated;
-use App\Events\PointsUpdated;
+use App\Events\RankingUpdated;
 use App\Events\RoundFinalized;
 use App\Events\RoundLocked;
 use App\Events\RoundOpened;
@@ -132,7 +132,7 @@ it('locking grupos round also locks all special predictions', function () {
 // ── Carga de marcadores y puntos ──────────────────────────────────────────────
 
 it('points are calculated after admin enters scores via score entry', function () {
-    Event::fake([LiveScoreUpdated::class, PointsUpdated::class, ExactScoreAlert::class]);
+    Event::fake([LiveScoreUpdated::class, RankingUpdated::class, ExactScoreAlert::class]);
     ['admin' => $admin, 'user1' => $user1, 'user2' => $user2] = makeSimUsers();
     ['round' => $round, 'fixtures' => $fixtures] = makeGruposRoundWithFixtures(1);
     $fixture = $fixtures[0];
@@ -179,7 +179,7 @@ it('points are calculated after admin enters scores via score entry', function (
 });
 
 it('user total_points reflects predictions after score entry', function () {
-    Event::fake([LiveScoreUpdated::class, PointsUpdated::class, ExactScoreAlert::class]);
+    Event::fake([LiveScoreUpdated::class, RankingUpdated::class, ExactScoreAlert::class]);
     ['admin' => $admin, 'user1' => $user1] = makeSimUsers();
     ['round' => $round, 'fixtures' => $fixtures] = makeGruposRoundWithFixtures(1);
     $fixture = $fixtures[0];
@@ -234,7 +234,7 @@ it('admin cannot finalize an already finalized round', function () {
 // ── Flujo multi-ronda ─────────────────────────────────────────────────────────
 
 it('two consecutive rounds each score independently', function () {
-    Event::fake([LiveScoreUpdated::class, PointsUpdated::class, ExactScoreAlert::class, RoundFinalized::class, RoundLocked::class]);
+    Event::fake([LiveScoreUpdated::class, RankingUpdated::class, ExactScoreAlert::class, RoundFinalized::class, RoundLocked::class]);
     ['admin' => $admin, 'user1' => $user1] = makeSimUsers();
 
     // R1
@@ -299,7 +299,7 @@ it('two consecutive rounds each score independently', function () {
 // ── Usuario sin predicciones tiene 0 puntos ───────────────────────────────────
 
 it('user without predictions in R1 has zero total_points', function () {
-    Event::fake([LiveScoreUpdated::class, PointsUpdated::class, ExactScoreAlert::class]);
+    Event::fake([LiveScoreUpdated::class, RankingUpdated::class, ExactScoreAlert::class]);
     ['admin' => $admin, 'user1' => $user1, 'user3' => $user3] = makeSimUsers();
     ['round' => $round, 'fixtures' => $fixtures] = makeGruposRoundWithFixtures(1);
     $fixture = $fixtures[0];
@@ -330,7 +330,7 @@ it('user without predictions in R1 has zero total_points', function () {
 // ── Ranking refleja orden correcto ────────────────────────────────────────────
 
 it('final ranking reflects correct point order', function () {
-    Event::fake([LiveScoreUpdated::class, PointsUpdated::class, ExactScoreAlert::class]);
+    Event::fake([LiveScoreUpdated::class, RankingUpdated::class, ExactScoreAlert::class]);
     ['admin' => $admin, 'user1' => $user1, 'user2' => $user2] = makeSimUsers();
     ['round' => $round, 'fixtures' => $fixtures] = makeGruposRoundWithFixtures(1);
     $fixture = $fixtures[0];

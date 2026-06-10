@@ -29,7 +29,7 @@ class RoundController extends Controller
 
         $round->update(['is_open' => true]);
 
-        RoundOpened::dispatch($round->name);
+        rescue(fn () => RoundOpened::dispatch($round->name));
 
         return back()->with('status', "Ronda '{$round->name}' abierta.");
     }
@@ -67,7 +67,7 @@ class RoundController extends Controller
             }
         }
 
-        RoundLocked::dispatch($round->name);
+        rescue(fn () => RoundLocked::dispatch($round->name));
 
         return back()->with('status', "Ronda '{$round->name}' bloqueada.");
     }
@@ -104,7 +104,7 @@ class RoundController extends Controller
                 \App\Models\SpecialPrediction::query()->update(['is_locked' => true]);
             }
 
-            RoundLocked::dispatch($round->name);
+            rescue(fn () => RoundLocked::dispatch($round->name));
         }
 
         RoundFinalized::dispatch($round);

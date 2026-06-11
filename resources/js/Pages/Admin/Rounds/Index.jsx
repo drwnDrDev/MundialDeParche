@@ -2,8 +2,8 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 
-function LockModal({ round, pending, onConfirm, onCancel }) {
-    const allGood = pending.length === 0;
+function LockModal({ round, pending, pendingSpecials, onConfirm, onCancel }) {
+    const allGood = pending.length === 0 && pendingSpecials.length === 0;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -16,14 +16,16 @@ function LockModal({ round, pending, onConfirm, onCancel }) {
                     Las predicciones quedarán cerradas y los partidos comenzarán.
                 </p>
 
-                {allGood ? (
+                {allGood && (
                     <div className="flex items-start gap-3 rounded-md bg-green-50 border border-green-200 p-3 mb-5">
                         <span className="text-green-600 text-lg leading-none">✓</span>
                         <p className="text-sm text-green-800">
                             Todos los usuarios activados confirmaron sus predicciones.
                         </p>
                     </div>
-                ) : (
+                )}
+
+                {pending.length > 0 && (
                     <div className="rounded-md bg-yellow-50 border border-yellow-200 p-3 mb-5">
                         <p className="text-sm font-medium text-yellow-800 mb-2">
                             ⚠️ {pending.length} usuario{pending.length > 1 ? 's' : ''} sin confirmar
@@ -38,6 +40,25 @@ function LockModal({ round, pending, onConfirm, onCancel }) {
                         </ul>
                         <p className="text-xs text-yellow-600 mt-2">
                             Sus predicciones guardadas (o ninguna) serán auto-enviadas al bloquear.
+                        </p>
+                    </div>
+                )}
+
+                {pendingSpecials.length > 0 && (
+                    <div className="rounded-md bg-orange-50 border border-orange-200 p-3 mb-5">
+                        <p className="text-sm font-medium text-orange-800 mb-2">
+                            🏆 {pendingSpecials.length} usuario{pendingSpecials.length > 1 ? 's' : ''} con especiales incompletas
+                        </p>
+                        <ul className="text-sm text-orange-700 space-y-0.5 max-h-40 overflow-y-auto">
+                            {pendingSpecials.map(u => (
+                                <li key={u.id} className="flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-orange-500 flex-shrink-0" />
+                                    {u.name}
+                                </li>
+                            ))}
+                        </ul>
+                        <p className="text-xs text-orange-600 mt-2">
+                            Campeón, sub-campeón o goleador sin elegir. Las especiales se bloquean junto con esta ronda.
                         </p>
                     </div>
                 )}
@@ -68,8 +89,8 @@ export default function Index({ rounds }) {
         setLoadingLock(round.id);
         try {
             const res = await fetch(route('admin.rounds.pending', round.slug));
-            const { pending } = await res.json();
-            setLockModal({ round, pending });
+            const { pending, pendingSpecials } = await res.json();
+            setLockModal({ round, pending, pendingSpecials: pendingSpecials ?? [] });
         } catch {
             alert('Error al consultar predicciones pendientes. Intenta de nuevo.');
         } finally {
@@ -90,6 +111,7 @@ export default function Index({ rounds }) {
                 <LockModal
                     round={lockModal.round}
                     pending={lockModal.pending}
+                    pendingSpecials={lockModal.pendingSpecials}
                     onConfirm={confirmLock}
                     onCancel={() => setLockModal(null)}
                 />

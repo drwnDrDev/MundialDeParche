@@ -76,3 +76,52 @@ it('finalizes a locked round and dispatches RoundFinalized', function () {
 
     Event::assertDispatched(RoundFinalized::class);
 });
+
+// --- pending-submissions: especiales pendientes (solo grupos) ---
+
+it('pending endpoint includes users with missing special predictions for grupos round', function () {
+    $round = Round::factory()->f1()->create(['is_open' => true]);
+
+    $sinEspeciales  = User::factory()->activated()->create(['is_active' => true, 'name' => 'Sin Especiales']);
+    $incompleto     = User::factory()->activated()->create(['is_active' => true, 'name' => 'Incompleto']);
+    $completo       = User::factory()->activated()->create(['is_active' => true, 'name' => 'Completo']);
+
+    $team   = \App\Models\Team::factory()->create();
+    $player = \App\Models\Player::factory()->create();
+
+    // Incompleto: tiene registro pero le falta el goleador
+    \App\Models\SpecialPrediction::factory()->create([
+        'user_id'              => $incompleto->id,
+        'champion_team_id'     => $team->id,
+        'runner_up_team_id'    => $team->id,
+        'top_scorer_player_id' => null,
+    ]);
+
+    \App\Models\SpecialPrediction::factory()->create([
+        'user_id'              => $completo->id,
+        'champion_team_id'     => $team->id,
+        'runner_up_team_id'    => $team->id,
+        'top_scorer_player_id' => $player->id,
+    ]);
+
+    $response = $this->actingAs($this->admin)
+        ->get(route('admin.rounds.pending', $round->slug))
+        ->assertOk();
+
+    $names = collect($response->json('pendingSpecials'))->pluck('name');
+    expect($names)->toContain('Sin Especiales');
+    expect($names)->toContain('Incompleto');
+    expect($names)->not->toContain('Completo');
+});
+
+it('pending endpoint returns empty pendingSpecials for non-grupos rounds', function () {
+    $round = Round::factory()->f2()->create(['is_open' => true]);
+
+    User::factory()->activated()->create(['is_active' => true]);
+
+    $response = $this->actingAs($this->admin)
+        ->get(route('admin.rounds.pending', $round->slug))
+        ->assertOk();
+
+    expect($response->json('pendingSpecials'))->toBe([]);
+});

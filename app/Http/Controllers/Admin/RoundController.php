@@ -88,7 +88,25 @@ class RoundController extends Controller
             ->select(['id', 'name'])
             ->get();
 
-        return response()->json(['pending' => $pending]);
+        // Al bloquear grupos también se bloquean las especiales: avisar quiénes las tienen incompletas
+        $pendingSpecials = collect();
+        if ($round->slug === 'grupos') {
+            $completeSpecialUserIds = \App\Models\SpecialPrediction::whereNotNull('champion_team_id')
+                ->whereNotNull('runner_up_team_id')
+                ->whereNotNull('top_scorer_player_id')
+                ->pluck('user_id');
+
+            $pendingSpecials = \App\Models\User::whereIn('id', $activeUserIds)
+                ->whereNotIn('id', $completeSpecialUserIds)
+                ->orderBy('name')
+                ->select(['id', 'name'])
+                ->get();
+        }
+
+        return response()->json([
+            'pending'         => $pending,
+            'pendingSpecials' => $pendingSpecials,
+        ]);
     }
 
     public function finalize(Round $round): RedirectResponse

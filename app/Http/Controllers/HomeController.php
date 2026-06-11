@@ -203,12 +203,13 @@ class HomeController extends Controller
 
         if (! $round) return null;
 
-        $submission = $user->predictionSubmissions()
+        // Pendiente = sin submission o en draft; solo quien ya confirmó se libra de la alerta
+        $hasConfirmed = $user->predictionSubmissions()
             ->where('round_id', $round->id)
-            ->where('status', 'draft')
-            ->first();
+            ->whereIn('status', ['submitted', 'locked'])
+            ->exists();
 
-        if (! $submission) return null;
+        if ($hasConfirmed) return null;
 
         $totalMatches = $round->fixtures()->count();
         $predicted    = $user->predictions()

@@ -76,16 +76,36 @@ it('deadlineAlert is null when closes_at is more than 24h away', function () {
     $response->assertInertia(fn ($page) => $page->where('deadlineAlert', null));
 });
 
-it('deadlineAlert is null when user has no draft submission', function () {
-    Round::factory()->create([
+it('deadlineAlert is null when user already submitted predictions', function () {
+    $round = Round::factory()->create([
         'is_open'   => true,
         'is_locked' => false,
         'closes_at' => now()->addHours(2),
     ]);
 
+    PredictionSubmission::factory()->submitted()->create([
+        'user_id'  => $this->user->id,
+        'round_id' => $round->id,
+    ]);
+
     $response = $this->withoutVite()->actingAs($this->user)->get('/dashboard');
 
     $response->assertInertia(fn ($page) => $page->where('deadlineAlert', null));
+});
+
+it('deadlineAlert is present when user has no submission at all', function () {
+    Round::factory()->create([
+        'is_open'   => true,
+        'is_locked' => false,
+        'closes_at' => now()->addHours(2),
+        'name'      => 'Grupos',
+    ]);
+
+    $response = $this->withoutVite()->actingAs($this->user)->get('/dashboard');
+
+    $props = $response->original->getData()['page']['props'];
+    expect($props['deadlineAlert'])->not->toBeNull();
+    expect($props['deadlineAlert']['round'])->toBe('Grupos');
 });
 
 it('deadlineAlert is present when closes_at is within 24h and user has draft submission', function () {

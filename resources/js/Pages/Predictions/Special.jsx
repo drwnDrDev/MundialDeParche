@@ -407,7 +407,7 @@ export default function Special({ special, teams, players, status, realResults }
                         {isLocked && realResults ? (
                             <ComparisonCard
                                 label="SUB-CAMPEÓN"
-                                predicted={special?.runnerUp}
+                                predicted={special?.runner_up}
                                 real={realResults.runner_up}
                                 pts={special?.pts_runner_up ?? 0}
                                 ptsType="runner"

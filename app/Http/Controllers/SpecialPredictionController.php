@@ -5,10 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Player;
 use App\Models\SpecialPrediction;
 use App\Models\Team;
+use App\Models\TournamentResult;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -25,12 +25,12 @@ class SpecialPredictionController extends Controller
             ->first();
 
         $realResults = null;
-        $cached      = Cache::get('tournament_results');
-        if ($cached) {
+        $result      = TournamentResult::first();
+        if ($result) {
             $realResults = [
-                'champion'   => Team::find($cached['champion_team_id']),
-                'runner_up'  => Team::find($cached['runner_up_team_id']),
-                'top_scorer' => Player::with('team')->find($cached['top_scorer_player_id']),
+                'champion'   => Team::find($result->champion_team_id),
+                'runner_up'  => Team::find($result->runner_up_team_id),
+                'top_scorer' => Player::with('team')->find($result->top_scorer_player_id),
             ];
         }
 

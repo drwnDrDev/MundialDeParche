@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\TournamentResult;
 use App\Models\User;
-use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -45,7 +45,7 @@ class RankingController extends Controller
 
         return Inertia::render('Ranking', [
             'users'               => $users,
-            'tournamentFinalized' => Cache::has('tournament_results'),
+            'tournamentFinalized' => TournamentResult::exists(),
             'pozo'                => [
                 'total'           => $fmt($total) ?: '0K',
                 'players'         => $activated,

@@ -7,9 +7,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Fixture;
 use App\Models\Player;
 use App\Models\Team;
+use App\Models\TournamentResult;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -34,7 +34,7 @@ class TournamentController extends Controller
                 : $final->homeTeam;
         }
 
-        $savedResults = Cache::get('tournament_results');
+        $savedResults = TournamentResult::first();
 
         return Inertia::render('Admin/Tournament', [
             'teams'            => Team::with('group')->orderBy('name')->get(),

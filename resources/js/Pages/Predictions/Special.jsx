@@ -420,7 +420,7 @@ export default function Special({ special, teams, players, status, realResults }
                                         <PtsChip pts={special.pts_runner_up} type="result" />
                                     </div>
                                 )}
-                                <LockedPredictionCard label="TU SUB-CAMPEÓN" predicted={special?.runnerUp} />
+                                <LockedPredictionCard label="TU SUB-CAMPEÓN" predicted={special?.runner_up} />
                                 <div className="mt-1.5 font-mono text-[9px] opacity-40 text-center tracking-[.06em]">ESPERANDO RESULTADOS OFICIALES</div>
                             </>
                         ) : (

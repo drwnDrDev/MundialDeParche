@@ -15,7 +15,8 @@ export default function ReceiptMatchRow({ fixture, prediction, isFinalized }) {
         : '—';
 
     return (
-        <div className="flex items-center gap-2 px-[18px] py-2.5 border-b border-ink/10">
+        <div className={`flex items-center gap-2 px-[18px] py-2.5 border-b border-ink/10 ${realScore !== '–' ? 'bg-white' : ''}`}>
+            <span className="font-mono text-[10px] opacity-40">M{fixture.match_number}</span>
             {/* Resultado real */}
             <div className="flex items-center gap-1 flex-1 min-w-0 overflow-hidden">
                 {homeFlag

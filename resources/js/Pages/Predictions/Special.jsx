@@ -446,8 +446,8 @@ export default function Special({ special, teams, players, status, realResults }
                         {isLocked && realResults ? (
                             <ComparisonCard
                                 label="GOLEADOR"
-                                predicted={special?.topScorer
-                                    ? { name: special.topScorer.name, flag_url: special.topScorer.team?.flag_url ?? null }
+                                predicted={special?.top_scorer
+                                    ? { name: special.top_scorer.name, flag_url: special.top_scorer.team?.flag_url ?? null }
                                     : null}
                                 real={realResults.top_scorer
                                     ? { name: realResults.top_scorer.name, flag_url: realResults.top_scorer.team?.flag_url ?? null }

@@ -14,6 +14,17 @@ export default function ReceiptMatchRow({ fixture, prediction, isFinalized }) {
         ? `${prediction.predicted_home}–${prediction.predicted_away}`
         : '—';
 
+    const isPredDraw = prediction
+        && Number(prediction.predicted_home) === Number(prediction.predicted_away);
+
+    const predictedWinnerTeam = isPredDraw && prediction.predicted_winner_id
+        ? (fixture.home_team?.id === prediction.predicted_winner_id
+            ? fixture.home_team
+            : fixture.away_team?.id === prediction.predicted_winner_id
+                ? fixture.away_team
+                : null)
+        : null;
+
     return (
         <div className={`flex items-center gap-2 px-[18px] py-2.5 border-b border-ink/10 ${realScore !== '–' ? 'bg-white' : ''}`}>
             <span className="font-mono text-[10px] opacity-40">M{fixture.match_number}</span>
@@ -34,6 +45,14 @@ export default function ReceiptMatchRow({ fixture, prediction, isFinalized }) {
 
             {/* Predicción + chips */}
             <div className="flex items-center gap-1.5 flex-shrink-0">
+                {predictedWinnerTeam?.flag_url && (
+                    <img
+                        src={predictedWinnerTeam.flag_url}
+                        className="w-4 h-2.5 object-cover border border-ink/30 flex-shrink-0"
+                        alt={predictedWinnerTeam.fifa_code ?? ''}
+                        title="Avanza por ET/penales"
+                    />
+                )}
                 <span className="font-mono text-[10px] opacity-40">→</span>
                 <span className="font-mono text-[12px] font-bold">{predScore}</span>
 

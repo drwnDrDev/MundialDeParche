@@ -3,6 +3,16 @@ import MobileShell from '@/Components/MobileShell';
 import ReceiptMatchRow from '@/Components/composed/ReceiptMatchRow';
 import PtsChip from '@/Components/ui/PtsChip';
 
+function getSubRoundLabel(roundSlug, matchNumber) {
+    if (roundSlug === 'f3') return matchNumber <= 96 ? 'Octavos de Final' : 'Cuartos de Final';
+    if (roundSlug === 'f4') {
+        if (matchNumber <= 102) return 'Semifinales';
+        if (matchNumber === 103) return 'Tercer Puesto';
+        return 'Final';
+    }
+    return null;
+}
+
 export default function Receipt({
     round,
     fixtures,
@@ -117,14 +127,28 @@ export default function Receipt({
 
             {/* Lista de partidos */}
             <div className="overflow-y-auto">
-                {fixtures.map(fixture => (
-                    <ReceiptMatchRow
-                        key={fixture.id}
-                        fixture={fixture}
-                        prediction={predictions[fixture.id] ?? null}
-                        isFinalized={isFinalized}
-                    />
-                ))}
+                {fixtures.map((fixture, i) => {
+                    const label    = getSubRoundLabel(round.slug, fixture.match_number);
+                    const prevLabel = i > 0 ? getSubRoundLabel(round.slug, fixtures[i - 1].match_number) : null;
+                    const showHeader = label && label !== prevLabel;
+                    return (
+                        <div key={fixture.id}>
+                            {showHeader && (
+                                <div className="flex items-center gap-2 px-[18px] py-2 bg-navy/8 border-y border-ink/15">
+                                    <div className="w-[3px] h-3.5 bg-pop-red flex-shrink-0" />
+                                    <span className="font-mono text-[9px] tracking-[.08em] font-bold opacity-70">
+                                        {label.toUpperCase()}
+                                    </span>
+                                </div>
+                            )}
+                            <ReceiptMatchRow
+                                fixture={fixture}
+                                prediction={predictions[fixture.id] ?? null}
+                                isFinalized={isFinalized}
+                            />
+                        </div>
+                    );
+                })}
 
                 {/* Bloque de clasificados */}
                 {classifiers && classifiers.length > 0 && (() => {

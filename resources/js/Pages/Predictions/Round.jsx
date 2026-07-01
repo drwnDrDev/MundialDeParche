@@ -340,6 +340,18 @@ function getBracketTeam(fixture, slot, fixturesByMatchNumber, scores, winners) {
     return { team: simulateBracketWinner(fedBy, fixturesByMatchNumber, scores, winners), isSimulated: true };
 }
 
+// ── Sub-round label helper ─────────────────────────────────────────────────
+
+function getSubRoundLabel(roundSlug, matchNumber) {
+    if (roundSlug === 'f3') return matchNumber <= 96 ? 'Octavos de Final' : 'Cuartos de Final';
+    if (roundSlug === 'f4') {
+        if (matchNumber <= 102) return 'Semifinales';
+        if (matchNumber === 103) return 'Tercer Puesto';
+        return 'Final';
+    }
+    return null;
+}
+
 // ── GroupPanel ─────────────────────────────────────────────────────────────
 
 function GroupPanel({ groupKey, fixtures, scores, isLocked, onChange, round }) {
@@ -660,22 +672,34 @@ export default function Round({ round, fixtures, predictions, submission }) {
                                 {fixtures.map((f, i) => {
                                     const simHome = isBracketPhase ? getBracketTeam(f, 'home', fixturesByMatchNumber, scores, winners) : { team: null, isSimulated: false };
                                     const simAway = isBracketPhase ? getBracketTeam(f, 'away', fixturesByMatchNumber, scores, winners) : { team: null, isSimulated: false };
+                                    const label     = getSubRoundLabel(round.slug, f.match_number);
+                                    const prevLabel = i > 0 ? getSubRoundLabel(round.slug, fixtures[i - 1].match_number) : null;
+                                    const showHeader = label && label !== prevLabel;
                                     return (
-                                        <MatchPredRow
-                                            key={f.id}
-                                            fixture={f}
-                                            homeScore={scores[f.id]?.home ?? null}
-                                            awayScore={scores[f.id]?.away ?? null}
-                                            onChangeHome={v => handleChange(f.id, 'home', v)}
-                                            onChangeAway={v => handleChange(f.id, 'away', v)}
-                                            disabled={isLocked || isSubmitted || !isActivated}
-                                            last={i === fixtures.length - 1}
-                                            simulatedHome={simHome.isSimulated ? simHome.team : null}
-                                            simulatedAway={simAway.isSimulated ? simAway.team : null}
-                                            isKnockout={true}
-                                            predictedWinnerId={winners[f.id] ?? null}
-                                            onSelectWinner={teamId => handleSelectWinner(f.id, teamId)}
-                                        />
+                                        <div key={f.id}>
+                                            {showHeader && (
+                                                <div className="flex items-center gap-2 px-3 py-2 bg-ink/5 border-b border-dashed border-ink/20">
+                                                    <div className="w-[3px] h-3.5 bg-pop-red flex-shrink-0" />
+                                                    <span className="font-mono text-[9px] tracking-[.08em] font-bold opacity-70">
+                                                        {label.toUpperCase()}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            <MatchPredRow
+                                                fixture={f}
+                                                homeScore={scores[f.id]?.home ?? null}
+                                                awayScore={scores[f.id]?.away ?? null}
+                                                onChangeHome={v => handleChange(f.id, 'home', v)}
+                                                onChangeAway={v => handleChange(f.id, 'away', v)}
+                                                disabled={isLocked || isSubmitted || !isActivated}
+                                                last={i === fixtures.length - 1}
+                                                simulatedHome={simHome.isSimulated ? simHome.team : null}
+                                                simulatedAway={simAway.isSimulated ? simAway.team : null}
+                                                isKnockout={true}
+                                                predictedWinnerId={winners[f.id] ?? null}
+                                                onSelectWinner={teamId => handleSelectWinner(f.id, teamId)}
+                                            />
+                                        </div>
                                     );
                                 })}
                             </div>

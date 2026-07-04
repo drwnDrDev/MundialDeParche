@@ -524,7 +524,14 @@ export default function Round({ round, fixtures, predictions, submission }) {
             const drawsWithoutWinner = fixtures.filter(f => {
                 const s = scores[f.id];
                 if (!s || s.home === null || s.away === null) return false;
-                return Number(s.home) === Number(s.away) && !winners[f.id];
+                if (Number(s.home) !== Number(s.away)) return false;
+                if (winners[f.id]) return false;
+                // Si los equipos todavía no están determinados (ej. cuartos antes de
+                // octavos), no hay entre quiénes elegir ganador de ET/penales todavía —
+                // el empate se guarda igual, sin bloquear el resto de las predicciones.
+                const homeKnown = getBracketTeam(f, 'home', fixturesByMatchNumber, scores, winners).team;
+                const awayKnown = getBracketTeam(f, 'away', fixturesByMatchNumber, scores, winners).team;
+                return Boolean(homeKnown && awayKnown);
             });
             if (drawsWithoutWinner.length > 0) {
                 setDrawError('Si predices empate, elige quién avanza por ET/penales en cada partido empatado.');

@@ -120,7 +120,7 @@ class PredictionController extends Controller
         }
 
         $data = $request->validate([
-            'predictions'                          => ['required', 'array'],
+            'predictions'                          => ['sometimes', 'nullable', 'array'],
             'predictions.*.predicted_home'         => ['required', 'integer', 'min:0', 'max:20'],
             'predictions.*.predicted_away'         => ['required', 'integer', 'min:0', 'max:20'],
             'predictions.*.predicted_winner_id'    => ['nullable', 'integer', 'exists:teams,id'],
@@ -136,9 +136,16 @@ class PredictionController extends Controller
                 $h = (int) $scores['predicted_home'];
                 $a = (int) $scores['predicted_away'];
                 if ($h === $a) {
-                    $fixture   = $fixturesMap[(int) $matchId] ?? null;
-                    $winnerId  = isset($scores['predicted_winner_id']) ? (int) $scores['predicted_winner_id'] : null;
-                    $validIds  = $fixture ? [$fixture->home_team_id, $fixture->away_team_id] : [];
+                    $fixture = $fixturesMap[(int) $matchId] ?? null;
+
+                    // Equipos aún no determinados (ej. cuartos antes de octavos): no hay
+                    // equipos reales entre los cuales elegir ganador de ET/penales todavía.
+                    if (! $fixture || ! $fixture->home_team_id || ! $fixture->away_team_id) {
+                        continue;
+                    }
+
+                    $winnerId = isset($scores['predicted_winner_id']) ? (int) $scores['predicted_winner_id'] : null;
+                    $validIds = [$fixture->home_team_id, $fixture->away_team_id];
                     if (! $winnerId || ! in_array($winnerId, $validIds)) {
                         return back()->withErrors(['predictions' => 'Cuando predices empate, debes elegir quién avanza por ET/penales.']);
                     }
@@ -149,8 +156,12 @@ class PredictionController extends Controller
         $fixtureIds = $round->fixtures()->pluck('id');
 
         return DB::transaction(function () use ($data, $fixtureIds, $round, $submission) {
+            Prediction::where('user_id', Auth::id())
+                ->whereIn('match_id', $fixtureIds)
+                ->delete();
+
             $isKnockout = $round->slug !== 'grupos';
-            foreach ($data['predictions'] as $matchId => $scores) {
+            foreach ($data['predictions'] ?? [] as $matchId => $scores) {
                 if (! $fixtureIds->contains((int) $matchId)) continue;
                 $h = (int) $scores['predicted_home'];
                 $a = (int) $scores['predicted_away'];
@@ -169,7 +180,7 @@ class PredictionController extends Controller
 
             $isGroupStage   = $round->slug === 'grupos';
             $hasClassifiers = ! empty($data['predicted_classifiers'] ?? null);
-            $coveredIds     = collect($data['predictions'])->keys()
+            $coveredIds     = collect($data['predictions'] ?? [])->keys()
                 ->map(fn ($k) => (int) $k)
                 ->filter(fn ($id) => $fixtureIds->contains($id));
             $allCovered     = $fixtureIds->diff($coveredIds)->isEmpty();

@@ -194,6 +194,29 @@ it('updates existing prediction on save', function () {
     expect(\App\Models\Prediction::first()->predicted_home)->toBe(3);
 });
 
+it('removes a previous prediction when a blank draft is saved', function () {
+    $round   = Round::factory()->f1()->create(['is_open' => true]);
+    $group   = \App\Models\Group::factory()->create(['name' => 'A']);
+    $home    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
+    $away    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
+    $fixture = \App\Models\Fixture::factory()->create([
+        'round_id' => $round->id, 'group_id' => $group->id,
+        'home_team_id' => $home->id, 'away_team_id' => $away->id,
+    ]);
+    \App\Models\Prediction::factory()->create([
+        'user_id' => $this->user->id, 'match_id' => $fixture->id,
+        'predicted_home' => 2, 'predicted_away' => 1,
+    ]);
+
+    $this->actingAs($this->user)->post("/predictions/{$round->slug}/save", [
+        'predictions' => [],
+    ])->assertRedirect();
+
+    expect(\App\Models\Prediction::where('user_id', $this->user->id)
+        ->where('match_id', $fixture->id)
+        ->exists())->toBeFalse();
+});
+
 it('rejects save when round is not open', function () {
     $round   = Round::factory()->f1()->create(['is_open' => false]);
     $group   = \App\Models\Group::factory()->create();
@@ -252,7 +275,7 @@ it('submits predictions when all fixtures are covered', function () {
     expect(\App\Models\PredictionSubmission::first()->submitted_at)->not->toBeNull();
 });
 
-it('rejects submit when not all fixtures covered', function () {
+it('saves as draft when not all fixtures covered', function () {
     $round   = Round::factory()->f1()->create(['is_open' => true]);
     $group   = \App\Models\Group::factory()->create(['name' => 'A']);
     $home    = \App\Models\Team::factory()->create(['group_id' => $group->id]);
@@ -262,12 +285,12 @@ it('rejects submit when not all fixtures covered', function () {
         'home_team_id' => $home->id, 'away_team_id' => $away->id,
     ]);
 
-    // Send predictions for zero fixtures + no classifiers → 'required' validation error
     $this->actingAs($this->user)->post("/predictions/{$round->slug}/save", [
         'predictions' => [],
-    ])->assertSessionHasErrors('predictions');
+    ])->assertRedirect();
 
-    expect(\App\Models\PredictionSubmission::count())->toBe(0);
+    expect(\App\Models\PredictionSubmission::count())->toBe(1);
+    expect(\App\Models\PredictionSubmission::first()->status)->toBe('draft');
 });
 
 it('rejects submit with tie in knockout round', function () {
@@ -389,6 +412,25 @@ it('rejects save (draft) with tie in knockout round', function () {
     ])->assertSessionHasErrors('predictions');
 
     expect(\App\Models\Prediction::count())->toBe(0);
+});
+
+it('allows ties on knockout fixtures whose teams are not yet determined (TBD)', function () {
+    $round   = Round::factory()->f3()->create(['is_open' => true]);
+    // Cuartos fixture: teams still unknown, depend on octavos results
+    $fixture = \App\Models\Fixture::factory()->create([
+        'round_id'     => $round->id,
+        'home_team_id' => null,
+        'away_team_id' => null,
+    ]);
+
+    $this->actingAs($this->user)->post("/predictions/{$round->slug}/save", [
+        'predictions' => [
+            (string) $fixture->id => ['predicted_home' => 1, 'predicted_away' => 1],
+        ],
+    ])->assertSessionHasNoErrors();
+
+    expect(\App\Models\Prediction::count())->toBe(1)
+        ->and(\App\Models\Prediction::first()->predicted_winner_id)->toBeNull();
 });
 
 it('allows ties in group stage (R1) save', function () {

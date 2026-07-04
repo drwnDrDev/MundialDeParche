@@ -125,6 +125,14 @@ class CalculateClassifierPoints
                     continue;
                 }
 
+                if ($pred->predicted_home === $pred->predicted_away) {
+                    // Empate a 90': el ganador predicho viene de predicted_winner_id (ET/penales)
+                    if ($pred->predicted_winner_id !== null) {
+                        $predictedClassifiers[] = $pred->predicted_winner_id;
+                    }
+                    continue;
+                }
+
                 $predictedClassifiers[] = $pred->predicted_home > $pred->predicted_away
                     ? $fixture->home_team_id
                     : $fixture->away_team_id;

@@ -312,6 +312,46 @@ it('awards F2 classifier points for correctly predicted R32 winners', function (
     expect($submission->fresh()->pts_classifier)->toBe(3); // 1 correct × 3 pts
 });
 
+it('awards F2 classifier points when user correctly predicts a 90-min draw resolved by penalties', function () {
+    $f2 = Round::factory()->f2()->create(['points_classifier' => 3]);
+
+    $teamA = Team::factory()->create(['fifa_code' => 'EEE']);
+    $teamB = Team::factory()->create(['fifa_code' => 'FFF']);
+
+    // M73: 1-1 at 90', teamA (home) wins on penalties
+    $m73 = Fixture::factory()->create([
+        'round_id'       => $f2->id,
+        'match_number'   => 73,
+        'home_team_id'   => $teamA->id,
+        'away_team_id'   => $teamB->id,
+        'home_score'     => 1,
+        'away_score'     => 1,
+        'winner_team_id' => $teamA->id,
+        'status'         => 'finished',
+    ]);
+
+    $user = User::factory()->create();
+
+    $submission = PredictionSubmission::factory()->create([
+        'user_id'  => $user->id,
+        'round_id' => $f2->id,
+        'status'   => 'submitted',
+    ]);
+
+    // User predicts a 90-min draw, and correctly picks teamA (home) to win on penalties
+    Prediction::factory()->create([
+        'user_id'             => $user->id,
+        'match_id'            => $m73->id,
+        'predicted_home'      => 1,
+        'predicted_away'      => 1,
+        'predicted_winner_id' => $teamA->id,
+    ]);
+
+    RoundFinalized::dispatch($f2);
+
+    expect($submission->fresh()->pts_classifier)->toBe(3); // correctly predicted classifier via predicted_winner_id
+});
+
 // ─── F3 (OCTAVOS + CUARTOS) CLASSIFIERS ────────────────────────────────────
 
 it('awards F3 classifier points for correctly predicted cuartos winners (semifinalists)', function () {
